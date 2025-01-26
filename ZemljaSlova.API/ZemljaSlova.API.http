@@ -1,0 +1,6 @@
+@ZemljaSlova.API_HostAddress = http://localhost:5285
+
+GET {{ZemljaSlova.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
