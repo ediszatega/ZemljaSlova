@@ -1,0 +1,412 @@
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+
+namespace ZemljaSlova.Services.Database;
+
+public partial class _200036Context : DbContext
+{
+    public _200036Context()
+    {
+    }
+
+    public _200036Context(DbContextOptions<_200036Context> options)
+        : base(options)
+    {
+    }
+
+    public virtual DbSet<Author> Authors { get; set; }
+
+    public virtual DbSet<Book> Books { get; set; }
+
+    public virtual DbSet<BookReservation> BookReservations { get; set; }
+
+    public virtual DbSet<BookTransaction> BookTransactions { get; set; }
+
+    public virtual DbSet<Discount> Discounts { get; set; }
+
+    public virtual DbSet<Employee> Employees { get; set; }
+
+    public virtual DbSet<Event> Events { get; set; }
+
+    public virtual DbSet<Favourite> Favourites { get; set; }
+
+    public virtual DbSet<Member> Members { get; set; }
+
+    public virtual DbSet<Membership> Memberships { get; set; }
+
+    public virtual DbSet<Notification> Notifications { get; set; }
+
+    public virtual DbSet<Order> Orders { get; set; }
+
+    public virtual DbSet<OrderItem> OrderItems { get; set; }
+
+    public virtual DbSet<Ticket> Tickets { get; set; }
+
+    public virtual DbSet<TicketType> TicketTypes { get; set; }
+
+    public virtual DbSet<TicketTypeTransaction> TicketTypeTransactions { get; set; }
+
+    public virtual DbSet<User> Users { get; set; }
+
+    public virtual DbSet<UserBookClub> UserBookClubs { get; set; }
+
+    public virtual DbSet<UserBookClubTransaction> UserBookClubTransactions { get; set; }
+
+    public virtual DbSet<Voucher> Vouchers { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Data Source=localhost\\SQLEXPRESS; Initial Catalog=200036; Integrated Security=True;TrustServerCertificate=true");
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Author>(entity =>
+        {
+            entity.ToTable("Author");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.FirstName).HasMaxLength(100);
+            entity.Property(e => e.Genre).HasMaxLength(50);
+            entity.Property(e => e.LastName).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<Book>(entity =>
+        {
+            entity.ToTable("Book");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Binding).HasMaxLength(50);
+            entity.Property(e => e.BookPurpos).HasMaxLength(50);
+            entity.Property(e => e.Dimensions).HasMaxLength(50);
+            entity.Property(e => e.Genre).HasMaxLength(50);
+            entity.Property(e => e.Language).HasMaxLength(50);
+            entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Publisher).HasMaxLength(255);
+            entity.Property(e => e.Title).HasMaxLength(255);
+            entity.Property(e => e.Weight).HasColumnType("decimal(5, 2)");
+
+            entity.HasOne(d => d.Author).WithMany(p => p.Books)
+                .HasForeignKey(d => d.AuthorId)
+                .HasConstraintName("FK_Book_Author");
+
+            entity.HasOne(d => d.Discount).WithMany(p => p.Books)
+                .HasForeignKey(d => d.DiscountId)
+                .HasConstraintName("FK_Book_Discount");
+        });
+
+        modelBuilder.Entity<BookReservation>(entity =>
+        {
+            entity.ToTable("BookReservation");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.ReservedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Book).WithMany(p => p.BookReservations)
+                .HasForeignKey(d => d.BookId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BookReservation_Book");
+        });
+
+        modelBuilder.Entity<BookTransaction>(entity =>
+        {
+            entity.ToTable("BookTransaction");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+            entity.Property(e => e.Data).IsUnicode(false);
+
+            entity.HasOne(d => d.Book).WithMany(p => p.BookTransactions)
+                .HasForeignKey(d => d.BookId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BookTransaction_Book");
+
+            entity.HasOne(d => d.Employee).WithMany(p => p.BookTransactions)
+                .HasForeignKey(d => d.EmployeeId)
+                .HasConstraintName("FK_BookTransaction_Employee");
+
+            entity.HasOne(d => d.Member).WithMany(p => p.BookTransactions)
+                .HasForeignKey(d => d.MemberId)
+                .HasConstraintName("FK_BookTransaction_Member");
+        });
+
+        modelBuilder.Entity<Discount>(entity =>
+        {
+            entity.ToTable("Discount");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.DiscountAmount).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.EndDate).HasColumnType("datetime");
+            entity.Property(e => e.StartDate).HasColumnType("datetime");
+            entity.Property(e => e.Type).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<Employee>(entity =>
+        {
+            entity.HasKey(e => e.UserId);
+
+            entity.ToTable("Employee");
+
+            entity.Property(e => e.UserId).ValueGeneratedNever();
+            entity.Property(e => e.AccessLevel).HasMaxLength(50);
+
+            entity.HasOne(d => d.User).WithOne(p => p.Employee)
+                .HasForeignKey<Employee>(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Employee_User");
+        });
+
+        modelBuilder.Entity<Event>(entity =>
+        {
+            entity.ToTable("Event");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.EndAt).HasColumnType("datetime");
+            entity.Property(e => e.Location).HasMaxLength(255);
+            entity.Property(e => e.Organizer).HasMaxLength(255);
+            entity.Property(e => e.StartAt).HasColumnType("datetime");
+            entity.Property(e => e.Title).HasMaxLength(255);
+        });
+
+        modelBuilder.Entity<Favourite>(entity =>
+        {
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.AddedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Book).WithMany(p => p.Favourites)
+                .HasForeignKey(d => d.BookId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Favourites_Book");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Favourites)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Favourites_User");
+        });
+
+        modelBuilder.Entity<Member>(entity =>
+        {
+            entity.HasKey(e => e.UserId);
+
+            entity.ToTable("Member");
+
+            entity.Property(e => e.UserId).ValueGeneratedNever();
+
+            entity.HasOne(d => d.User).WithOne(p => p.Member)
+                .HasForeignKey<Member>(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Member_User");
+        });
+
+        modelBuilder.Entity<Membership>(entity =>
+        {
+            entity.ToTable("Membership");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.HasOne(d => d.User).WithMany(p => p.Memberships)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Membership_Member");
+        });
+
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.ToTable("Notification");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.RecievedAt).HasColumnType("datetime");
+            entity.Property(e => e.Title).HasMaxLength(50);
+
+            entity.HasOne(d => d.BookReservationNavigation).WithMany(p => p.Notifications)
+                .HasForeignKey(d => d.BookReservation)
+                .HasConstraintName("FK_Notification_BookReservation");
+
+            entity.HasOne(d => d.Membership).WithMany(p => p.Notifications)
+                .HasForeignKey(d => d.MembershipId)
+                .HasConstraintName("FK_Notification_Membership");
+
+            entity.HasOne(d => d.Order).WithMany(p => p.Notifications)
+                .HasForeignKey(d => d.OrderId)
+                .HasConstraintName("FK_Notification_Order");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Notifications)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Notification_User");
+        });
+
+        modelBuilder.Entity<Order>(entity =>
+        {
+            entity.ToTable("Order");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PurchasedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Discount).WithMany(p => p.Orders)
+                .HasForeignKey(d => d.DiscountId)
+                .HasConstraintName("FK_Order_Discount");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Orders)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Order_User");
+
+            entity.HasOne(d => d.Voucher).WithMany(p => p.Orders)
+                .HasForeignKey(d => d.VoucherId)
+                .HasConstraintName("FK_Order_Voucher");
+        });
+
+        modelBuilder.Entity<OrderItem>(entity =>
+        {
+            entity.ToTable("OrderItem");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.HasOne(d => d.Book).WithMany(p => p.OrderItems)
+                .HasForeignKey(d => d.BookId)
+                .HasConstraintName("FK_OrderItem_Book");
+
+            entity.HasOne(d => d.Discount).WithMany(p => p.OrderItems)
+                .HasForeignKey(d => d.DiscountId)
+                .HasConstraintName("FK_OrderItem_Discount");
+
+            entity.HasOne(d => d.Membership).WithMany(p => p.OrderItems)
+                .HasForeignKey(d => d.MembershipId)
+                .HasConstraintName("FK_OrderItem_Membership");
+
+            entity.HasOne(d => d.Order).WithMany(p => p.OrderItems)
+                .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_OrderItem_Order");
+
+            entity.HasOne(d => d.TicketType).WithMany(p => p.OrderItems)
+                .HasForeignKey(d => d.TicketTypeId)
+                .HasConstraintName("FK_OrderItem_TicketType");
+
+            entity.HasOne(d => d.Voucher).WithMany(p => p.OrderItems)
+                .HasForeignKey(d => d.VoucherId)
+                .HasConstraintName("FK_OrderItem_Voucher");
+        });
+
+        modelBuilder.Entity<Ticket>(entity =>
+        {
+            entity.ToTable("Ticket");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.PurchasedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.OrderItem).WithMany(p => p.Tickets)
+                .HasForeignKey(d => d.OrderItemId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Ticket_OrderItem");
+
+            entity.HasOne(d => d.TicketType).WithMany(p => p.Tickets)
+                .HasForeignKey(d => d.TicketTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Ticket_TicketType");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Tickets)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Ticket_User");
+        });
+
+        modelBuilder.Entity<TicketType>(entity =>
+        {
+            entity.ToTable("TicketType");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
+
+            entity.HasOne(d => d.Event).WithMany(p => p.TicketTypes)
+                .HasForeignKey(d => d.EventId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TicketType_Event");
+        });
+
+        modelBuilder.Entity<TicketTypeTransaction>(entity =>
+        {
+            entity.ToTable("TicketTypeTransaction");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Employee).WithMany(p => p.TicketTypeTransactions)
+                .HasForeignKey(d => d.EmployeeId)
+                .HasConstraintName("FK_TicketTypeTransaction_Employee");
+
+            entity.HasOne(d => d.Member).WithMany(p => p.TicketTypeTransactions)
+                .HasForeignKey(d => d.MemberId)
+                .HasConstraintName("FK_TicketTypeTransaction_Member");
+
+            entity.HasOne(d => d.TicketType).WithMany(p => p.TicketTypeTransactions)
+                .HasForeignKey(d => d.TicketTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TicketTypeTransaction_TicketType");
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.ToTable("User");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Email).HasMaxLength(100);
+            entity.Property(e => e.FirstName).HasMaxLength(100);
+            entity.Property(e => e.Gender).HasMaxLength(50);
+            entity.Property(e => e.LastName).HasMaxLength(100);
+            entity.Property(e => e.PasswordHash).HasMaxLength(255);
+        });
+
+        modelBuilder.Entity<UserBookClub>(entity =>
+        {
+            entity.ToTable("UserBookClub");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.HasOne(d => d.YearNavigation).WithMany(p => p.UserBookClubs)
+                .HasForeignKey(d => d.Year)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UserBookClub_Member");
+        });
+
+        modelBuilder.Entity<UserBookClubTransaction>(entity =>
+        {
+            entity.ToTable("UserBookClubTransaction");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.BookTransaction).WithMany(p => p.UserBookClubTransactions)
+                .HasForeignKey(d => d.BookTransactionId)
+                .HasConstraintName("FK_UserBookClubTransaction_BookTransaction");
+
+            entity.HasOne(d => d.OrderItem).WithMany(p => p.UserBookClubTransactions)
+                .HasForeignKey(d => d.OrderItemId)
+                .HasConstraintName("FK_UserBookClubTransaction_OrderItem");
+
+            entity.HasOne(d => d.UserBookClub).WithMany(p => p.UserBookClubTransactions)
+                .HasForeignKey(d => d.UserBookClubId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UserBookClubTransaction_UserBookClub");
+        });
+
+        modelBuilder.Entity<Voucher>(entity =>
+        {
+            entity.ToTable("Voucher");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Code)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.ExpirationDate).HasColumnType("datetime");
+            entity.Property(e => e.Value).HasColumnType("decimal(10, 2)");
+        });
+
+        OnModelCreatingPartial(modelBuilder);
+    }
+
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+}
