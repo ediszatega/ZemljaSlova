@@ -65,7 +65,6 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("Author");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.FirstName).HasMaxLength(100);
             entity.Property(e => e.Genre).HasMaxLength(50);
             entity.Property(e => e.LastName).HasMaxLength(100);
@@ -98,7 +97,6 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("BookReservation");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.ReservedAt).HasColumnType("datetime");
 
             entity.HasOne(d => d.Book).WithMany(p => p.BookReservations)
@@ -111,7 +109,6 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("BookTransaction");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.Data).IsUnicode(false);
 
@@ -133,11 +130,9 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("Discount");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.DiscountAmount).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.EndDate).HasColumnType("datetime");
             entity.Property(e => e.StartDate).HasColumnType("datetime");
-            entity.Property(e => e.Type).HasMaxLength(50);
         });
 
         modelBuilder.Entity<Employee>(entity =>
@@ -146,7 +141,7 @@ public partial class _200036Context : DbContext
 
             entity.ToTable("Employee");
 
-            entity.Property(e => e.UserId).ValueGeneratedNever();
+            entity.Property(e => e.UserId).ValueGeneratedOnAdd();
             entity.Property(e => e.AccessLevel).HasMaxLength(50);
 
             entity.HasOne(d => d.User).WithOne(p => p.Employee)
@@ -159,7 +154,6 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("Event");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.EndAt).HasColumnType("datetime");
             entity.Property(e => e.Location).HasMaxLength(255);
             entity.Property(e => e.Organizer).HasMaxLength(255);
@@ -169,7 +163,6 @@ public partial class _200036Context : DbContext
 
         modelBuilder.Entity<Favourite>(entity =>
         {
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.AddedAt).HasColumnType("datetime");
 
             entity.HasOne(d => d.Book).WithMany(p => p.Favourites)
@@ -189,7 +182,7 @@ public partial class _200036Context : DbContext
 
             entity.ToTable("Member");
 
-            entity.Property(e => e.UserId).ValueGeneratedNever();
+            entity.Property(e => e.UserId).ValueGeneratedOnAdd();
 
             entity.HasOne(d => d.User).WithOne(p => p.Member)
                 .HasForeignKey<Member>(d => d.UserId)
@@ -201,8 +194,6 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("Membership");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
-
             entity.HasOne(d => d.User).WithMany(p => p.Memberships)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -213,12 +204,11 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("Notification");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.RecievedAt).HasColumnType("datetime");
             entity.Property(e => e.Title).HasMaxLength(50);
 
-            entity.HasOne(d => d.BookReservationNavigation).WithMany(p => p.Notifications)
-                .HasForeignKey(d => d.BookReservation)
+            entity.HasOne(d => d.BookReservation).WithMany(p => p.Notifications)
+                .HasForeignKey(d => d.BookReservationId)
                 .HasConstraintName("FK_Notification_BookReservation");
 
             entity.HasOne(d => d.Membership).WithMany(p => p.Notifications)
@@ -239,7 +229,6 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("Order");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.PurchasedAt).HasColumnType("datetime");
 
@@ -260,8 +249,6 @@ public partial class _200036Context : DbContext
         modelBuilder.Entity<OrderItem>(entity =>
         {
             entity.ToTable("OrderItem");
-
-            entity.Property(e => e.Id).ValueGeneratedNever();
 
             entity.HasOne(d => d.Book).WithMany(p => p.OrderItems)
                 .HasForeignKey(d => d.BookId)
@@ -293,7 +280,6 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("Ticket");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.PurchasedAt).HasColumnType("datetime");
 
             entity.HasOne(d => d.OrderItem).WithMany(p => p.Tickets)
@@ -316,7 +302,6 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("TicketType");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
 
@@ -330,7 +315,6 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("TicketTypeTransaction");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
 
             entity.HasOne(d => d.Employee).WithMany(p => p.TicketTypeTransactions)
@@ -351,7 +335,6 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("User");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.FirstName).HasMaxLength(100);
             entity.Property(e => e.Gender).HasMaxLength(50);
@@ -363,8 +346,6 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("UserBookClub");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
-
             entity.HasOne(d => d.YearNavigation).WithMany(p => p.UserBookClubs)
                 .HasForeignKey(d => d.Year)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -375,7 +356,6 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("UserBookClubTransaction");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
 
             entity.HasOne(d => d.BookTransaction).WithMany(p => p.UserBookClubTransactions)
@@ -396,7 +376,6 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("Voucher");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Code)
                 .HasMaxLength(50)
                 .IsUnicode(false);

@@ -22,7 +22,7 @@ namespace ZemljaSlova.Model
 
         public int? MembershipId { get; set; }
 
-        public int? BookReservation { get; set; }
+        public int? BookReservationId { get; set; }
 
         public virtual BookReservation? BookReservationNavigation { get; set; }
 

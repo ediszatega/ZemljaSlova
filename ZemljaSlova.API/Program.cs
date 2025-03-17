@@ -1,5 +1,6 @@
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using ZemljaSlova.API.Filters;
 using ZemljaSlova.Services;
 using ZemljaSlova.Services.Database;
 
@@ -26,7 +27,10 @@ builder.Services.AddTransient<IUserBookClubService, UserBookClubService>();
 builder.Services.AddTransient<IUserBookClubTransactionService, UserBookClubTransactionService>();
 builder.Services.AddTransient<IVoucherService, VoucherService>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(x =>
+{
+    x.Filters.Add<ExceptionFilter>();
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

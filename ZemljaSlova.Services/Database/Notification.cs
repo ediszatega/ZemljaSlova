@@ -21,9 +21,9 @@ public partial class Notification
 
     public int? MembershipId { get; set; }
 
-    public int? BookReservation { get; set; }
+    public int? BookReservationId { get; set; }
 
-    public virtual BookReservation? BookReservationNavigation { get; set; }
+    public virtual BookReservation? BookReservation { get; set; }
 
     public virtual Membership? Membership { get; set; }
 
