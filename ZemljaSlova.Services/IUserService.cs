@@ -11,5 +11,6 @@ namespace ZemljaSlova.Services
 {
     public interface IUserService : ICRUDService<User, UserSearchObject, UserUpsertRequest, UserUpsertRequest>
     {
+        public Task<AuthenticationResponse> AuthenticateUser(string email, string password);
     }
 }

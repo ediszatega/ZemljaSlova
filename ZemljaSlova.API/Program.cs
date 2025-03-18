@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using ZemljaSlova.API.Filters;
 using ZemljaSlova.Services;
 using ZemljaSlova.Services.Database;
-
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -26,6 +28,17 @@ builder.Services.AddTransient<ITicketTypeTransactionService, TicketTypeTransacti
 builder.Services.AddTransient<IUserBookClubService, UserBookClubService>();
 builder.Services.AddTransient<IUserBookClubTransactionService, UserBookClubTransactionService>();
 builder.Services.AddTransient<IVoucherService, VoucherService>();
+
+builder.Services.AddAuthentication(
+    JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey=true,
+            IssuerSigningKey=new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection("AppSettings:Token").Value)),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    });
 
 builder.Services.AddControllers(x =>
 {
@@ -52,6 +65,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
