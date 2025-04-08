@@ -36,7 +36,7 @@ namespace ZemljaSlova.Services
                 return new AuthResponse { Result = AuthResult.InvalidPassword };
             }
 
-            var token = CreateToken(user);
+            var token = CreateToken(user, role);
             if (token == null)
 			{
 				return new AuthResponse { Result = AuthResult.UserNotFound };
@@ -51,11 +51,12 @@ namespace ZemljaSlova.Services
         }
 
         // JWT creation method
-        private string CreateToken(User user)
+        private string CreateToken(User user, string role)
         {
             List<Claim> claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, role)
             };
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

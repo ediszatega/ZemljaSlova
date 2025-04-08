@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ZemljaSlova.Model;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services;
 
 namespace ZemljaSlova.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class BaseController<TModel, TSearch> : ControllerBase where TSearch : BaseSearchObject
