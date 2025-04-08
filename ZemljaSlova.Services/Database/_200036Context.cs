@@ -103,6 +103,11 @@ public partial class _200036Context : DbContext
                 .HasForeignKey(d => d.BookId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_BookReservation_Book");
+
+            entity.HasOne(d => d.Member).WithMany(p => p.BookReservations)
+                .HasForeignKey(d => d.MemberId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BookReservation_Member");
         });
 
         modelBuilder.Entity<BookTransaction>(entity =>
@@ -117,13 +122,10 @@ public partial class _200036Context : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_BookTransaction_Book");
 
-            entity.HasOne(d => d.Employee).WithMany(p => p.BookTransactions)
-                .HasForeignKey(d => d.EmployeeId)
-                .HasConstraintName("FK_BookTransaction_Employee");
-
-            entity.HasOne(d => d.Member).WithMany(p => p.BookTransactions)
-                .HasForeignKey(d => d.MemberId)
-                .HasConstraintName("FK_BookTransaction_Member");
+            entity.HasOne(d => d.User).WithMany(p => p.BookTransactions)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BookTransaction_User");
         });
 
         modelBuilder.Entity<Discount>(entity =>
@@ -137,15 +139,14 @@ public partial class _200036Context : DbContext
 
         modelBuilder.Entity<Employee>(entity =>
         {
-            entity.HasKey(e => e.UserId);
+            entity.HasKey(e => e.Id).HasName("PK_Employee_1");
 
             entity.ToTable("Employee");
 
-            entity.Property(e => e.UserId).ValueGeneratedOnAdd();
             entity.Property(e => e.AccessLevel).HasMaxLength(50);
 
-            entity.HasOne(d => d.User).WithOne(p => p.Employee)
-                .HasForeignKey<Employee>(d => d.UserId)
+            entity.HasOne(d => d.User).WithMany(p => p.Employees)
+                .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Employee_User");
         });
@@ -170,22 +171,20 @@ public partial class _200036Context : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Favourites_Book");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Favourites)
-                .HasForeignKey(d => d.UserId)
+            entity.HasOne(d => d.Member).WithMany(p => p.Favourites)
+                .HasForeignKey(d => d.MemberId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Favourites_User");
+                .HasConstraintName("FK_Favourites_Member");
         });
 
         modelBuilder.Entity<Member>(entity =>
         {
-            entity.HasKey(e => e.UserId);
+            entity.HasKey(e => e.Id).HasName("PK_Member_1");
 
             entity.ToTable("Member");
 
-            entity.Property(e => e.UserId).ValueGeneratedOnAdd();
-
-            entity.HasOne(d => d.User).WithOne(p => p.Member)
-                .HasForeignKey<Member>(d => d.UserId)
+            entity.HasOne(d => d.User).WithMany(p => p.Members)
+                .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Member_User");
         });
@@ -194,8 +193,8 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("Membership");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Memberships)
-                .HasForeignKey(d => d.UserId)
+            entity.HasOne(d => d.Member).WithMany(p => p.Memberships)
+                .HasForeignKey(d => d.MemberId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Membership_Member");
         });
@@ -236,10 +235,10 @@ public partial class _200036Context : DbContext
                 .HasForeignKey(d => d.DiscountId)
                 .HasConstraintName("FK_Order_Discount");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Orders)
-                .HasForeignKey(d => d.UserId)
+            entity.HasOne(d => d.Member).WithMany(p => p.Orders)
+                .HasForeignKey(d => d.MemberId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Order_User");
+                .HasConstraintName("FK_Order_Member");
 
             entity.HasOne(d => d.Voucher).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.VoucherId)
@@ -282,6 +281,11 @@ public partial class _200036Context : DbContext
 
             entity.Property(e => e.PurchasedAt).HasColumnType("datetime");
 
+            entity.HasOne(d => d.Member).WithMany(p => p.Tickets)
+                .HasForeignKey(d => d.MemberId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Ticket_Member");
+
             entity.HasOne(d => d.OrderItem).WithMany(p => p.Tickets)
                 .HasForeignKey(d => d.OrderItemId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -291,11 +295,6 @@ public partial class _200036Context : DbContext
                 .HasForeignKey(d => d.TicketTypeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Ticket_TicketType");
-
-            entity.HasOne(d => d.User).WithMany(p => p.Tickets)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Ticket_User");
         });
 
         modelBuilder.Entity<TicketType>(entity =>
@@ -317,18 +316,15 @@ public partial class _200036Context : DbContext
 
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
 
-            entity.HasOne(d => d.Employee).WithMany(p => p.TicketTypeTransactions)
-                .HasForeignKey(d => d.EmployeeId)
-                .HasConstraintName("FK_TicketTypeTransaction_Employee");
-
-            entity.HasOne(d => d.Member).WithMany(p => p.TicketTypeTransactions)
-                .HasForeignKey(d => d.MemberId)
-                .HasConstraintName("FK_TicketTypeTransaction_Member");
-
             entity.HasOne(d => d.TicketType).WithMany(p => p.TicketTypeTransactions)
                 .HasForeignKey(d => d.TicketTypeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TicketTypeTransaction_TicketType");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TicketTypeTransactions)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TicketTypeTransaction_User");
         });
 
         modelBuilder.Entity<User>(entity =>
@@ -339,15 +335,15 @@ public partial class _200036Context : DbContext
             entity.Property(e => e.FirstName).HasMaxLength(100);
             entity.Property(e => e.Gender).HasMaxLength(50);
             entity.Property(e => e.LastName).HasMaxLength(100);
-            entity.Property(e => e.PasswordHash).HasMaxLength(255);
+            entity.Property(e => e.Password).HasMaxLength(255);
         });
 
         modelBuilder.Entity<UserBookClub>(entity =>
         {
             entity.ToTable("UserBookClub");
 
-            entity.HasOne(d => d.YearNavigation).WithMany(p => p.UserBookClubs)
-                .HasForeignKey(d => d.Year)
+            entity.HasOne(d => d.Member).WithMany(p => p.UserBookClubs)
+                .HasForeignKey(d => d.MemberId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_UserBookClub_Member");
         });

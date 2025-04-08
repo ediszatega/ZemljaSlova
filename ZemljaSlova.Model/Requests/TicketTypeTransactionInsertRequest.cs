@@ -14,9 +14,7 @@ namespace ZemljaSlova.Model.Requests
 
         public DateTime CreatedAt { get; set; }
 
-        public int? EmployeeId { get; set; }
-
-        public int? MemberId { get; set; }
+        public int UserId { get; set; }
 
         public string? Data { get; set; }
     }

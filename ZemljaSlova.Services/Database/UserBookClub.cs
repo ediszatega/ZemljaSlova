@@ -9,9 +9,9 @@ public partial class UserBookClub
 
     public int Year { get; set; }
 
-    public int UserId { get; set; }
+    public int MemberId { get; set; }
+
+    public virtual Member Member { get; set; } = null!;
 
     public virtual ICollection<UserBookClubTransaction> UserBookClubTransactions { get; set; } = new List<UserBookClubTransaction>();
-
-    public virtual Member YearNavigation { get; set; } = null!;
 }

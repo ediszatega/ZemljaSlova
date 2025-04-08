@@ -36,7 +36,7 @@ namespace ZemljaSlova.Services
 
             var list = query.ToList();
 
-            result = Mapper.Map(list, result);
+            result = Mapper.Map<List<TModel>>(list);
 
             PagedResult<TModel> pagedResult = new PagedResult<TModel>();
             pagedResult.ResultList = result;

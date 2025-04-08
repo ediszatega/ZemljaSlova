@@ -17,16 +17,12 @@ namespace ZemljaSlova.Model
 
         public DateTime CreatedAt { get; set; }
 
-        public int? EmployeeId { get; set; }
-
-        public int? MemberId { get; set; }
+        public int UserId { get; set; }
 
         public string? Data { get; set; }
 
-        public virtual Employee? Employee { get; set; }
-
-        public virtual Member? Member { get; set; }
-
         public virtual TicketType TicketType { get; set; } = null!;
+
+        public virtual User User { get; set; } = null!;
     }
 }

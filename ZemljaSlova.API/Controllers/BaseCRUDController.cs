@@ -13,7 +13,7 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpPost]
-        public TModel Insert(TInsert request)
+        public virtual TModel Insert(TInsert request)
         {
             return _service.Insert(request);
         }

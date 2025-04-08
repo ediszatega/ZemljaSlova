@@ -6,7 +6,7 @@ namespace ZemljaSlova.Model.Requests
 {
     public partial class FavouriteInsertRequest
     {
-        public int UserId { get; set; }
+        public int MemberId { get; set; }
 
         public int BookId { get; set; }
 

@@ -53,6 +53,8 @@ builder.Services.AddDbContext<_200036Context>(options =>
     options.UseSqlServer(connectionString));
 
 builder.Services.AddMapster();
+TypeAdapterConfig.GlobalSettings.Default.PreserveReference(true);
+TypeAdapterConfig.GlobalSettings.Default.IgnoreNullValues(true);
 
 var app = builder.Build();
 

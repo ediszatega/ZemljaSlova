@@ -16,17 +16,13 @@ namespace ZemljaSlova.Model
 
         public DateTime CreatedAt { get; set; }
 
-        public int? EmployeeId { get; set; }
-
-        public int? MemberId { get; set; }
+        public int UserId { get; set; }
 
         public string? Data { get; set; }
 
         public virtual Book Book { get; set; } = null!;
 
-        public virtual Employee? Employee { get; set; }
-
-        public virtual Member? Member { get; set; }
+        public virtual User User { get; set; } = null!;
 
         public virtual ICollection<UserBookClubTransaction> UserBookClubTransactions { get; set; } = new List<UserBookClubTransaction>();
     }

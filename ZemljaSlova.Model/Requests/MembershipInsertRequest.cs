@@ -10,6 +10,6 @@ namespace ZemljaSlova.Model.Requests
 
         public DateTime EndDate { get; set; }
 
-        public int UserId { get; set; }
+        public int MemberId { get; set; }
     }
 }

@@ -10,8 +10,34 @@ namespace ZemljaSlova.API.Controllers
     [Authorize]
     [ApiController]
     [Route("[controller]")]
-    public class EmployeeController : BaseCRUDController<Model.Employee, EmployeeSearchObject, EmployeeUpsertRequest, EmployeeUpsertRequest>
+    public class EmployeeController : BaseCRUDController<Model.Employee, EmployeeSearchObject, EmployeeInsertRequest, EmployeeUpdateRequest>
     {
-        public EmployeeController(IEmployeeService service) : base(service) { }
+        private readonly IEmployeeService _employeeService;
+        public EmployeeController(IEmployeeService service) : base(service) 
+        {
+            _employeeService = service;
+        }
+
+        [HttpPost("CreateEmployee")]
+        public async Task<ActionResult<Model.Employee>> CreateEmployee(EmployeeInsertRequest request)
+        {
+            try
+            {
+                var employee = await _employeeService.CreateEmployee(request);
+                return Ok(employee);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while creating the employee.");
+            }
+        }
+
+        [HttpGet("GetEmployeeById/{id}")]
+        public async Task<ActionResult<Model.Employee>> GetById(int id)
+        {
+            var employee = await _employeeService.GetById(id);
+            if (employee == null) return NotFound();
+            return Ok(employee);
+        }
     }
 }

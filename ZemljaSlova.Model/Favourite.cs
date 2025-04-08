@@ -6,9 +6,9 @@ namespace ZemljaSlova.Model
 {
     public class Favourite
     {
-        public int Id { get; set; }
+         public int Id { get; set; }
 
-        public int UserId { get; set; }
+        public int MemberId { get; set; }
 
         public int BookId { get; set; }
 
@@ -16,6 +16,6 @@ namespace ZemljaSlova.Model
 
         public virtual Book Book { get; set; } = null!;
 
-        public virtual User User { get; set; } = null!;
+        public virtual Member Member { get; set; } = null!;
     }
 }

@@ -11,11 +11,11 @@ public partial class Membership
 
     public DateOnly EndDate { get; set; }
 
-    public int UserId { get; set; }
+    public int MemberId { get; set; }
+
+    public virtual Member Member { get; set; } = null!;
 
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-
-    public virtual Member User { get; set; } = null!;
 }

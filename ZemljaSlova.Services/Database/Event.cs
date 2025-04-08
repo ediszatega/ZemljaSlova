@@ -25,7 +25,5 @@ public partial class Event
 
     public int? MaxNumberOfPeople { get; set; }
 
-    public bool IsDeleted { get; set; }
-
     public virtual ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();
 }

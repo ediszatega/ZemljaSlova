@@ -15,19 +15,15 @@ public partial class User
 
     public string Email { get; set; } = null!;
 
-    public string PasswordHash { get; set; } = null!;
+    public string Password { get; set; } = null!;
 
-    public bool IsDeleted { get; set; }
+    public virtual ICollection<BookTransaction> BookTransactions { get; set; } = new List<BookTransaction>();
 
-    public virtual Employee? Employee { get; set; }
+    public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
 
-    public virtual ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();
-
-    public virtual Member? Member { get; set; }
+    public virtual ICollection<Member> Members { get; set; } = new List<Member>();
 
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
-    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
-
-    public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
+    public virtual ICollection<TicketTypeTransaction> TicketTypeTransactions { get; set; } = new List<TicketTypeTransaction>();
 }
