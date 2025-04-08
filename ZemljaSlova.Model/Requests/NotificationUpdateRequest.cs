@@ -10,12 +10,10 @@ namespace ZemljaSlova.Model.Requests
 
         public string Content { get; set; } = null!;
 
-        //public bool IsRead { get; set; 
+        public int? OrderId { get; set; }
 
-        //public int? OrderId { get; set; }
+        public int? MembershipId { get; set; }
 
-        //public int? MembershipId { get; set; }
-
-        //public int? BookReservation { get; set; }
+        public int? BookReservationId { get; set; }
     }
 }

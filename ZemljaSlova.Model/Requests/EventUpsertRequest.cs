@@ -10,18 +10,18 @@ namespace ZemljaSlova.Model.Requests
 
         public string Description { get; set; } = null!;
 
-        //public string? Location { get; set; }
+        public string? Location { get; set; }
 
         public DateTime StartAt { get; set; }
 
         public DateTime EndAt { get; set; }
 
-        //public string? Organizer { get; set; }
+        public string? Organizer { get; set; }
 
-        //public string? Lecturers { get; set; }
+        public string? Lecturers { get; set; }
 
-        //public byte[]? CoverImage { get; set; }
+        public byte[]? CoverImage { get; set; }
 
-        //public int? MaxNumberOfPeople { get; set; }
+        public int? MaxNumberOfPeople { get; set; }
     }
 }

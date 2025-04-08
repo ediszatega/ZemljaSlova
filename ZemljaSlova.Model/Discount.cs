@@ -14,8 +14,6 @@ namespace ZemljaSlova.Model
 
         public DateTime EndDate { get; set; }
 
-        public string Type { get; set; } = null!;
-
         public virtual ICollection<Book> Books { get; set; } = new List<Book>();
 
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();

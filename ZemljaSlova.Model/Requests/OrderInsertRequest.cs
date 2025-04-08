@@ -6,7 +6,7 @@ namespace ZemljaSlova.Model.Requests
 {
     public class OrderInsertRequest
     {
-        public int UserId { get; set; }
+        public int MemberId { get; set; }
 
         public int? DiscountId { get; set; }
 

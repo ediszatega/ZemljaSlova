@@ -5,17 +5,23 @@ namespace ZemljaSlova.Services.Database;
 
 public partial class Member
 {
+    public int Id { get; set; }
+
     public int UserId { get; set; }
 
     public DateOnly DateOfBirth { get; set; }
 
     public DateOnly JoinedAt { get; set; }
 
-    public virtual ICollection<BookTransaction> BookTransactions { get; set; } = new List<BookTransaction>();
+    public virtual ICollection<BookReservation> BookReservations { get; set; } = new List<BookReservation>();
+
+    public virtual ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();
 
     public virtual ICollection<Membership> Memberships { get; set; } = new List<Membership>();
 
-    public virtual ICollection<TicketTypeTransaction> TicketTypeTransactions { get; set; } = new List<TicketTypeTransaction>();
+    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+
+    public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 
     public virtual User User { get; set; } = null!;
 

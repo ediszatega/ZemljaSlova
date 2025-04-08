@@ -10,10 +10,10 @@ namespace ZemljaSlova.Model.Requests
 
         public string LastName { get; set; } = null!;
 
-        //public DateOnly? DateOfBirth { get; set; }
+        public DateTime? DateOfBirth { get; set; }
 
-        //public string? Genre { get; set; }
+        public string? Genre { get; set; }
 
-        //public string? Biography { get; set; }
+        public string? Biography { get; set; }
     }
 }

@@ -6,7 +6,7 @@ namespace ZemljaSlova.Model.Requests
 {
     public class TicketInsertRequest
     {
-        public int UserId { get; set; }
+        public int MemberId { get; set; }
 
         public int TicketTypeId { get; set; }
 

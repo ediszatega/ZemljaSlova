@@ -37,8 +37,6 @@ public partial class Book
 
     public int? DiscountId { get; set; }
 
-    public bool? IsDeleted { get; set; }
-
     public int? AuthorId { get; set; }
 
     public virtual Author? Author { get; set; }

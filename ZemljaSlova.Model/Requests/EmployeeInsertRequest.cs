@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ZemljaSlova.Model
+namespace ZemljaSlova.Model.Requests
 {
-    public partial class User
+    public partial class EmployeeInsertRequest
     {
-        public int Id { get; set; }
-
         public string FirstName { get; set; } = null!;
 
         public string LastName { get; set; } = null!;
@@ -17,5 +15,7 @@ namespace ZemljaSlova.Model
         public string Email { get; set; } = null!;
 
         public string Password { get; set; } = null!;
+
+        public string AccessLevel { get; set; } = null!;
     }
 }

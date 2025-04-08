@@ -11,29 +11,31 @@ namespace ZemljaSlova.Model.Requests
         public string? Description { get; set; }
 
         public decimal Price { get; set; }
-        //public DateTime? DateOfPublish { get; set; }
 
-        //public int? Edition { get; set; }
+        public DateTime? DateOfPublish { get; set; }
 
-        //public string? Publisher { get; set; }
+        public int? Edition { get; set; }
+
+        public string? Publisher { get; set; }
 
         public string BookPurpos { get; set; } = null!;
 
-        //public int NumberOfPages { get; set; }
+        public int NumberOfPages { get; set; }
 
-        //public decimal? Weight { get; set; }
+        public decimal? Weight { get; set; }
 
-        //public string? Dimensions { get; set; }
+        public string? Dimensions { get; set; }
 
-        //public string? Genre { get; set; }
+        public string? Genre { get; set; }
 
-        //public string? Binding { get; set; }
+        public string? Binding { get; set; }
 
-        //public byte[]? Image { get; set; }
+        public byte[]? Image { get; set; }
 
-        //public string? Language { get; set; }
-        //public int? DiscountId { get; set; }
+        public string? Language { get; set; }
 
-        //public int? AuthorId { get; set; }
+        public int? DiscountId { get; set; }
+
+        public int? AuthorId { get; set; }
     }
 }

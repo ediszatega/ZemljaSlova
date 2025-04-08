@@ -4,12 +4,18 @@ using System.Text;
 
 namespace ZemljaSlova.Model.Requests
 {
-    public class MemberUpdateRequest
+    public class MemberUpdateRequest : UserUpdateRequest
     {
-        public int UserId { get; set; }
+        public string FirstName { get; set; } = null!;
 
-        //public DateTime DateOfBirth { get; set; }
+        public string LastName { get; set; } = null!;
 
-        //public DateTime JoinedAt { get; set; }
+        public string? Gender { get; set; }
+
+        public string Email { get; set; } = null!;
+
+        public string Password { get; set; } = null!;
+        
+        public DateTime DateOfBirth { get; set; }
     }
 }

@@ -15,8 +15,6 @@ public partial class TicketType
 
     public string? Description { get; set; }
 
-    public bool IsDeleted { get; set; }
-
     public virtual Event Event { get; set; } = null!;
 
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();

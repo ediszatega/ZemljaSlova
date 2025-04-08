@@ -9,7 +9,11 @@ using ZemljaSlova.Model.SearchObjects;
 
 namespace ZemljaSlova.Services
 {
-    public interface IEmployeeService : ICRUDService<Employee, EmployeeSearchObject, EmployeeUpsertRequest, EmployeeUpsertRequest>
+    public interface IEmployeeService : ICRUDService<Employee, EmployeeSearchObject, EmployeeInsertRequest, EmployeeUpdateRequest>
     {
+        public Task<Model.Employee> CreateEmployee(EmployeeInsertRequest request);
+
+        // check if this svc method is needed
+        new public Task<Model.Employee> GetById(int id);
     }
 }

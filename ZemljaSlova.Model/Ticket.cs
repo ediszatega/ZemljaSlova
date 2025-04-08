@@ -9,7 +9,7 @@ namespace ZemljaSlova.Model
     {
         public int Id { get; set; }
 
-        public int UserId { get; set; }
+        public int MemberId { get; set; }
 
         public int TicketTypeId { get; set; }
 
@@ -19,10 +19,10 @@ namespace ZemljaSlova.Model
 
         public bool IsUsed { get; set; }
 
+        public virtual Member Member { get; set; } = null!;
+
         public virtual OrderItem OrderItem { get; set; } = null!;
 
         public virtual TicketType TicketType { get; set; } = null!;
-
-        public virtual User User { get; set; } = null!;
     }
 }
