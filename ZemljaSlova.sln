@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZemljaSlova.Model", "Zemlja
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZemljaSlova.Services", "ZemljaSlova.Services\ZemljaSlova.Services.csproj", "{DBD10D7D-CE32-4C20-8AE7-2D4F74A38863}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZemljaSlova.Subscriber", "ZemljaSlova.Subscriber\ZemljaSlova.Subscriber.csproj", "{09A6E6D9-3BF9-42C1-8FFC-BA0457AAE1DC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{DBD10D7D-CE32-4C20-8AE7-2D4F74A38863}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DBD10D7D-CE32-4C20-8AE7-2D4F74A38863}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DBD10D7D-CE32-4C20-8AE7-2D4F74A38863}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09A6E6D9-3BF9-42C1-8FFC-BA0457AAE1DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09A6E6D9-3BF9-42C1-8FFC-BA0457AAE1DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09A6E6D9-3BF9-42C1-8FFC-BA0457AAE1DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09A6E6D9-3BF9-42C1-8FFC-BA0457AAE1DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

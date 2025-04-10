@@ -12,6 +12,17 @@ namespace ZemljaSlova.API.Controllers
     [Route("[controller]")]
     public class MemberController : BaseCRUDController<Model.Member, MemberSearchObject, MemberInsertRequest, MemberUpdateRequest>
     {
-        public MemberController(IMemberService service) : base(service) { }
+        private readonly IMemberService _memberService;
+
+        public MemberController(IMemberService service) : base(service) 
+        { 
+            _memberService = service;
+        }
+
+        [HttpPost("CreateMember")]
+        public async Task<Model.Member> CreateMember([FromBody] MemberInsertRequest request)
+        {
+            return await _memberService.CreateMember(request);
+        }
     }
 }
