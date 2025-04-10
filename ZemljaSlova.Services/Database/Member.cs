@@ -9,9 +9,9 @@ public partial class Member
 
     public int UserId { get; set; }
 
-    public DateOnly DateOfBirth { get; set; }
+    public DateTime DateOfBirth { get; set; }
 
-    public DateOnly JoinedAt { get; set; }
+    public DateTime JoinedAt { get; set; }
 
     public virtual ICollection<BookReservation> BookReservations { get; set; } = new List<BookReservation>();
 

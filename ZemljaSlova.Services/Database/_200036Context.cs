@@ -65,6 +65,7 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("Author");
 
+            entity.Property(e => e.DateOfBirth).HasColumnType("datetime");
             entity.Property(e => e.FirstName).HasMaxLength(100);
             entity.Property(e => e.Genre).HasMaxLength(50);
             entity.Property(e => e.LastName).HasMaxLength(100);
@@ -183,6 +184,9 @@ public partial class _200036Context : DbContext
 
             entity.ToTable("Member");
 
+            entity.Property(e => e.DateOfBirth).HasColumnType("datetime");
+            entity.Property(e => e.JoinedAt).HasColumnType("datetime");
+
             entity.HasOne(d => d.User).WithMany(p => p.Members)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -192,6 +196,9 @@ public partial class _200036Context : DbContext
         modelBuilder.Entity<Membership>(entity =>
         {
             entity.ToTable("Membership");
+
+            entity.Property(e => e.EndDate).HasColumnType("datetime");
+            entity.Property(e => e.StartDate).HasColumnType("datetime");
 
             entity.HasOne(d => d.Member).WithMany(p => p.Memberships)
                 .HasForeignKey(d => d.MemberId)
