@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/navigation_provider.dart';
+import '../screens/book_sell_overview.dart';
+import '../screens/book_rent_overview.dart';
+import '../screens/events_overview.dart';
+import '../screens/members_overview.dart';
+import '../screens/reports_overview.dart';
+import '../screens/profile_overview.dart';
 
 class SidebarWidget extends StatelessWidget {
   const SidebarWidget({super.key});
@@ -34,40 +40,75 @@ class SidebarWidget extends StatelessWidget {
             title: 'Knjige prodaja',
             icon: Icons.shopping_cart,
             isSelected: navigationProvider.currentItem == NavigationItem.bookSell,
-            onTap: () => navigationProvider.setCurrentItem(NavigationItem.bookSell),
+            onTap: () => _navigateToScreen(context, NavigationItem.bookSell),
           ),
           SidebarMenuItemWidget(
             title: 'Knjige izdavanje',
             icon: Icons.book,
             isSelected: navigationProvider.currentItem == NavigationItem.bookRent,
-            onTap: () => navigationProvider.setCurrentItem(NavigationItem.bookRent),
+            onTap: () => _navigateToScreen(context, NavigationItem.bookRent),
           ),
           SidebarMenuItemWidget(
             title: 'Događaji',
             icon: Icons.event,
             isSelected: navigationProvider.currentItem == NavigationItem.events,
-            onTap: () => navigationProvider.setCurrentItem(NavigationItem.events),
+            onTap: () => _navigateToScreen(context, NavigationItem.events),
           ),
           SidebarMenuItemWidget(
             title: 'Korisnici',
             icon: Icons.people,
             isSelected: navigationProvider.currentItem == NavigationItem.members,
-            onTap: () => navigationProvider.setCurrentItem(NavigationItem.members),
+            onTap: () => _navigateToScreen(context, NavigationItem.members),
           ),
           SidebarMenuItemWidget(
             title: 'Izvještaji',
             icon: Icons.bar_chart,
             isSelected: navigationProvider.currentItem == NavigationItem.reports,
-            onTap: () => navigationProvider.setCurrentItem(NavigationItem.reports),
+            onTap: () => _navigateToScreen(context, NavigationItem.reports),
           ),
           SidebarMenuItemWidget(
             title: 'Profil',
             icon: Icons.person,
             isSelected: navigationProvider.currentItem == NavigationItem.profile,
-            onTap: () => navigationProvider.setCurrentItem(NavigationItem.profile),
+            onTap: () => _navigateToScreen(context, NavigationItem.profile),
           ),
         ],
       ),
+    );
+  }
+  
+  void _navigateToScreen(BuildContext context, NavigationItem item) {
+    // First update the navigation provider
+    Provider.of<NavigationProvider>(context, listen: false).setCurrentItem(item);
+    
+    // Then navigate to the new screen using named routes
+    String routeName;
+    
+    switch (item) {
+      case NavigationItem.bookSell:
+        routeName = '/book-sell';
+        break;
+      case NavigationItem.bookRent:
+        routeName = '/book-rent';
+        break;
+      case NavigationItem.events:
+        routeName = '/events';
+        break;
+      case NavigationItem.members:
+        routeName = '/members';
+        break;
+      case NavigationItem.reports:
+        routeName = '/reports';
+        break;
+      case NavigationItem.profile:
+        routeName = '/profile';
+        break;
+    }
+    
+    // Use pushNamedAndRemoveUntil to clear the navigation stack
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      routeName,
+      (route) => false, // Remove all previous routes
     );
   }
 }

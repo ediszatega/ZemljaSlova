@@ -5,6 +5,7 @@ import '../providers/member_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_card.dart';
 import '../widgets/zs_button.dart';
+import '../widgets/zs_dropdown.dart';
 
 class MembersOverview extends StatelessWidget {
   const MembersOverview({super.key});
@@ -37,9 +38,12 @@ class MembersContent extends StatefulWidget {
 }
 
 class _MembersContentState extends State<MembersContent> {
+  String _sortOption = 'Ime (A-Z)';
+  
   @override
   void initState() {
     super.initState();
+    // Load members data
     Future.microtask(() {
       Provider.of<MemberProvider>(context, listen: false).fetchMembers();
     });
@@ -62,153 +66,176 @@ class _MembersContentState extends State<MembersContent> {
           ),
           const SizedBox(height: 24),
           
-          // Toolbar
-          Row(
+          // Build toolbar
+          _buildToolbar(),
+          
+          const SizedBox(height: 24),
+          
+          // Members grid
+          Expanded(
+            child: _buildMembersGrid(),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildToolbar() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        // Search
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Search
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.only(bottom: 4.0),
-                      child: Text(
-                        'Pretraži',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.black54,
+              const Padding(
+                padding: EdgeInsets.only(bottom: 4.0),
+                child: Text(
+                  'Pretraži',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.black54,
+                  ),
+                ),
+              ),
+              Container(
+                height: 40,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  children: const [
+                    Icon(Icons.search, color: Colors.grey, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Pretraži',
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(vertical: 8.0),
                         ),
-                      ),
-                    ),
-                    Container(
-                      height: 40,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.search, color: Colors.grey, size: 20),
-                          const SizedBox(width: 8),
-                          const Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                hintText: 'Pretraži',
-                                border: InputBorder.none,
-                                contentPadding: EdgeInsets.symmetric(vertical: 8.0),
-                              ),
-                            ),
-                          ),
-                        ],
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
-              
-              // Sort
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 4.0),
-                    child: Text(
-                      'Sortiraj',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    height: 40,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Row(
-                      children: const [
-                        Text('Sortiraj'),
-                        SizedBox(width: 8),
-                        Icon(Icons.arrow_drop_down, size: 20),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 16),
-              
-              // Filter
-              ZSButton(
-                onPressed: () {},
-                text: 'Postavi filtre',
-                label: 'Filtriraj',
-                borderColor: Colors.grey.shade300,
-              ),
-              const SizedBox(width: 16),
-              
-              // Add button
-              ZSButton(
-                onPressed: () {},
-                text: 'Dodaj korisnika',
-                backgroundColor: const Color(0xFFE5FFEE),
-                foregroundColor: Colors.green,
-                borderColor: Colors.grey.shade300,
-              ),
             ],
           ),
-          const SizedBox(height: 24),
-          
-          // Members grid
-          Expanded(
-            child: Consumer<MemberProvider>(
-              builder: (ctx, memberProvider, child) {
-                if (memberProvider.isLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-                
-                if (memberProvider.error != null) {
-                  return Center(
-                    child: Text(
-                      'Greška: ${memberProvider.error}',
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  );
-                }
-                
-                final members = memberProvider.members;
-                
-                if (members.isEmpty) {
-                  return const Center(
-                    child: Text('Nema korisnika za prikaz.'),
-                  );
-                }
-                
-                return GridView.builder(
-                  padding: EdgeInsets.only(bottom: 20),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    crossAxisSpacing: 40,
-                    mainAxisSpacing: 40,
-                    childAspectRatio: 0.7,
-                  ),
-                  itemCount: members.length,
-                  itemBuilder: (context, index) {
-                    return ZSCard(member: members[index]);
-                  },
-                );
-              },
+        ),
+        const SizedBox(width: 16),
+        
+        // Sort dropdown
+        ZSDropdown<String>(
+          label: 'Sortiraj',
+          value: _sortOption,
+          width: 180,
+          items: const [
+            DropdownMenuItem(value: 'Ime (A-Z)', child: Text('Ime (A-Z)')),
+            DropdownMenuItem(value: 'Ime (Z-A)', child: Text('Ime (Z-A)')),
+            DropdownMenuItem(value: 'Najnoviji', child: Text('Najnoviji')),
+            DropdownMenuItem(value: 'Najstariji', child: Text('Najstariji')),
+            DropdownMenuItem(value: 'Status', child: Text('Status')),
+          ],
+          onChanged: (value) {
+            if (value != null) {
+              setState(() {
+                _sortOption = value;
+              });
+            }
+          },
+          borderColor: Colors.grey.shade300,
+        ),
+        const SizedBox(width: 16),
+        
+        // Filter
+        ZSButton(
+          onPressed: () {},
+          text: 'Postavi filtre',
+          label: 'Filtriraj',
+          borderColor: Colors.grey.shade300,
+        ),
+        const SizedBox(width: 16),
+        
+        // Add button
+        ZSButton(
+          onPressed: () {},
+          text: 'Dodaj korisnika',
+          backgroundColor: const Color(0xFFE5FFEE),
+          foregroundColor: Colors.green,
+          borderColor: Colors.grey.shade300,
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildMembersGrid() {
+    return Consumer<MemberProvider>(
+      builder: (ctx, memberProvider, child) {
+        if (memberProvider.isLoading) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+        
+        if (memberProvider.error != null) {
+          return Center(
+            child: Text(
+              'Greška: ${memberProvider.error}',
+              style: const TextStyle(color: Colors.red),
             ),
+          );
+        }
+        
+        final members = memberProvider.members;
+        
+        if (members.isEmpty) {
+          return const Center(
+            child: Text('Nema korisnika za prikaz.'),
+          );
+        }
+        
+        // Sort the members list based on the selected option
+        final sortedMembers = List<Member>.from(members);
+        switch (_sortOption) {
+          case 'Ime (A-Z)':
+            sortedMembers.sort((a, b) => a.fullName.compareTo(b.fullName));
+            break;
+          case 'Ime (Z-A)':
+            sortedMembers.sort((a, b) => b.fullName.compareTo(a.fullName));
+            break;
+          case 'Najnoviji':
+            // In a real app, this would sort by creation date
+            sortedMembers.sort((a, b) => b.id.compareTo(a.id));
+            break;
+          case 'Najstariji':
+            // In a real app, this would sort by creation date
+            sortedMembers.sort((a, b) => a.id.compareTo(b.id));
+            break;
+          case 'Status':
+            // Sort active users first
+            sortedMembers.sort((a, b) => b.isActive == a.isActive ? 0 : (b.isActive ? 1 : -1));
+            break;
+        }
+        
+        return GridView.builder(
+          padding: const EdgeInsets.only(bottom: 20),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 4,
+            crossAxisSpacing: 40,
+            mainAxisSpacing: 40,
+            childAspectRatio: 0.7,
           ),
-        ],
-      ),
+          itemCount: sortedMembers.length,
+          itemBuilder: (context, index) {
+            return ZSCard(member: sortedMembers[index]);
+          },
+        );
+      },
     );
   }
 } 

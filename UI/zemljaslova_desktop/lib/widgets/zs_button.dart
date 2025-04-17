@@ -9,6 +9,7 @@ class ZSButton extends StatelessWidget {
   final double elevation;
   final double paddingHorizontal;
   final double paddingVertical;
+  final double topPadding;
   final double borderRadius;
   final double borderWidth;
   final Color borderColor;
@@ -26,6 +27,7 @@ class ZSButton extends StatelessWidget {
     this.elevation = 0,
     this.paddingHorizontal = 20,
     this.paddingVertical = 16,
+    this.topPadding = 0,
     this.borderRadius = 4,
     this.borderWidth = 1,
     this.borderColor = Colors.grey,
@@ -44,6 +46,8 @@ class ZSButton extends StatelessWidget {
             label, 
             style: TextStyle(fontSize: 12, color: Colors.black),
           )
+        else if (topPadding > 0)
+          SizedBox(height: topPadding)
         else
           const SizedBox(height: 16),
 

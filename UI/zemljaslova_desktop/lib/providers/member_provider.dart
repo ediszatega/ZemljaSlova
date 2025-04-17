@@ -17,7 +17,7 @@ class MemberProvider with ChangeNotifier {
 
     try {
       // TODO: Replace with actual API call
-      await Future.delayed(const Duration(seconds: 1));
+      await Future.delayed(const Duration(milliseconds: 50));
       
       // Mock data
       _members = List.generate(

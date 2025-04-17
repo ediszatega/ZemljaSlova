@@ -34,6 +34,14 @@ class ZemljaSlova extends StatelessWidget {
           useMaterial3: true,
           fontFamily: 'Roboto',
         ),
+        routes: {
+          '/book-sell': (context) => const BookSellOverview(),
+          '/book-rent': (context) => const BookRentOverview(),
+          '/events': (context) => const EventsOverview(),
+          '/members': (context) => const MembersOverview(),
+          '/reports': (context) => const ReportsOverview(),
+          '/profile': (context) => const ProfileOverview(),
+        },
         home: Consumer<NavigationProvider>(
           builder: (context, navigationProvider, child) {
             switch (navigationProvider.currentItem) {
