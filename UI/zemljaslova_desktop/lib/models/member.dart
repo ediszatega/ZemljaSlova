@@ -1,3 +1,8 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'member.g.dart';
+
+@JsonSerializable()
 class Member {
   final int id;
   final String firstName;
@@ -17,25 +22,7 @@ class Member {
 
   String get fullName => '$firstName $lastName';
 
-  factory Member.fromJson(Map<String, dynamic> json) {
-    return Member(
-      id: json['id'],
-      firstName: json['firstName'],
-      lastName: json['lastName'],
-      email: json['email'],
-      isActive: json['isActive'],
-      profileImageUrl: json['profileImageUrl'],
-    );
-  }
+  factory Member.fromJson(Map<String, dynamic> json) => _$MemberFromJson(json);
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'firstName': firstName,
-      'lastName': lastName,
-      'email': email,
-      'isActive': isActive,
-      'profileImageUrl': profileImageUrl,
-    };
-  }
+  Map<String, dynamic> toJson() => _$MemberToJson(this);
 } 

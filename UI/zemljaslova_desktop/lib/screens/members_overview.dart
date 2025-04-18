@@ -6,6 +6,7 @@ import '../widgets/sidebar.dart';
 import '../widgets/zs_card.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
+import '../widgets/search_input.dart';
 
 class MembersOverview extends StatelessWidget {
   const MembersOverview({super.key});
@@ -84,47 +85,12 @@ class _MembersContentState extends State<MembersContent> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        // Search
+        // Search using our new component
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Padding(
-                padding: EdgeInsets.only(bottom: 4.0),
-                child: Text(
-                  'Pretraži',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.black54,
-                  ),
-                ),
-              ),
-              Container(
-                height: 40,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  children: const [
-                    Icon(Icons.search, color: Colors.grey, size: 20),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Pretraži',
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(vertical: 8.0),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          child: SearchInput(
+            label: 'Pretraži',
+            hintText: 'Pretraži korisnike',
+            borderColor: Colors.grey.shade300,
           ),
         ),
         const SizedBox(width: 16),
