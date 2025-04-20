@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 enum NavigationItem {
-  bookSell,
+  booksSell,
   bookRent,
   events,
   members,

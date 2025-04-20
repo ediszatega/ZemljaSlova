@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/member_provider.dart';
+import 'providers/book_provider.dart';
 import 'providers/navigation_provider.dart';
 import 'screens/members_overview.dart';
-import 'screens/book_sell_overview.dart';
+import 'screens/books_sell_overview.dart';
 import 'screens/book_rent_overview.dart';
 import 'screens/events_overview.dart';
 import 'screens/reports_overview.dart';
@@ -21,6 +22,7 @@ class ZemljaSlova extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => MemberProvider()),
+        ChangeNotifierProvider(create: (_) => BookProvider()),
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
       ],
       child: MaterialApp(
@@ -35,7 +37,7 @@ class ZemljaSlova extends StatelessWidget {
           fontFamily: 'Roboto',
         ),
         routes: {
-          '/book-sell': (context) => const BookSellOverview(),
+          '/books-sell': (context) => const BooksSellOverview(),
           '/book-rent': (context) => const BookRentOverview(),
           '/events': (context) => const EventsOverview(),
           '/members': (context) => const MembersOverview(),
@@ -45,8 +47,8 @@ class ZemljaSlova extends StatelessWidget {
         home: Consumer<NavigationProvider>(
           builder: (context, navigationProvider, child) {
             switch (navigationProvider.currentItem) {
-              case NavigationItem.bookSell:
-                return const BookSellOverview();
+              case NavigationItem.booksSell:
+                return const BooksSellOverview();
               case NavigationItem.bookRent:
                 return const BookRentOverview();
               case NavigationItem.events:

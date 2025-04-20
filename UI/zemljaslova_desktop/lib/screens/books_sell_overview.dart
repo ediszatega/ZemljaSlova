@@ -1,30 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/member.dart';
-import '../providers/member_provider.dart';
+import '../models/book.dart';
+import '../providers/book_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_card.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
-import '../screens/members_detail_overview.dart';
+import 'book_detail_overview.dart';
 
-class MembersOverview extends StatelessWidget {
-  const MembersOverview({super.key});
+class BooksSellOverview extends StatelessWidget {
+  const BooksSellOverview({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       backgroundColor: Colors.white,
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: const [
+        children: [
           // Sidebar
           SidebarWidget(),
           
           // Main content
           Expanded(
-            child: MembersContent(),
+            child: BooksContent(),
           ),
         ],
       ),
@@ -32,22 +32,22 @@ class MembersOverview extends StatelessWidget {
   }
 }
 
-class MembersContent extends StatefulWidget {
-  const MembersContent({super.key});
+class BooksContent extends StatefulWidget {
+  const BooksContent({super.key});
 
   @override
-  State<MembersContent> createState() => _MembersContentState();
+  State<BooksContent> createState() => _BooksContentState();
 }
 
-class _MembersContentState extends State<MembersContent> {
-  String _sortOption = 'Ime (A-Z)';
+class _BooksContentState extends State<BooksContent> {
+  String _sortOption = 'Naslov (A-Z)';
   
   @override
   void initState() {
     super.initState();
-    // Load members data
+    // Load books data
     Future.microtask(() {
-      Provider.of<MemberProvider>(context, listen: false).fetchMembers();
+      Provider.of<BookProvider>(context, listen: false).fetchBooks();
     });
   }
 
@@ -60,7 +60,7 @@ class _MembersContentState extends State<MembersContent> {
         children: [
           // Header
           const Text(
-            'Pregled korisnika',
+            'Pregled knjiga na prodaju',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -73,9 +73,9 @@ class _MembersContentState extends State<MembersContent> {
           
           const SizedBox(height: 24),
           
-          // Members grid
+          // Books grid
           Expanded(
-            child: _buildMembersGrid(),
+            child: _buildBooksGrid(),
           ),
         ],
       ),
@@ -86,11 +86,11 @@ class _MembersContentState extends State<MembersContent> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        // Search using our new component
+        // Search using our component
         Expanded(
           child: SearchInput(
             label: 'Pretraži',
-            hintText: 'Pretraži korisnike',
+            hintText: 'Pretraži knjige',
             borderColor: Colors.grey.shade300,
           ),
         ),
@@ -102,11 +102,11 @@ class _MembersContentState extends State<MembersContent> {
           value: _sortOption,
           width: 180,
           items: const [
-            DropdownMenuItem(value: 'Ime (A-Z)', child: Text('Ime (A-Z)')),
-            DropdownMenuItem(value: 'Ime (Z-A)', child: Text('Ime (Z-A)')),
-            DropdownMenuItem(value: 'Najnoviji', child: Text('Najnoviji')),
-            DropdownMenuItem(value: 'Najstariji', child: Text('Najstariji')),
-            DropdownMenuItem(value: 'Status', child: Text('Status')),
+            DropdownMenuItem(value: 'Naslov (A-Z)', child: Text('Naslov (A-Z)')),
+            DropdownMenuItem(value: 'Naslov (Z-A)', child: Text('Naslov (Z-A)')),
+            DropdownMenuItem(value: 'Autor (A-Z)', child: Text('Autor (A-Z)')),
+            DropdownMenuItem(value: 'Cijena (veća)', child: Text('Cijena (veća)')),
+            DropdownMenuItem(value: 'Cijena (manja)', child: Text('Cijena (manja)')),
           ],
           onChanged: (value) {
             if (value != null) {
@@ -132,7 +132,7 @@ class _MembersContentState extends State<MembersContent> {
         // Add button
         ZSButton(
           onPressed: () {},
-          text: 'Dodaj korisnika',
+          text: 'Dodaj knjigu',
           backgroundColor: const Color(0xFFE5FFEE),
           foregroundColor: Colors.green,
           borderColor: Colors.grey.shade300,
@@ -142,52 +142,49 @@ class _MembersContentState extends State<MembersContent> {
     );
   }
   
-  Widget _buildMembersGrid() {
-    return Consumer<MemberProvider>(
-      builder: (ctx, memberProvider, child) {
-        if (memberProvider.isLoading) {
+  Widget _buildBooksGrid() {
+    return Consumer<BookProvider>(
+      builder: (ctx, bookProvider, child) {
+        if (bookProvider.isLoading) {
           return const Center(
             child: CircularProgressIndicator(),
           );
         }
         
-        if (memberProvider.error != null) {
+        if (bookProvider.error != null) {
           return Center(
             child: Text(
-              'Greška: ${memberProvider.error}',
+              'Greška: ${bookProvider.error}',
               style: const TextStyle(color: Colors.red),
             ),
           );
         }
         
-        final members = memberProvider.members;
+        final books = bookProvider.books;
         
-        if (members.isEmpty) {
+        if (books.isEmpty) {
           return const Center(
-            child: Text('Nema korisnika za prikaz.'),
+            child: Text('Nema knjiga za prikaz.'),
           );
         }
         
-        // Sort the members list based on the selected option
-        final sortedMembers = List<Member>.from(members);
+        // Sort the books list based on the selected option
+        final sortedBooks = List<Book>.from(books);
         switch (_sortOption) {
-          case 'Ime (A-Z)':
-            sortedMembers.sort((a, b) => a.fullName.compareTo(b.fullName));
+          case 'Naslov (A-Z)':
+            sortedBooks.sort((a, b) => a.title.compareTo(b.title));
             break;
-          case 'Ime (Z-A)':
-            sortedMembers.sort((a, b) => b.fullName.compareTo(a.fullName));
+          case 'Naslov (Z-A)':
+            sortedBooks.sort((a, b) => b.title.compareTo(a.title));
             break;
-          case 'Najnoviji':
-            // In a real app, this would sort by creation date
-            sortedMembers.sort((a, b) => b.id.compareTo(a.id));
+          case 'Autor (A-Z)':
+            sortedBooks.sort((a, b) => a.author.compareTo(b.author));
             break;
-          case 'Najstariji':
-            // In a real app, this would sort by creation date
-            sortedMembers.sort((a, b) => a.id.compareTo(b.id));
+          case 'Cijena (veća)':
+            sortedBooks.sort((a, b) => b.price.compareTo(a.price));
             break;
-          case 'Status':
-            // Sort active users first
-            sortedMembers.sort((a, b) => b.isActive == a.isActive ? 0 : (b.isActive ? 1 : -1));
+          case 'Cijena (manja)':
+            sortedBooks.sort((a, b) => a.price.compareTo(b.price));
             break;
         }
         
@@ -197,20 +194,20 @@ class _MembersContentState extends State<MembersContent> {
             crossAxisCount: 4,
             crossAxisSpacing: 40,
             mainAxisSpacing: 40,
-            childAspectRatio: 0.7,
+            childAspectRatio: 0.65,
           ),
-          itemCount: sortedMembers.length,
+          itemCount: sortedBooks.length,
           itemBuilder: (context, index) {
-            final member = sortedMembers[index];
-            return ZSCard.fromMember(
+            final book = sortedBooks[index];
+            return ZSCard.fromBook(
               context,
-              member,
+              book,
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MembersDetailOverview(
-                      member: member,
+                    builder: (context) => BookDetailOverview(
+                      book: book,
                     ),
                   ),
                 );

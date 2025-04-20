@@ -1,28 +1,37 @@
 import 'package:flutter/material.dart';
-import '../models/member.dart';
-import '../screens/members_detail_overview.dart';
 
 class ZSCard extends StatelessWidget {
-  final Member member;
+  // Required parameters
+  final String title;
+  final Widget image;
+  
+  // Optional parameters
+  final String? subtitle;
+  final String? additionalText;
+  final bool? isActive;
+  final VoidCallback? onTap;
+  final double imageHeightRatio;
+  final double contentHeightRatio;
   
   const ZSCard({
     super.key,
-    required this.member,
-  });
+    required this.title,
+    required this.image,
+    this.subtitle,
+    this.additionalText,
+    this.isActive,
+    this.onTap,
+    this.imageHeightRatio = 0.75,
+    this.contentHeightRatio = 0.25,
+  }) : assert(imageHeightRatio + contentHeightRatio == 1.0, 
+         "imageHeightRatio + contentHeightRatio must equal 1.0");
 
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
-      cursor: SystemMouseCursors.click,
+      cursor: onTap != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
       child: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MembersDetailOverview(member: member),
-            ),
-          );
-        },
+        onTap: onTap,
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -32,56 +41,22 @@ class ZSCard extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           child: LayoutBuilder(
             builder: (context, constraints) {
-              // Calculate heights - 75% for image, 25% for text
-              final imageHeight = constraints.maxHeight * 0.75;
-              final textHeight = constraints.maxHeight * 0.25;
+              // Calculate heights based on provided ratios
+              final imageHeight = constraints.maxHeight * imageHeightRatio;
+              final contentHeight = constraints.maxHeight * contentHeightRatio;
               
               return Column(
                 children: [
-                  // Profile image - 75% of the card
+                  // Image section
                   SizedBox(
                     height: imageHeight,
                     width: double.infinity,
-                    child: member.profileImageUrl != null
-                        ? Image.network(
-                            member.profileImageUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Image.asset(
-                                'assets/images/no_profile_image.jpg',
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    color: Colors.grey.shade200,
-                                    child: const Icon(
-                                      Icons.person,
-                                      size: 120,
-                                      color: Colors.black54,
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          )
-                        : Image.asset(
-                            'assets/images/no_profile_image.jpg',
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: Colors.grey.shade200,
-                                child: const Icon(
-                                  Icons.person,
-                                  size: 120,
-                                  color: Colors.black54,
-                                ),
-                              );
-                            },
-                          ),
+                    child: image,
                   ),
                   
-                  // Text section - 25% of the card
+                  // Content section
                   Container(
-                    height: textHeight,
+                    height: contentHeight,
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
@@ -90,37 +65,68 @@ class ZSCard extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Name
+                        // Title
                         Text(
-                          member.fullName,
+                          title,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
                         
-                        // Status
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: member.isActive 
-                                ? Colors.green.withAlpha(20)
-                                : Colors.red.withAlpha(20),
-                            borderRadius: BorderRadius.circular(12),
+                        if (subtitle != null) ...[
+                          //const SizedBox(height: 1),
+                          Text(
+                            subtitle!,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black87,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          child: Text(
-                            member.isActive ? 'Aktivan' : 'Neaktivan',
-                            style: TextStyle(
-                              color: member.isActive ? Colors.green : Colors.red,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
+                        ],
+                        
+                        if (additionalText != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            additionalText!,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                        
+                        // Status indicator (if provided)
+                        if (isActive != null) ...[
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: isActive! 
+                                  ? Colors.green.withAlpha(20)
+                                  : Colors.red.withAlpha(20),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              isActive! ? 'Aktivan' : 'Neaktivan',
+                              style: TextStyle(
+                                color: isActive! ? Colors.green : Colors.red,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
@@ -130,6 +136,99 @@ class ZSCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+  
+  // Factory method to create a card from a member
+  static Widget fromMember(
+    BuildContext context, 
+    dynamic member, 
+    {VoidCallback? onTap}
+  ) {
+    // Create image widget from member's profile image
+    Widget imageWidget;
+    if (member.profileImageUrl != null) {
+      imageWidget = Image.network(
+        member.profileImageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildFallbackImage();
+        },
+      );
+    } else {
+      imageWidget = _buildFallbackImage();
+    }
+    
+    return ZSCard(
+      title: member.fullName,
+      image: imageWidget,
+      isActive: member.isActive,
+      onTap: onTap,
+    );
+  }
+  
+  // Helper method for fallback image
+  static Widget _buildFallbackImage() {
+    return Image.asset(
+      'assets/images/no_profile_image.jpg',
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          color: Colors.grey.shade200,
+          child: const Icon(
+            Icons.person,
+            size: 120,
+            color: Colors.black54,
+          ),
+        );
+      },
+    );
+  }
+  
+  // Factory method to create a card from a book
+  static Widget fromBook(
+    BuildContext context, 
+    dynamic book, 
+    {VoidCallback? onTap}
+  ) {
+    // Create image widget from book's cover image
+    Widget imageWidget;
+    if (book.coverImageUrl != null) {
+      imageWidget = Image.network(
+        book.coverImageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildFallbackBookImage();
+        },
+      );
+    } else {
+      imageWidget = _buildFallbackBookImage();
+    }
+    
+    return ZSCard(
+      title: book.title,
+      subtitle: book.author,
+      additionalText: '${book.price.toStringAsFixed(2)} KM',
+      image: imageWidget,
+      onTap: onTap,
+    );
+  }
+  
+  // Helper method for fallback book image
+  static Widget _buildFallbackBookImage() {
+    return Image.asset(
+      'assets/images/no_image.jpg',
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          color: Colors.grey.shade200,
+          child: const Icon(
+            Icons.book,
+            size: 120,
+            color: Colors.black54,
+          ),
+        );
+      },
     );
   }
 } 

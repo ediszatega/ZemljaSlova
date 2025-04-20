@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/navigation_provider.dart';
-import '../screens/book_sell_overview.dart';
+import '../screens/books_sell_overview.dart';
 import '../screens/book_rent_overview.dart';
 import '../screens/events_overview.dart';
 import '../screens/members_overview.dart';
@@ -39,8 +39,8 @@ class SidebarWidget extends StatelessWidget {
           SidebarMenuItemWidget(
             title: 'Knjige prodaja',
             icon: Icons.shopping_cart,
-            isSelected: navigationProvider.currentItem == NavigationItem.bookSell,
-            onTap: () => _navigateToScreen(context, NavigationItem.bookSell),
+            isSelected: navigationProvider.currentItem == NavigationItem.booksSell,
+            onTap: () => _navigateToScreen(context, NavigationItem.booksSell),
           ),
           SidebarMenuItemWidget(
             title: 'Knjige izdavanje',
@@ -85,8 +85,8 @@ class SidebarWidget extends StatelessWidget {
     String routeName;
     
     switch (item) {
-      case NavigationItem.bookSell:
-        routeName = '/book-sell';
+      case NavigationItem.booksSell:
+        routeName = '/books-sell';
         break;
       case NavigationItem.bookRent:
         routeName = '/book-rent';

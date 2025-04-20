@@ -15,6 +15,7 @@ class ZSButton extends StatelessWidget {
   final Color borderColor;
   final double fontSize;
   final FontWeight fontWeight;
+  final double? width;
 
   final VoidCallback onPressed;
 
@@ -33,6 +34,7 @@ class ZSButton extends StatelessWidget {
     this.borderColor = Colors.grey,
     this.fontSize = 16,
     this.fontWeight = FontWeight.w400,
+    this.width,
     required this.onPressed,
   });
 
@@ -53,27 +55,36 @@ class ZSButton extends StatelessWidget {
 
         const SizedBox(height: 4),
 
-        ElevatedButton(
-          onPressed: onPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: backgroundColor,
-            foregroundColor: foregroundColor,
-            elevation: elevation,
-            padding: EdgeInsets.symmetric(horizontal: paddingHorizontal, vertical: paddingVertical),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(borderRadius),
-              side: BorderSide(color: borderColor, width: borderWidth),
-            ),
-          ),
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: fontSize,
-              fontWeight: fontWeight,
-            ),
-          ),
-        ),
+        width != null
+            ? SizedBox(
+                width: width,
+                child: _buildButton(),
+              )
+            : _buildButton(),
       ],
+    );
+  }
+
+  Widget _buildButton() {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: backgroundColor,
+        foregroundColor: foregroundColor,
+        elevation: elevation,
+        padding: EdgeInsets.symmetric(horizontal: paddingHorizontal, vertical: paddingVertical),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(borderRadius),
+          side: BorderSide(color: borderColor, width: borderWidth),
+        ),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: fontWeight,
+        ),
+      ),
     );
   }
 }
