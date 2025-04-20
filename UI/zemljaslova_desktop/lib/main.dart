@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'providers/member_provider.dart';
 import 'providers/book_provider.dart';
 import 'providers/navigation_provider.dart';
+import 'providers/event_provider.dart';
 import 'screens/members_overview.dart';
 import 'screens/books_sell_overview.dart';
 import 'screens/book_rent_overview.dart';
@@ -24,6 +25,7 @@ class ZemljaSlova extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => MemberProvider()),
         ChangeNotifierProvider(create: (_) => BookProvider()),
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
+        ChangeNotifierProvider(create: (_) => EventProvider()),
       ],
       child: MaterialApp(
         title: 'Zemlja Slova',
