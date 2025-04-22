@@ -162,6 +162,7 @@ class _BooksContentState extends State<BooksContent> {
         
         final books = bookProvider.books;
         
+        // TODO: make better empty state
         if (books.isEmpty) {
           return const Center(
             child: Text('Nema knjiga za prikaz.'),

@@ -10,20 +10,38 @@ import 'screens/book_rent_overview.dart';
 import 'screens/events_overview.dart';
 import 'screens/reports_overview.dart';
 import 'screens/profile_overview.dart';
+import 'services/api_service.dart';
+import 'services/book_service.dart';
 
 void main() {
-  runApp(const ZemljaSlova());
+  final apiService = ApiService();
+  
+  final bookService = BookService(apiService);
+  
+  runApp(
+    ZemljaSlova(
+      apiService: apiService,
+      bookService: bookService,
+    ),
+  );
 }
 
 class ZemljaSlova extends StatelessWidget {
-  const ZemljaSlova({super.key});
+  final ApiService apiService;
+  final BookService bookService;
+  
+  const ZemljaSlova({
+    super.key,
+    required this.apiService,
+    required this.bookService,
+  });
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => MemberProvider()),
-        ChangeNotifierProvider(create: (_) => BookProvider()),
+        ChangeNotifierProvider(create: (_) => BookProvider(bookService)),
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
         ChangeNotifierProvider(create: (_) => EventProvider()),
       ],

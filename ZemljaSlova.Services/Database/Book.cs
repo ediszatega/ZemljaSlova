@@ -13,7 +13,7 @@ public partial class Book
 
     public decimal Price { get; set; }
 
-    public DateOnly? DateOfPublish { get; set; }
+    public DateTime? DateOfPublish { get; set; }
 
     public int? Edition { get; set; }
 

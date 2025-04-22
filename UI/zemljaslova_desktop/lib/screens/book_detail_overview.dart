@@ -262,12 +262,29 @@ class BookDetailOverview extends StatelessWidget {
                               const SizedBox(height: 16),
                               
                               // Detail rows
-                              DetailRow(label: 'ISBN', value: '978-3-16-148410-0'),
-                              DetailRow(label: 'Izdavač', value: 'Knjiga d.o.o.'),
-                              DetailRow(label: 'Godina izdanja', value: '2023'),
-                              DetailRow(label: 'Broj stranica', value: '320'),
-                              DetailRow(label: 'Tip korica', value: 'Tvrdi uvez'),
-                              DetailRow(label: 'Jezik', value: 'Bosanski'),
+                              if (book.description != null && book.description!.isNotEmpty)
+                                DetailRow(label: 'Opis', value: book.description!),
+                              if (book.publisher != null && book.publisher!.isNotEmpty)
+                                DetailRow(label: 'Izdavač', value: book.publisher!),
+                              if (book.dateOfPublish != null && book.dateOfPublish!.isNotEmpty)
+                                DetailRow(label: 'Datum izdavanja', value: book.dateOfPublish!),
+                              if (book.edition != null)
+                                DetailRow(label: 'Izdanje', value: book.edition.toString()),
+                              DetailRow(label: 'Broj stranica', value: book.numberOfPages.toString()),
+                              if (book.bookPurpos != null && book.bookPurpos!.isNotEmpty)
+                                DetailRow(label: 'Namjena', value: book.bookPurpos!),
+                              if (book.dimensions != null && book.dimensions!.isNotEmpty)
+                                DetailRow(label: 'Dimenzije', value: book.dimensions!),
+                              if (book.weight != null)
+                                DetailRow(label: 'Težina', value: '${book.weight} g'),
+                              if (book.genre != null && book.genre!.isNotEmpty)
+                                DetailRow(label: 'Žanr', value: book.genre!),
+                              if (book.binding != null && book.binding!.isNotEmpty)
+                                DetailRow(label: 'Tip korica', value: book.binding!),
+                              if (book.language != null && book.language!.isNotEmpty)
+                                DetailRow(label: 'Jezik', value: book.language!),
+                              if (book.authorId != null)
+                                DetailRow(label: 'ID autora', value: book.authorId.toString()),
                             ],
                           ),
                         ),
