@@ -22,4 +22,4 @@ Map<String, dynamic> _$EventToJson(Event instance) => <String, dynamic>{
   'date': instance.date,
   'price': instance.price,
   'imageUrl': instance.imageUrl,
-}; 
+};

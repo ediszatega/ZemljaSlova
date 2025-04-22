@@ -7,6 +7,7 @@ enum NavigationItem {
   members,
   reports,
   profile,
+  authors,
 }
 
 class NavigationProvider with ChangeNotifier {

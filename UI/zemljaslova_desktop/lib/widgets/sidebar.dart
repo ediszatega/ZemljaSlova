@@ -7,6 +7,7 @@ import '../screens/events_overview.dart';
 import '../screens/members_overview.dart';
 import '../screens/reports_overview.dart';
 import '../screens/profile_overview.dart';
+import '../screens/authors_overview.dart';
 
 class SidebarWidget extends StatelessWidget {
   const SidebarWidget({super.key});
@@ -53,6 +54,12 @@ class SidebarWidget extends StatelessWidget {
             icon: Icons.event,
             isSelected: navigationProvider.currentItem == NavigationItem.events,
             onTap: () => _navigateToScreen(context, NavigationItem.events),
+          ),
+          SidebarMenuItemWidget(
+            title: 'Autori',
+            icon: Icons.person_outline,
+            isSelected: navigationProvider.currentItem == NavigationItem.authors,
+            onTap: () => _navigateToScreen(context, NavigationItem.authors),
           ),
           SidebarMenuItemWidget(
             title: 'Korisnici',
@@ -102,6 +109,9 @@ class SidebarWidget extends StatelessWidget {
         break;
       case NavigationItem.profile:
         routeName = '/profile';
+        break;
+      case NavigationItem.authors:
+        routeName = '/authors';
         break;
     }
     

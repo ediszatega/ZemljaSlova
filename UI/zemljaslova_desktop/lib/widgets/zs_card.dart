@@ -231,4 +231,42 @@ class ZSCard extends StatelessWidget {
       },
     );
   }
+
+  // Factory method to create a card from an author
+  static Widget fromAuthor(
+    BuildContext context, 
+    dynamic author, 
+    {VoidCallback? onTap}
+  ) {
+    // Create image widget using fallback since author doesn't have profile image
+    Widget imageWidget = _buildFallbackAuthorImage();
+    
+    // Additional info to display - genre if available
+    String? subtitle = author.genre != null ? author.genre : null;
+    
+    return ZSCard(
+      title: author.fullName,
+      subtitle: subtitle,
+      image: imageWidget,
+      onTap: onTap,
+    );
+  }
+  
+  // Helper method for fallback author image
+  static Widget _buildFallbackAuthorImage() {
+    return Image.asset(
+      'assets/images/no_profile_image.jpg',
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          color: Colors.white,
+          child: const Icon(
+            Icons.person,
+            size: 120,
+            color: Colors.black54,
+          ),
+        );
+      },
+    );
+  }
 } 
