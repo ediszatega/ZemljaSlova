@@ -41,4 +41,66 @@ class BookProvider with ChangeNotifier {
       return null;
     }
   }
+
+  Future<bool> updateBook(
+    int id,
+    String title,
+    String? description,
+    double price,
+    String? dateOfPublish,
+    int? edition,
+    String? publisher,
+    String? bookPurpos,
+    int numberOfPages,
+    double? weight,
+    String? dimensions,
+    String? genre,
+    String? binding,
+    String? language,
+    int? authorId,
+  ) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final updatedBook = await _bookService.updateBook(
+        id,
+        title,
+        description,
+        price,
+        dateOfPublish,
+        edition,
+        publisher,
+        bookPurpos,
+        numberOfPages,
+        weight,
+        dimensions,
+        genre,
+        binding,
+        language,
+        authorId,
+      );
+      
+      if (updatedBook != null) {
+        final index = _books.indexWhere((book) => book.id == id);
+        if (index >= 0) {
+          _books[index] = updatedBook;
+        }
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = "Failed to update book";
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 } 

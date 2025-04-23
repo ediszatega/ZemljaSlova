@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/book.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
+import 'book_edit.dart';
 
 class BookDetailOverview extends StatelessWidget {
   final Book book;
@@ -303,7 +304,25 @@ class BookDetailOverview extends StatelessWidget {
                           borderColor: Colors.grey.shade300,
                           width: 410,
                           topPadding: 5,
-                          onPressed: () {},
+                          onPressed: () async {
+                            final updatedBook = await Navigator.of(context).push<Book>(
+                              MaterialPageRoute(
+                                builder: (context) => BookEditScreen(book: book),
+                              ),
+                            );
+                            
+                            // If we got an updated book back, refresh this screen
+                            if (updatedBook != null) {
+                              // Using Navigator to rebuild the detail screen with new data
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => BookDetailOverview(
+                                    book: updatedBook,
+                                  ),
+                                ),
+                              );
+                            }
+                          },
                         ),
                         
                         ZSButton(

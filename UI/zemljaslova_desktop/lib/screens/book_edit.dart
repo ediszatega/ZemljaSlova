@@ -1,0 +1,406 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/book.dart';
+import '../models/author.dart';
+import '../providers/book_provider.dart';
+import '../providers/author_provider.dart';
+import '../widgets/sidebar.dart';
+import '../widgets/zs_button.dart';
+import '../widgets/zs_input.dart';
+import '../widgets/zs_datetime_picker.dart';
+import '../widgets/zs_dropdown.dart';
+
+// TODO: add image and discount fields
+class BookEditScreen extends StatefulWidget {
+  final Book book;
+  
+  const BookEditScreen({
+    super.key,
+    required this.book,
+  });
+
+  @override
+  State<BookEditScreen> createState() => _BookEditScreenState();
+}
+
+class _BookEditScreenState extends State<BookEditScreen> {
+  final _formKey = GlobalKey<FormState>();
+  
+  late TextEditingController _titleController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _priceController;
+  late TextEditingController _dateOfPublishController;
+  late TextEditingController _editionController;
+  late TextEditingController _publisherController;
+  late TextEditingController _bookPurposController;
+  late TextEditingController _numberOfPagesController;
+  late TextEditingController _weightController;
+  late TextEditingController _dimensionsController;
+  late TextEditingController _genreController;
+  late TextEditingController _bindingController;
+  late TextEditingController _languageController;
+  
+  int? _selectedAuthorId;
+  bool _isLoading = true;
+  List<Author> _authors = [];
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Initialize controllers with book data
+    _titleController = TextEditingController(text: widget.book.title);
+    _descriptionController = TextEditingController(text: widget.book.description);
+    _priceController = TextEditingController(text: widget.book.price.toString());
+    _dateOfPublishController = TextEditingController(text: widget.book.dateOfPublish);
+    _editionController = TextEditingController(text: widget.book.edition?.toString() ?? '');
+    _publisherController = TextEditingController(text: widget.book.publisher);
+    _bookPurposController = TextEditingController(text: widget.book.bookPurpos);
+    _numberOfPagesController = TextEditingController(text: widget.book.numberOfPages.toString());
+    _weightController = TextEditingController(text: widget.book.weight?.toString() ?? '');
+    _dimensionsController = TextEditingController(text: widget.book.dimensions);
+    _genreController = TextEditingController(text: widget.book.genre);
+    _bindingController = TextEditingController(text: widget.book.binding);
+    _languageController = TextEditingController(text: widget.book.language);
+    
+    _selectedAuthorId = widget.book.authorId;
+    
+    // Load authors for dropdown
+    _loadAuthors();
+  }
+  
+  Future<void> _loadAuthors() async {
+    setState(() {
+      _isLoading = true;
+    });
+    
+    try {
+      final authorProvider = Provider.of<AuthorProvider>(context, listen: false);
+      await authorProvider.fetchAuthors();
+      
+      setState(() {
+        _authors = authorProvider.authors;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _priceController.dispose();
+    _dateOfPublishController.dispose();
+    _editionController.dispose();
+    _publisherController.dispose();
+    _bookPurposController.dispose();
+    _numberOfPagesController.dispose();
+    _weightController.dispose();
+    _dimensionsController.dispose();
+    _genreController.dispose();
+    _bindingController.dispose();
+    _languageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Sidebar
+          const SidebarWidget(),
+          
+          // Main content
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 44, left: 80.0, right: 80.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Back button
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    icon: const Icon(Icons.arrow_back),
+                    label: const Text('Nazad na pregled knjige'),
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Header
+                  Text(
+                    'Uređivanje knjige: ${widget.book.title}',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 40),
+                  
+                  // Form
+                  Expanded(
+                    child: _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : Form(
+                            key: _formKey,
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Title field
+                                  ZSInput(
+                                    label: 'Naslov*',
+                                    controller: _titleController,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Unesite naslov knjige';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  
+                                  const SizedBox(height: 20),
+                                  
+                                  // Description field
+                                  ZSInput(
+                                    label: 'Opis',
+                                    controller: _descriptionController,
+                                    maxLines: 3,
+                                  ),
+                                  
+                                  const SizedBox(height: 20),
+                                  
+                                  // Price field
+                                  ZSInput(
+                                    label: 'Cijena*',
+                                    controller: _priceController,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Unesite cijenu knjige';
+                                      }
+                                      if (double.tryParse(value) == null) {
+                                        return 'Cijena mora biti broj';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  
+                                  const SizedBox(height: 20),
+                                  
+                                  // Date of publish field with datepicker
+                                  ZSDatetimePicker(
+                                    label: 'Datum izdavanja',
+                                    controller: _dateOfPublishController,
+                                  ),
+                                  
+                                  const SizedBox(height: 20),
+                                  
+                                  // Edition field
+                                  ZSInput(
+                                    label: 'Izdanje',
+                                    controller: _editionController,
+                                  ),
+                                  
+                                  const SizedBox(height: 20),
+                                  
+                                  // Publisher field
+                                  ZSInput(
+                                    label: 'Izdavač',
+                                    controller: _publisherController,
+                                  ),
+                                  
+                                  const SizedBox(height: 20),
+                                  
+                                  // Book purpose field
+                                  ZSInput(
+                                    label: 'Namjena knjige*',
+                                    controller: _bookPurposController,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Unesite namjenu knjige';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  
+                                  const SizedBox(height: 20),
+                                  
+                                  // Number of pages field
+                                  ZSInput(
+                                    label: 'Broj stranica*',
+                                    controller: _numberOfPagesController,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Unesite broj stranica';
+                                      }
+                                      if (int.tryParse(value) == null) {
+                                        return 'Broj stranica mora biti cijeli broj';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  
+                                  const SizedBox(height: 20),
+                                  
+                                  // Weight field
+                                  ZSInput(
+                                    label: 'Težina (g)',
+                                    controller: _weightController,
+                                  ),
+                                  
+                                  const SizedBox(height: 20),
+                                  
+                                  // Dimensions field
+                                  ZSInput(
+                                    label: 'Dimenzije',
+                                    controller: _dimensionsController,
+                                  ),
+                                  
+                                  const SizedBox(height: 20),
+                                  
+                                  // Genre field
+                                  ZSInput(
+                                    label: 'Žanr',
+                                    controller: _genreController,
+                                  ),
+                                  
+                                  const SizedBox(height: 20),
+                                  
+                                  // Binding field
+                                  ZSInput(
+                                    label: 'Tip korica',
+                                    controller: _bindingController,
+                                  ),
+                                  
+                                  const SizedBox(height: 20),
+                                  
+                                  // Language field
+                                  ZSInput(
+                                    label: 'Jezik',
+                                    controller: _languageController,
+                                  ),
+                                  
+                                  const SizedBox(height: 20),
+                                  
+                                  // Author dropdown
+                                  ZSDropdown<int?>(
+                                    label: 'Autor',
+                                    value: _selectedAuthorId,
+                                    items: [
+                                      for (var author in _authors)
+                                        DropdownMenuItem(
+                                          value: author.id,
+                                          child: Text(author.fullName),
+                                        ),
+                                    ],
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _selectedAuthorId = value;
+                                      });
+                                    },
+                                    borderColor: Colors.grey.shade300,
+                                    width: 600.0,
+                                  ),
+                                  
+                                  const SizedBox(height: 40),
+                                  
+                                  // Submit button
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      ZSButton(
+                                        text: 'Spremi promjene',
+                                        backgroundColor: Colors.green.shade50,
+                                        foregroundColor: Colors.green,
+                                        borderColor: Colors.grey.shade300,
+                                        width: 250,
+                                        onPressed: _updateBook,
+                                      ),
+                                      
+                                      const SizedBox(width: 20),
+                                      
+                                      ZSButton(
+                                        text: 'Odustani',
+                                        backgroundColor: Colors.grey.shade100,
+                                        foregroundColor: Colors.grey.shade700,
+                                        borderColor: Colors.grey.shade300,
+                                        width: 250,
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                  
+                                  const SizedBox(height: 20),
+                                ],
+                              ),
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  void _updateBook() {
+    if (_formKey.currentState!.validate()) {
+      final bookProvider = Provider.of<BookProvider>(context, listen: false);
+      
+      bookProvider.updateBook(
+        widget.book.id,
+        _titleController.text,
+        _descriptionController.text.isEmpty ? null : _descriptionController.text,
+        double.parse(_priceController.text),
+        _dateOfPublishController.text.isEmpty ? null : _dateOfPublishController.text,
+        _editionController.text.isEmpty ? null : int.parse(_editionController.text),
+        _publisherController.text.isEmpty ? null : _publisherController.text,
+        _bookPurposController.text,
+        int.parse(_numberOfPagesController.text),
+        _weightController.text.isEmpty ? null : double.parse(_weightController.text),
+        _dimensionsController.text.isEmpty ? null : _dimensionsController.text,
+        _genreController.text.isEmpty ? null : _genreController.text,
+        _bindingController.text.isEmpty ? null : _bindingController.text,
+        _languageController.text.isEmpty ? null : _languageController.text,
+        _selectedAuthorId,
+      ).then((success) {
+        if (success) {
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Knjiga uspješno ažurirana!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          
+          // Get the updated book and return to the previous screen
+          bookProvider.getBookById(widget.book.id).then((updatedBook) {
+            // Navigate back with the updated book
+            Navigator.pop(context, updatedBook);
+          });
+        } else {
+          // Show error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Greška prilikom ažuriranja knjige: ${bookProvider.error}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      });
+    }
+  }
+} 
