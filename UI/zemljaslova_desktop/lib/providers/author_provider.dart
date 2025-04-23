@@ -40,4 +40,43 @@ class AuthorProvider with ChangeNotifier {
       return null;
     }
   }
+  
+  Future<bool> addAuthor(
+    String firstName,
+    String lastName,
+    String? dateOfBirth,
+    String? genre,
+    String? biography,
+  ) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final newAuthor = await _authorService.addAuthor(
+        firstName,
+        lastName,
+        dateOfBirth,
+        genre,
+        biography,
+      );
+      
+      if (newAuthor != null) {
+        _authors.add(newAuthor);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = "Failed to add author";
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 } 

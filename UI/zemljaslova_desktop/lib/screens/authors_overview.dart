@@ -8,6 +8,7 @@ import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import 'author_detail_overview.dart';
+import 'author_add.dart';
 
 class AuthorsOverview extends StatelessWidget {
   const AuthorsOverview({super.key});
@@ -136,8 +137,12 @@ class _AuthorsContentState extends State<AuthorsContent> {
         // Add button
         ZSButton(
           onPressed: () {
-            // TODO: Implement add author functionality
-            print('Add author button pressed');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AuthorAddScreen(),
+              ),
+            );
           },
           text: 'Dodaj autora',
           backgroundColor: const Color(0xFFE5FFEE),

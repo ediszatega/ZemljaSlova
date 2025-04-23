@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace ZemljaSlova.API.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [ApiController]
     [Route("[controller]")]
     public class VoucherController : BaseCRUDController<Model.Voucher, VoucherSearchObject, VoucherUpsertRequest, VoucherUpsertRequest>
