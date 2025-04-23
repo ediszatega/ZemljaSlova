@@ -3,6 +3,7 @@ import '../widgets/zs_button.dart';
 import '../models/author.dart';
 import '../widgets/sidebar.dart';
 import 'authors_overview.dart';
+import 'author_edit.dart';
 
 class AuthorDetailOverview extends StatelessWidget {
   final Author author;
@@ -173,8 +174,24 @@ class AuthorDetailOverview extends StatelessWidget {
                         borderColor: Colors.grey.shade300,
                         width: 410,
                         topPadding: 5,
-                        onPressed: () {
-                          // TODO: Implement edit author functionality
+                        onPressed: () async {
+                          final updatedAuthor = await Navigator.of(context).push<Author>(
+                            MaterialPageRoute(
+                              builder: (context) => AuthorEditScreen(author: author),
+                            ),
+                          );
+                          
+                          // If we got an updated author back, refresh this screen
+                          if (updatedAuthor != null) {
+                            // Using Navigator to rebuild the detail screen with new data
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (context) => AuthorDetailOverview(
+                                  author: updatedAuthor,
+                                ),
+                              ),
+                            );
+                          }
                         },
                       ),
 

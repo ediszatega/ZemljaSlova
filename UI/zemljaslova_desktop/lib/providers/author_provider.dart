@@ -79,4 +79,48 @@ class AuthorProvider with ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> updateAuthor(
+    int id,
+    String firstName,
+    String lastName,
+    String? dateOfBirth,
+    String? genre,
+    String? biography,
+  ) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final updatedAuthor = await _authorService.updateAuthor(
+        id,
+        firstName,
+        lastName,
+        dateOfBirth,
+        genre,
+        biography,
+      );
+      
+      if (updatedAuthor != null) {
+        final index = _authors.indexWhere((author) => author.id == id);
+        if (index >= 0) {
+          _authors[index] = updatedAuthor;
+        }
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = "Failed to update author";
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 } 

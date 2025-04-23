@@ -7,21 +7,38 @@ import '../widgets/zs_button.dart';
 import '../widgets/zs_input.dart';
 import '../widgets/zs_datetime_picker.dart';
 
-class AuthorAddScreen extends StatefulWidget {
-  const AuthorAddScreen({super.key});
+class AuthorEditScreen extends StatefulWidget {
+  final Author author;
+  
+  const AuthorEditScreen({
+    super.key,
+    required this.author,
+  });
 
   @override
-  State<AuthorAddScreen> createState() => _AuthorAddScreenState();
+  State<AuthorEditScreen> createState() => _AuthorEditScreenState();
 }
 
-class _AuthorAddScreenState extends State<AuthorAddScreen> {
+class _AuthorEditScreenState extends State<AuthorEditScreen> {
   final _formKey = GlobalKey<FormState>();
   
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _dateOfBirthController = TextEditingController();
-  final TextEditingController _genreController = TextEditingController();
-  final TextEditingController _biographyController = TextEditingController();
+  late TextEditingController _firstNameController;
+  late TextEditingController _lastNameController;
+  late TextEditingController _dateOfBirthController;
+  late TextEditingController _genreController;
+  late TextEditingController _biographyController;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Initialize controllers with author data
+    _firstNameController = TextEditingController(text: widget.author.firstName);
+    _lastNameController = TextEditingController(text: widget.author.lastName);
+    _dateOfBirthController = TextEditingController(text: widget.author.dateOfBirth);
+    _genreController = TextEditingController(text: widget.author.genre);
+    _biographyController = TextEditingController(text: widget.author.biography);
+  }
 
   @override
   void dispose() {
@@ -53,10 +70,7 @@ class _AuthorAddScreenState extends State<AuthorAddScreen> {
                   // Back button
                   TextButton.icon(
                     onPressed: () {
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                        '/authors',
-                        (route) => false,
-                      );
+                      Navigator.pop(context);
                     },
                     icon: const Icon(Icons.arrow_back),
                     label: const Text('Nazad na pregled autora'),
@@ -65,9 +79,9 @@ class _AuthorAddScreenState extends State<AuthorAddScreen> {
                   const SizedBox(height: 24),
                   
                   // Header
-                  const Text(
-                    'Dodavanje novog autora',
-                    style: TextStyle(
+                  Text(
+                    'Uređivanje autora: ${widget.author.fullName}',
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -141,12 +155,12 @@ class _AuthorAddScreenState extends State<AuthorAddScreen> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 ZSButton(
-                                  text: 'Spremi',
+                                  text: 'Spremi promjene',
                                   backgroundColor: Colors.green.shade50,
                                   foregroundColor: Colors.green,
                                   borderColor: Colors.grey.shade300,
                                   width: 250,
-                                  onPressed: _saveAuthor,
+                                  onPressed: _updateAuthor,
                                 ),
                                 
                                 const SizedBox(width: 20),
@@ -158,10 +172,7 @@ class _AuthorAddScreenState extends State<AuthorAddScreen> {
                                   borderColor: Colors.grey.shade300,
                                   width: 250,
                                   onPressed: () {
-                                    Navigator.of(context).pushNamedAndRemoveUntil(
-                                      '/authors',
-                                      (route) => false,
-                                    );
+                                    Navigator.pop(context);
                                   },
                                 ),
                               ],
@@ -182,11 +193,12 @@ class _AuthorAddScreenState extends State<AuthorAddScreen> {
     );
   }
   
-  void _saveAuthor() {
+  void _updateAuthor() {
     if (_formKey.currentState!.validate()) {
       final authorProvider = Provider.of<AuthorProvider>(context, listen: false);
       
-      authorProvider.addAuthor(
+      authorProvider.updateAuthor(
+        widget.author.id,
         _firstNameController.text,
         _lastNameController.text,
         _dateOfBirthController.text.isEmpty ? null : _dateOfBirthController.text,
@@ -197,21 +209,21 @@ class _AuthorAddScreenState extends State<AuthorAddScreen> {
           // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Autor uspješno dodan!'),
+              content: Text('Autor uspješno ažuriran!'),
               backgroundColor: Colors.green,
             ),
           );
           
-          // Navigate back to authors list
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            '/authors',
-            (route) => false,
-          );
+          // Get the updated author and return to the previous screen
+          authorProvider.getAuthorById(widget.author.id).then((updatedAuthor) {
+            // Navigate back with the updated author
+            Navigator.pop(context, updatedAuthor);
+          });
         } else {
           // Show error message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Greška prilikom dodavanja autora: ${authorProvider.error}'),
+              content: Text('Greška prilikom ažuriranja autora: ${authorProvider.error}'),
               backgroundColor: Colors.red,
             ),
           );
