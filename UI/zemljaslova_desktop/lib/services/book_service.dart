@@ -106,6 +106,66 @@ class BookService {
     }
   }
 
+  Future<Book?> addBook(
+    String title,
+    String? description,
+    double price,
+    String? dateOfPublish,
+    int? edition,
+    String? publisher,
+    String bookPurpos,
+    int numberOfPages,
+    double? weight,
+    String? dimensions,
+    String? genre,
+    String? binding,
+    String? language,
+    int? authorId,
+  ) async {
+    try {
+      // Convert date string to datetime format if provided
+      DateTime? publishDate;
+      if (dateOfPublish != null && dateOfPublish.isNotEmpty) {
+        final parts = dateOfPublish.split('.');
+        if (parts.length == 3) {
+          publishDate = DateTime(
+            int.parse(parts[2]), // year
+            int.parse(parts[1]), // month
+            int.parse(parts[0]), // day
+          );
+        }
+      }
+      
+      final Map<String, dynamic> data = {
+        'title': title,
+        'description': description,
+        'price': price,
+        'dateOfPublish': publishDate?.toIso8601String(),
+        'edition': edition,
+        'publisher': publisher,
+        'bookPurpos': bookPurpos,
+        'numberOfPages': numberOfPages,
+        'weight': weight,
+        'dimensions': dimensions,
+        'genre': genre,
+        'binding': binding,
+        'language': language,
+        'authorId': authorId,
+      };
+      
+      final response = await _apiService.post('Book', data);
+      
+      if (response != null) {
+        return _mapBookFromBackend(response);
+      }
+      
+      return null;
+    } catch (e) {
+      debugPrint('Failed to add book: $e');
+      return null;
+    }
+  }
+
   Book _mapBookFromBackend(dynamic bookData) {
     String? coverImageUrl;
     if (bookData['coverImage'] != null) {

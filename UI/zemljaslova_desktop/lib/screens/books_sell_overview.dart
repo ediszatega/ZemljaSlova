@@ -8,6 +8,7 @@ import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import 'book_detail_overview.dart';
+import 'book_add.dart';
 
 class BooksSellOverview extends StatelessWidget {
   const BooksSellOverview({super.key});
@@ -39,12 +40,32 @@ class BooksContent extends StatefulWidget {
   State<BooksContent> createState() => _BooksContentState();
 }
 
-class _BooksContentState extends State<BooksContent> {
+class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver {
   String _sortOption = 'Naslov (A-Z)';
   
   @override
   void initState() {
     super.initState();
+    // Register as an observer to detect when the app regains focus
+    WidgetsBinding.instance.addObserver(this);
+    _loadBooks();
+  }
+  
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh data when app comes back to foreground
+      _loadBooks();
+    }
+  }
+  
+  void _loadBooks() {
     // Load books data
     Future.microtask(() {
       Provider.of<BookProvider>(context, listen: false).fetchBooks();
@@ -131,7 +152,17 @@ class _BooksContentState extends State<BooksContent> {
         
         // Add button
         ZSButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const BookAddScreen(),
+              ),
+            ).then((_) {
+              // Refresh books when returning from add screen
+              _loadBooks();
+            });
+          },
           text: 'Dodaj knjigu',
           backgroundColor: const Color(0xFFE5FFEE),
           foregroundColor: Colors.green,
@@ -211,7 +242,10 @@ class _BooksContentState extends State<BooksContent> {
                       book: book,
                     ),
                   ),
-                );
+                ).then((_) {
+                  // Refresh books when returning from detail screen
+                  _loadBooks();
+                });
               },
             );
           },

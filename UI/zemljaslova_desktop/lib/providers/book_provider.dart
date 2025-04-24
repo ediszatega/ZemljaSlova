@@ -103,4 +103,61 @@ class BookProvider with ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> addBook(
+    String title,
+    String? description,
+    double price,
+    String? dateOfPublish,
+    int? edition,
+    String? publisher,
+    String bookPurpos,
+    int numberOfPages,
+    double? weight,
+    String? dimensions,
+    String? genre,
+    String? binding,
+    String? language,
+    int? authorId,
+  ) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final newBook = await _bookService.addBook(
+        title,
+        description,
+        price,
+        dateOfPublish,
+        edition,
+        publisher,
+        bookPurpos,
+        numberOfPages,
+        weight,
+        dimensions,
+        genre,
+        binding,
+        language,
+        authorId,
+      );
+      
+      if (newBook != null) {
+        _books.add(newBook);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = "Failed to add book";
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 } 
