@@ -8,9 +8,9 @@ class BookService {
   
   BookService(this._apiService);
   
-  Future<List<Book>> fetchBooks() async {
+  Future<List<Book>> fetchBooks({bool isAuthorIncluded = true}) async {
     try {
-      final response = await _apiService.get('Book');
+      final response = await _apiService.get('Book?IsAuthorIncluded=$isAuthorIncluded');
       
       debugPrint('API response: $response');
       
@@ -31,7 +31,7 @@ class BookService {
   
   Future<Book> getBookById(int id) async {
     try {
-      final response = await _apiService.get('Book/$id');
+      final response = await _apiService.get('Book/$id?IsAuthorIncluded=true');
       
       if (response != null) {
         return _mapBookFromBackend(response);

@@ -137,10 +137,17 @@ class MembersDetailOverview extends StatelessWidget {
                             const SizedBox(height: 16),
                             
                             // Detail rows
-                            DetailRow(label: 'Grad', value: 'Sarajevo'),
-                            DetailRow(label: 'Broj telefona', value: '+387 61 123 456'),
-                            DetailRow(label: 'Datum kreiranja profila', value: '01.01.2023'),
-                            DetailRow(label: 'Datum učlanjenja', value: '15.01.2023'),
+                            DetailRow(label: 'Email', value: member.email),
+                            if (member.gender != null)
+                              DetailRow(label: 'Spol', value: member.gender!),
+                            DetailRow(
+                              label: 'Datum rođenja', 
+                              value: '${member.dateOfBirth.day}.${member.dateOfBirth.month}.${member.dateOfBirth.year}'
+                            ),
+                            DetailRow(
+                              label: 'Datum učlanjenja', 
+                              value: '${member.joinedAt.day}.${member.joinedAt.month}.${member.joinedAt.year}'
+                            ),
                             DetailRow(label: 'Broj aktivnih mjeseci', value: '3'),
                             DetailRow(label: 'Broj kupljenih knjiga', value: '5'),
                             DetailRow(label: 'Broj iznajmljenih knjiga', value: '2'),

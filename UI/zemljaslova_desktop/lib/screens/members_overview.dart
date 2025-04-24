@@ -47,7 +47,7 @@ class _MembersContentState extends State<MembersContent> {
     super.initState();
     // Load members data
     Future.microtask(() {
-      Provider.of<MemberProvider>(context, listen: false).fetchMembers();
+      Provider.of<MemberProvider>(context, listen: false).fetchMembers(isUserIncluded: true);
     });
   }
 

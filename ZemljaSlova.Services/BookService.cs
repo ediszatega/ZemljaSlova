@@ -19,7 +19,10 @@ namespace ZemljaSlova.Services
 
         public override IQueryable<Database.Book> AddFilter(BookSearchObject search, IQueryable<Database.Book> query)
         {
-            query = query.Include("Author");
+            if (search.IsAuthorIncluded == true)
+            {
+                query = query.Include("Author");
+            }
             
             return base.AddFilter(search, query);
         }

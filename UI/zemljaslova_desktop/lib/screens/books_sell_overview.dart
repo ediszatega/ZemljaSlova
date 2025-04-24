@@ -68,7 +68,7 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
   void _loadBooks() {
     // Load books data
     Future.microtask(() {
-      Provider.of<BookProvider>(context, listen: false).fetchBooks();
+      Provider.of<BookProvider>(context, listen: false).fetchBooks(isAuthorIncluded: true);
     });
   }
 

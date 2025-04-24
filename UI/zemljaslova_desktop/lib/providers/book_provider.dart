@@ -15,13 +15,13 @@ class BookProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  Future<void> fetchBooks() async {
+  Future<void> fetchBooks({bool isAuthorIncluded = true}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _books = await _bookService.fetchBooks();
+      _books = await _bookService.fetchBooks(isAuthorIncluded: isAuthorIncluded);
       
       _isLoading = false;
       notifyListeners();

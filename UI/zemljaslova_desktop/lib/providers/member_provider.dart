@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import '../models/member.dart';
+import '../services/member_service.dart';
 
 class MemberProvider with ChangeNotifier {
+  final MemberService _memberService;
+  
+  MemberProvider(this._memberService);
+  
   List<Member> _members = [];
   bool _isLoading = false;
   String? _error;
@@ -10,26 +15,13 @@ class MemberProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  Future<void> fetchMembers() async {
+  Future<void> fetchMembers({bool isUserIncluded = true}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      // TODO: Replace with actual API call
-      // Removed artificial delay since we're using hardcoded data
-      
-      // Mock data
-      _members = List.generate(
-        10,
-        (index) => Member(
-          id: index + 1,
-          firstName: 'Ime${index + 1}',
-          lastName: 'Prezime${index + 1}',
-          email: 'korisnik${index + 1}@example.com',
-          isActive: index % 3 != 0, // Every third user is inactive
-        ),
-      );
+      _members = await _memberService.fetchMembers(isUserIncluded: isUserIncluded);
       
       _isLoading = false;
       notifyListeners();
@@ -40,35 +32,13 @@ class MemberProvider with ChangeNotifier {
     }
   }
 
-  Future<void> toggleMemberStatus(int memberId) async {
-    _isLoading = true;
-    notifyListeners();
-
+  Future<Member?> getMemberById(int id) async {
     try {
-      // TODO: Replace with actual API call
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      final memberIndex = _members.indexWhere((member) => member.id == memberId);
-      if (memberIndex >= 0) {
-        final member = _members[memberIndex];
-        final updatedMember = Member(
-          id: member.id,
-          firstName: member.firstName,
-          lastName: member.lastName,
-          email: member.email,
-          isActive: !member.isActive,
-          profileImageUrl: member.profileImageUrl,
-        );
-        
-        _members[memberIndex] = updatedMember;
-      }
-      
-      _isLoading = false;
-      notifyListeners();
+      return await _memberService.getMemberById(id);
     } catch (e) {
       _error = e.toString();
-      _isLoading = false;
       notifyListeners();
+      return null;
     }
   }
 } 

@@ -17,18 +17,21 @@ import 'screens/book_add.dart';
 import 'services/api_service.dart';
 import 'services/book_service.dart';
 import 'services/author_service.dart';
+import 'services/member_service.dart';
 
 void main() {
   final apiService = ApiService();
   
   final bookService = BookService(apiService);
   final authorService = AuthorService(apiService);
+  final memberService = MemberService(apiService);
   
   runApp(
     ZemljaSlova(
       apiService: apiService,
       bookService: bookService,
       authorService: authorService,
+      memberService: memberService,
     ),
   );
 }
@@ -37,19 +40,21 @@ class ZemljaSlova extends StatelessWidget {
   final ApiService apiService;
   final BookService bookService;
   final AuthorService authorService;
+  final MemberService memberService;
   
   const ZemljaSlova({
     super.key,
     required this.apiService,
     required this.bookService,
     required this.authorService,
+    required this.memberService,
   });
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => MemberProvider()),
+        ChangeNotifierProvider(create: (_) => MemberProvider(memberService)),
         ChangeNotifierProvider(create: (_) => BookProvider(bookService)),
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
         ChangeNotifierProvider(create: (_) => EventProvider()),

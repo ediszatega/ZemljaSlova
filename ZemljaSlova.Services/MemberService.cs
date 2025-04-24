@@ -24,6 +24,16 @@ namespace ZemljaSlova.Services
             _userService = userService;
         }
 
+        public override IQueryable<Database.Member> AddFilter(MemberSearchObject search, IQueryable<Database.Member> query)
+        {
+            if (search.IsUserIncluded == true)
+            {
+                query = query.Include("User");
+            }
+
+            return base.AddFilter(search, query);
+        }
+
         public async Task<Model.Member> CreateMember(MemberInsertRequest request)
         {
             Database.Member member;
