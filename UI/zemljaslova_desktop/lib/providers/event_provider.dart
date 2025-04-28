@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import '../models/event.dart';
+import '../services/event_service.dart';
 
 class EventProvider with ChangeNotifier {
+  final EventService _eventService;
+  
+  EventProvider(this._eventService);
+  
   List<Event> _events = [];
   bool _isLoading = false;
   String? _error;
@@ -16,77 +21,7 @@ class EventProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // Mock data for now
-      await Future.delayed(const Duration(milliseconds: 50));
-      
-      final List<Map<String, dynamic>> eventsData = [
-        {
-          'id': 1,
-          'title': 'Na Drini ćuprija',
-          'organizer': 'Naziv organizatora',
-          'date': '21.12.2024.',
-          'price': 10.0,
-          'imageUrl': 'https://knjige.ba/media/catalog/product/cache/e4d64343b1bc593f1c5348fe05efa4a6/i/v/ivo-andri---na-drini-uprija.jpg',
-        },
-        {
-          'id': 2,
-          'title': 'Naslov događaja sa duzim tekstom da vidimo kako se to prikazuje',
-          'organizer': 'Naziv organizatora sa duzim tekstom da vidimo kako se to prikazuje',
-          'date': '21.12.2024.',
-          'price': 0.0,
-          'imageUrl': null,
-        },
-        {
-          'id': 3,
-          'title': 'Naslov događaja',
-          'organizer': 'Naziv organizatora',
-          'date': '21.12.2024.',
-          'price': 0.0,
-          'imageUrl': null,
-        },
-        {
-          'id': 4,
-          'title': 'Naslov događaja',
-          'organizer': 'Naziv organizatora',
-          'date': '21.12.2024.',
-          'price': 25.0,
-          'imageUrl': null,
-        },
-        {
-          'id': 5,
-          'title': 'Naslov događaja',
-          'organizer': 'Naziv organizatora',
-          'date': '21.12.2024.',
-          'price': 0.0,
-          'imageUrl': null,
-        },
-        {
-          'id': 6,
-          'title': 'Naslov događaja',
-          'organizer': 'Naziv organizatora',
-          'date': '21.12.2024.',
-          'price': 15.0,
-          'imageUrl': null,
-        },
-        {
-          'id': 7,
-          'title': 'Naslov događaja',
-          'organizer': 'Naziv organizatora',
-          'date': '21.12.2024.',
-          'price': 0.0,
-          'imageUrl': null,
-        },
-        {
-          'id': 8,
-          'title': 'Naslov događaja',
-          'organizer': 'Naziv organizatora',
-          'date': '21.12.2024.',
-          'price': 10.0,
-          'imageUrl': null,
-        },
-      ];
-      
-      _events = eventsData.map((data) => Event.fromJson(data)).toList();
+      _events = await _eventService.fetchEvents();
       
       _isLoading = false;
       notifyListeners();
@@ -94,6 +29,16 @@ class EventProvider with ChangeNotifier {
       _error = e.toString();
       _isLoading = false;
       notifyListeners();
+    }
+  }
+  
+  Future<Event?> getEventById(int id) async {
+    try {
+      return await _eventService.getEventById(id);
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return null;
     }
   }
 } 

@@ -140,9 +140,9 @@ class ZSCardVertical extends StatelessWidget {
   ) {
     // Create image widget from event's image
     Widget imageWidget;
-    if (event.imageUrl != null) {
+    if (event.coverImageUrl != null) {
       imageWidget = Image.network(
-        event.imageUrl,
+        event.coverImageUrl,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
           return _buildFallbackEventImage();
@@ -152,18 +152,16 @@ class ZSCardVertical extends StatelessWidget {
       imageWidget = _buildFallbackEventImage();
     }
     
-    // Format price text
-    String priceText;
-    if (event.price == 0) {
-      priceText = 'Besplatno';
-    } else {
-      priceText = '${event.price} KM';
-    }
+    // Format date
+    String formattedDate = '${event.startAt.day}.${event.startAt.month}.${event.startAt.year}';
+    
+    // TODO: display price from TicketTypes
+    String priceText = 'Na upit';
     
     return ZSCardVertical(
       title: event.title,
-      organizer: event.organizer,
-      date: event.date,
+      organizer: event.organizer ?? 'Nije navedeno',
+      date: formattedDate,
       image: imageWidget,
       price: priceText,
       onTap: onTap,

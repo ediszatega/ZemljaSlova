@@ -7,19 +7,27 @@ part of 'event.dart';
 // **************************************************************************
 
 Event _$EventFromJson(Map<String, dynamic> json) => Event(
-  id: (json['id'] as num).toInt(),
-  title: json['title'] as String,
-  organizer: json['organizer'] as String,
-  date: json['date'] as String,
-  price: (json['price'] as num).toDouble(),
-  imageUrl: json['imageUrl'] as String?,
-);
+      id: (json['id'] as num).toInt(),
+      title: json['title'] as String,
+      description: json['description'] as String,
+      location: json['location'] as String?,
+      startAt: DateTime.parse(json['startAt'] as String),
+      endAt: DateTime.parse(json['endAt'] as String),
+      organizer: json['organizer'] as String?,
+      lecturers: json['lecturers'] as String?,
+      coverImageUrl: json['coverImageUrl'] as String?,
+      maxNumberOfPeople: (json['maxNumberOfPeople'] as num?)?.toInt(),
+    );
 
 Map<String, dynamic> _$EventToJson(Event instance) => <String, dynamic>{
-  'id': instance.id,
-  'title': instance.title,
-  'organizer': instance.organizer,
-  'date': instance.date,
-  'price': instance.price,
-  'imageUrl': instance.imageUrl,
-};
+      'id': instance.id,
+      'title': instance.title,
+      'description': instance.description,
+      'location': instance.location,
+      'startAt': instance.startAt.toIso8601String(),
+      'endAt': instance.endAt.toIso8601String(),
+      'organizer': instance.organizer,
+      'lecturers': instance.lecturers,
+      'coverImageUrl': instance.coverImageUrl,
+      'maxNumberOfPeople': instance.maxNumberOfPeople,
+    };

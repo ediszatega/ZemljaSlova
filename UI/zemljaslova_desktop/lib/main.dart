@@ -18,6 +18,7 @@ import 'services/api_service.dart';
 import 'services/book_service.dart';
 import 'services/author_service.dart';
 import 'services/member_service.dart';
+import 'services/event_service.dart';
 
 void main() {
   final apiService = ApiService();
@@ -25,6 +26,7 @@ void main() {
   final bookService = BookService(apiService);
   final authorService = AuthorService(apiService);
   final memberService = MemberService(apiService);
+  final eventService = EventService(apiService);
   
   runApp(
     ZemljaSlova(
@@ -32,6 +34,7 @@ void main() {
       bookService: bookService,
       authorService: authorService,
       memberService: memberService,
+      eventService: eventService,
     ),
   );
 }
@@ -41,6 +44,7 @@ class ZemljaSlova extends StatelessWidget {
   final BookService bookService;
   final AuthorService authorService;
   final MemberService memberService;
+  final EventService eventService;
   
   const ZemljaSlova({
     super.key,
@@ -48,6 +52,7 @@ class ZemljaSlova extends StatelessWidget {
     required this.bookService,
     required this.authorService,
     required this.memberService,
+    required this.eventService,
   });
 
   @override
@@ -57,7 +62,7 @@ class ZemljaSlova extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => MemberProvider(memberService)),
         ChangeNotifierProvider(create: (_) => BookProvider(bookService)),
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
-        ChangeNotifierProvider(create: (_) => EventProvider()),
+        ChangeNotifierProvider(create: (_) => EventProvider(eventService)),
         ChangeNotifierProvider(create: (_) => AuthorProvider(authorService)),
       ],
       child: MaterialApp(

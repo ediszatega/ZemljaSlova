@@ -6,18 +6,26 @@ part 'event.g.dart';
 class Event {
   final int id;
   final String title;
-  final String organizer;
-  final String date;
-  final double price;
-  final String? imageUrl;
+  final String description;
+  final String? location;
+  final DateTime startAt;
+  final DateTime endAt;
+  final String? organizer;
+  final String? lecturers;
+  final String? coverImageUrl;
+  final int? maxNumberOfPeople;
 
   Event({
     required this.id,
     required this.title,
-    required this.organizer,
-    required this.date,
-    required this.price,
-    this.imageUrl,
+    required this.description,
+    this.location,
+    required this.startAt,
+    required this.endAt,
+    this.organizer,
+    this.lecturers,
+    this.coverImageUrl,
+    this.maxNumberOfPeople,
   });
 
   factory Event.fromJson(Map<String, dynamic> json) => _$EventFromJson(json);

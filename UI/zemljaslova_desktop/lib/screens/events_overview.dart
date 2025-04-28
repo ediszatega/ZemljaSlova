@@ -170,18 +170,12 @@ class _EventsContentState extends State<EventsContent> {
         final sortedEvents = List<Event>.from(events);
         switch (_sortOption) {
           case 'Najnoviji':
-            // In a real app, this would sort by date
-            sortedEvents.sort((a, b) => b.id.compareTo(a.id));
+            // Sort by startDate - newest first
+            sortedEvents.sort((a, b) => b.startAt.compareTo(a.startAt));
             break;
           case 'Najstariji':
-            // In a real app, this would sort by date
-            sortedEvents.sort((a, b) => a.id.compareTo(b.id));
-            break;
-          case 'Cijena (veća)':
-            sortedEvents.sort((a, b) => b.price.compareTo(a.price));
-            break;
-          case 'Cijena (manja)':
-            sortedEvents.sort((a, b) => a.price.compareTo(b.price));
+            // Sort by startDate - oldest first
+            sortedEvents.sort((a, b) => a.startAt.compareTo(b.startAt));
             break;
         }
         
@@ -200,7 +194,6 @@ class _EventsContentState extends State<EventsContent> {
               context,
               event,
               onTap: () {
-                // Navigate to event details (to be implemented)
               },
             );
           },
