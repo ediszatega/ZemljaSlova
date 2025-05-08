@@ -155,8 +155,31 @@ class ZSCardVertical extends StatelessWidget {
     // Format date
     String formattedDate = '${event.startAt.day}.${event.startAt.month}.${event.startAt.year}';
     
-    // TODO: display price from TicketTypes
-    String priceText = 'Na upit';
+    // Format price based on ticket types
+    String priceText = 'Besplatno';
+    
+    if (event.ticketTypes != null && event.ticketTypes.isNotEmpty) {
+      if (event.ticketTypes.length == 1) {
+        // If only one ticket type, display its price
+        final price = event.ticketTypes[0].price;
+        priceText = price == 0 ? 'Besplatno' : '${price.toStringAsFixed(2)} KM';
+      } else {
+        // Find lowest and highest price
+        final prices = event.ticketTypes.map((t) => t.price).toList()..sort();
+        final lowestPrice = prices.first;
+        final highestPrice = prices.last;
+        
+        if (lowestPrice == 0 && highestPrice == 0) {
+          priceText = 'Besplatno';
+        } else if (lowestPrice == 0) {
+          priceText = '0 - ${highestPrice.toStringAsFixed(2)} KM';
+        } else if (lowestPrice == highestPrice) {
+          priceText = '${lowestPrice.toStringAsFixed(2)} KM';
+        } else {
+          priceText = '${lowestPrice.toStringAsFixed(2)} - ${highestPrice.toStringAsFixed(2)} KM';
+        }
+      }
+    }
     
     return ZSCardVertical(
       title: event.title,

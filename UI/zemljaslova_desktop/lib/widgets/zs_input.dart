@@ -5,6 +5,7 @@ class ZSInput extends StatelessWidget {
   final TextEditingController controller;
   final String? Function(String?)? validator;
   final int maxLines;
+  final TextInputType? keyboardType;
 
   const ZSInput({
     super.key,
@@ -12,6 +13,7 @@ class ZSInput extends StatelessWidget {
     required this.controller,
     this.validator,
     this.maxLines = 1,
+    this.keyboardType,
   });
 
   @override
@@ -38,6 +40,7 @@ class ZSInput extends StatelessWidget {
             controller: controller,
             validator: validator,
             maxLines: maxLines,
+            keyboardType: keyboardType,
             decoration: InputDecoration(
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,

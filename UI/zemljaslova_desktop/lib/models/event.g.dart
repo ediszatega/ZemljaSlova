@@ -17,6 +17,9 @@ Event _$EventFromJson(Map<String, dynamic> json) => Event(
       lecturers: json['lecturers'] as String?,
       coverImageUrl: json['coverImageUrl'] as String?,
       maxNumberOfPeople: (json['maxNumberOfPeople'] as num?)?.toInt(),
+      ticketTypes: (json['ticketTypes'] as List<dynamic>?)
+          ?.map((e) => TicketType.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$EventToJson(Event instance) => <String, dynamic>{
@@ -30,4 +33,5 @@ Map<String, dynamic> _$EventToJson(Event instance) => <String, dynamic>{
       'lecturers': instance.lecturers,
       'coverImageUrl': instance.coverImageUrl,
       'maxNumberOfPeople': instance.maxNumberOfPeople,
+      'ticketTypes': instance.ticketTypes,
     };

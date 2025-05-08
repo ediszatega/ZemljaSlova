@@ -17,8 +17,6 @@ namespace ZemljaSlova.Model
 
         public string? Description { get; set; }
 
-        public virtual Event Event { get; set; } = null!;
-
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 
         public virtual ICollection<TicketTypeTransaction> TicketTypeTransactions { get; set; } = new List<TicketTypeTransaction>();

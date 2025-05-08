@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'ticket_type.dart';
 
 part 'event.g.dart';
 
@@ -14,6 +15,7 @@ class Event {
   final String? lecturers;
   final String? coverImageUrl;
   final int? maxNumberOfPeople;
+  final List<TicketType>? ticketTypes;
 
   Event({
     required this.id,
@@ -26,6 +28,7 @@ class Event {
     this.lecturers,
     this.coverImageUrl,
     this.maxNumberOfPeople,
+    this.ticketTypes,
   });
 
   factory Event.fromJson(Map<String, dynamic> json) => _$EventFromJson(json);

@@ -7,6 +7,7 @@ import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../widgets/zs_card_vertical.dart';
+import 'event_add.dart';
 
 class EventsOverview extends StatelessWidget {
   const EventsOverview({super.key});
@@ -129,7 +130,17 @@ class _EventsContentState extends State<EventsContent> {
         
         // Add button
         ZSButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const EventAddScreen(),
+              ),
+            ).then((_) {
+              // Refresh events when returning from add screen
+              Provider.of<EventProvider>(context, listen: false).fetchEvents();
+            });
+          },
           text: 'Dodaj događaj',
           backgroundColor: const Color(0xFFE5FFEE),
           foregroundColor: Colors.green,
@@ -176,6 +187,45 @@ class _EventsContentState extends State<EventsContent> {
           case 'Najstariji':
             // Sort by startDate - oldest first
             sortedEvents.sort((a, b) => a.startAt.compareTo(b.startAt));
+            break;
+          case 'Cijena (veća)':
+            // Sort by highest ticket price, if available
+            sortedEvents.sort((a, b) {
+              // Get max prices from ticket types
+              double getMaxPrice(Event event) {
+                if (event.ticketTypes == null || event.ticketTypes!.isEmpty) {
+                  return 0.0;
+                }
+                return event.ticketTypes!.map((t) => t.price).reduce((max, price) => price > max ? price : max);
+              }
+              return getMaxPrice(b).compareTo(getMaxPrice(a));
+            });
+            break;
+          case 'Cijena (manja)':
+            // Sort by lowest ticket price, if available
+            sortedEvents.sort((a, b) {
+              // Get min prices from ticket types
+              double getMinPrice(Event event) {
+                if (event.ticketTypes == null || event.ticketTypes!.isEmpty) {
+                  return double.infinity;
+                }
+                return event.ticketTypes!.map((t) => t.price).reduce((min, price) => price < min ? price : min);
+              }
+              
+              double minPriceA = getMinPrice(a);
+              double minPriceB = getMinPrice(b);
+              
+              // Handle the case where there are no ticket types
+              if (minPriceA == double.infinity && minPriceB == double.infinity) {
+                return 0; // Both are equal
+              } else if (minPriceA == double.infinity) {
+                return 1; // b comes first
+              } else if (minPriceB == double.infinity) {
+                return -1; // a comes first
+              }
+              
+              return minPriceA.compareTo(minPriceB);
+            });
             break;
         }
         

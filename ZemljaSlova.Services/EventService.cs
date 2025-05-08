@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services.Database;
@@ -14,6 +15,16 @@ namespace ZemljaSlova.Services
     {
         public EventService(_200036Context context, IMapper mapper) : base(context, mapper)
         {
+        }
+
+        public override IQueryable<Database.Event> AddFilter(EventSearchObject search, IQueryable<Database.Event> query)
+        {
+            if (search.IsTicketTypeIncluded == true)
+            {
+                query = query.Include("TicketTypes");
+            }
+
+            return base.AddFilter(search, query);
         }
     }
 }
