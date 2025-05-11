@@ -120,14 +120,17 @@ class EventProvider with ChangeNotifier {
     }
   }
   
-  // Get ticket types for an event
-  Future<List<TicketType>> getTicketTypesForEvent(int eventId) async {
-    try {
-      return await _eventService.getTicketTypesForEvent(eventId);
-    } catch (e) {
-      _error = e.toString();
-      notifyListeners();
-      return [];
-    }
+  Future<TicketType?> addTicketType({
+    required int eventId,
+    required double price,
+    required String name,
+    String? description,
+  }) {
+    return _eventService.addTicketType(
+      eventId: eventId,
+      price: price,
+      name: name,
+      description: description,
+    );
   }
 } 

@@ -13,8 +13,21 @@ namespace ZemljaSlova.Services
 {
     public class EventService : BaseCRUDService<Model.Event, EventSearchObject, Database.Event, EventUpsertRequest, EventUpsertRequest>, IEventService
     {
+        private readonly IMapper _mapper;
+
         public EventService(_200036Context context, IMapper mapper) : base(context, mapper)
         {
+            _mapper = mapper;
+        }
+
+        public async Task<Model.Event> GetEventWithTicketTypes(int id)
+        {
+            var entity = await Context.Events.Include(e => e.TicketTypes).FirstOrDefaultAsync(e => e.Id == id);
+            
+            if (entity == null)
+                return null;
+                
+            return _mapper.Map<Model.Event>(entity);
         }
 
         public override IQueryable<Database.Event> AddFilter(EventSearchObject search, IQueryable<Database.Event> query)

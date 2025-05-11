@@ -8,6 +8,7 @@ import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../widgets/zs_card_vertical.dart';
 import 'event_add.dart';
+import 'event_detail_overview.dart';
 
 class EventsOverview extends StatelessWidget {
   const EventsOverview({super.key});
@@ -244,6 +245,15 @@ class _EventsContentState extends State<EventsContent> {
               context,
               event,
               onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EventDetailOverview(eventId: event.id),
+                  ),
+                ).then((_) {
+                  // Refresh events when returning from detail screen
+                  Provider.of<EventProvider>(context, listen: false).fetchEvents();
+                });
               },
             );
           },

@@ -13,7 +13,7 @@ namespace ZemljaSlova.Services
     {
         public Task<Model.Employee> CreateEmployee(EmployeeInsertRequest request);
 
-        // check if this svc method is needed
+        // TODO: check if this svc method is needed
         new public Task<Model.Employee> GetById(int id);
     }
 }

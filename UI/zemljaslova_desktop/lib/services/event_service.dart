@@ -11,7 +11,7 @@ class EventService {
   
   Future<List<Event>> fetchEvents() async {
     try {
-      final response = await _apiService.get('Event?IsTicketTypeIncluded=true');
+      final response = await _apiService.get('Event?isTicketTypeIncluded=true');
       
       debugPrint('API response: $response');
       
@@ -32,7 +32,7 @@ class EventService {
   
   Future<Event> getEventById(int id) async {
     try {
-      final response = await _apiService.get('Event/$id?IsTicketTypeIncluded=true');
+      final response = await _apiService.get('Event/GetEventWithTicketTypes/${id}');
       
       if (response != null) {
         return _mapEventFromBackend(response);
@@ -91,53 +91,29 @@ class EventService {
     String? description,
   }) async {
     try {
-      final Map<String, dynamic> data = {
+      final data = {
         'eventId': eventId,
         'price': price,
         'name': name,
-        'description': description,
+        'description': description ?? '',
       };
       
       final response = await _apiService.post('TicketType', data);
       
-      if (response != null) {
+      if (response['status'] == 200) {
+        final ticketData = response['data'];
         return TicketType(
-          id: response['id'],
-          eventId: response['eventId'],
-          price: (response['price'] as num).toDouble(),
-          name: response['name'],
-          description: response['description'],
+          id: ticketData['id'],
+          name: ticketData['name'],
+          price: ticketData['price'].toDouble(),
+          description: ticketData['description'] ?? '',
+          eventId: ticketData['eventId'],
         );
       }
-      
       return null;
     } catch (e) {
-      debugPrint('Failed to add ticket type: $e');
+      debugPrint('Error creating ticket type: $e');
       return null;
-    }
-  }
-  
-  // Get ticket types for an event
-  Future<List<TicketType>> getTicketTypesForEvent(int eventId) async {
-    try {
-      final response = await _apiService.get('TicketType?EventId=$eventId');
-      
-      if (response != null && response['resultList'] != null) {
-        final ticketTypesList = response['resultList'] as List;
-        
-        return ticketTypesList.map((item) => TicketType(
-          id: item['id'],
-          eventId: item['eventId'],
-          price: (item['price'] as num).toDouble(),
-          name: item['name'],
-          description: item['description'],
-        )).toList();
-      }
-      
-      return [];
-    } catch (e) {
-      debugPrint('Failed to get ticket types: $e');
-      return [];
     }
   }
 
@@ -163,18 +139,29 @@ class EventService {
       endAt = DateTime.parse(eventData['endAt']);
     }
     
-    // Parse ticket types if available
+    // Parse ticket types
     List<TicketType>? ticketTypes;
-    if (eventData['ticketTypes'] != null) {
-      ticketTypes = (eventData['ticketTypes'] as List)
-          .map((ticketTypeJson) => TicketType(
-                id: ticketTypeJson['id'],
-                eventId: ticketTypeJson['eventId'],
-                price: (ticketTypeJson['price'] as num).toDouble(),
-                name: ticketTypeJson['name'],
-                description: ticketTypeJson['description'],
-              ))
-          .toList();
+    
+    if (eventData.containsKey('ticketTypes') && eventData['ticketTypes'] != null) {
+      final typesList = eventData['ticketTypes'] as List;
+      
+      if (typesList.isNotEmpty) {
+        ticketTypes = typesList.map((ticketTypeJson) {
+          var id = ticketTypeJson['id'];
+          var eventId = ticketTypeJson['eventId'];
+          var price = ticketTypeJson['price'];
+          var name = ticketTypeJson['name'];
+          var description = ticketTypeJson['description'];
+          
+          return TicketType(
+            id: id,
+            eventId: eventId,
+            price: (price as num).toDouble(),
+            name: name,
+            description: description,
+          );
+        }).toList();
+      }
     }
 
     return Event(

@@ -11,5 +11,6 @@ namespace ZemljaSlova.Services
 {
     public interface IEventService : ICRUDService<Event, EventSearchObject, EventUpsertRequest, EventUpsertRequest>
     {
+        Task<Event> GetEventWithTicketTypes(int id);
     }
 }

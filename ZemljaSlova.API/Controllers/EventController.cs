@@ -12,6 +12,18 @@ namespace ZemljaSlova.API.Controllers
     [Route("[controller]")]
     public class EventController : BaseCRUDController<Model.Event, EventSearchObject, EventUpsertRequest, EventUpsertRequest>
     {
-        public EventController(IEventService service) : base(service) { }
+        private readonly IEventService _eventService;
+
+        public EventController(IEventService service) : base(service) 
+        {
+            _eventService = service;
+        }
+
+        [HttpGet("GetEventWithTicketTypes/{id}")]
+        public async Task<IActionResult> GetEventWithTicketTypes([FromRoute] int id)
+        {
+            var result = await _eventService.GetEventWithTicketTypes(id);
+            return Ok(result);
+        }
     }
 }
