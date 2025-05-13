@@ -15,6 +15,7 @@ import 'screens/authors_overview.dart';
 import 'screens/author_add.dart';
 import 'screens/book_add.dart';
 import 'screens/event_add.dart';
+import 'screens/event_edit.dart';
 import 'services/api_service.dart';
 import 'services/book_service.dart';
 import 'services/author_service.dart';

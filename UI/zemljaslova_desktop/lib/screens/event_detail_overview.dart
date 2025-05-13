@@ -6,6 +6,7 @@ import '../models/ticket_type.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import 'event_add.dart';
+import 'event_edit.dart';
 
 class EventDetailOverview extends StatefulWidget {
   final int eventId;
@@ -31,8 +32,6 @@ class _EventDetailOverviewState extends State<EventDetailOverview> {
   
   void _loadEventData() async {
     final eventProvider = Provider.of<EventProvider>(context, listen: false);
-    
-    // Set the future for the event
     _eventFuture = eventProvider.getEventById(widget.eventId);
   }
 
@@ -306,8 +305,18 @@ class _EventDetailOverviewState extends State<EventDetailOverview> {
                               borderColor: Colors.grey.shade300,
                               width: 410,
                               topPadding: 5,
-                              onPressed: () {
-                                // TODO: Implement edit functionality
+                              onPressed: () async {
+                                final updatedEvent = await Navigator.of(context).push<Event>(
+                                  MaterialPageRoute(
+                                    builder: (context) => EventEditScreen(eventId: event.id),
+                                  ),
+                                );
+                                
+                                if (updatedEvent != null) {
+                                  setState(() {
+                                    _loadEventData();
+                                  });
+                                } 
                               },
                             ),
                             

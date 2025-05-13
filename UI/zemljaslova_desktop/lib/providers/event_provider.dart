@@ -129,4 +129,92 @@ class EventProvider with ChangeNotifier {
       description: description,
     );
   }
+  
+  Future<Event?> updateEventWithTicketTypes({
+    required int eventId,
+    required String title,
+    required String description,
+    String? location,
+    required DateTime startAt,
+    required DateTime endAt,
+    String? organizer,
+    String? lecturers,
+    List<int>? coverImage,
+    int? maxNumberOfPeople,
+    required List<Map<String, dynamic>> ticketTypes,
+    required List<int> ticketTypesToDelete,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    
+    try {
+      var updatedEvent = await _eventService.updateEvent(
+        id: eventId,
+        title: title,
+        description: description,
+        location: location,
+        startAt: startAt,
+        endAt: endAt,
+        organizer: organizer,
+        lecturers: lecturers,
+        coverImage: coverImage,
+        maxNumberOfPeople: maxNumberOfPeople,
+      );
+      
+      if (updatedEvent == null) {
+        _error = 'Failed to update event';
+        _isLoading = false;
+        notifyListeners();
+        return null;
+      }
+      
+      for (var ticketTypeId in ticketTypesToDelete) {
+        await _eventService.deleteTicketType(ticketTypeId);
+      }
+      
+      for (var ticketTypeData in ticketTypes) {
+        if (ticketTypeData.containsKey('id') && ticketTypeData['id'] != null) {
+          await _eventService.updateTicketType(
+            id: ticketTypeData['id'],
+            price: ticketTypeData['price'],
+            name: ticketTypeData['name'],
+            description: ticketTypeData['description'],
+          );
+        } else {
+          await _eventService.addTicketType(
+            eventId: eventId,
+            price: ticketTypeData['price'],
+            name: ticketTypeData['name'],
+            description: ticketTypeData['description'],
+          );
+        }
+      }
+      
+      try {
+        final refreshedEvent = await _eventService.getEventById(eventId);
+        
+        final index = _events.indexWhere((event) => event.id == eventId);
+        if (index >= 0) {
+          _events[index] = refreshedEvent;
+        }
+        
+        _isLoading = false;
+        notifyListeners();
+        return refreshedEvent;
+      } catch (e) {
+        debugPrint('Error refreshing event: $e');
+        _isLoading = false;
+        notifyListeners();
+
+        return updatedEvent;
+      }
+      
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    }
+  }
 } 

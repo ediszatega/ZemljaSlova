@@ -83,6 +83,45 @@ class EventService {
     }
   }
   
+  Future<Event?> updateEvent({
+    required int id,
+    required String title,
+    required String description,
+    String? location,
+    required DateTime startAt,
+    required DateTime endAt,
+    String? organizer,
+    String? lecturers,
+    List<int>? coverImage,
+    int? maxNumberOfPeople,
+  }) async {
+    try {
+      final Map<String, dynamic> data = {
+        'id': id,
+        'title': title,
+        'description': description,
+        'location': location,
+        'startAt': startAt.toIso8601String(),
+        'endAt': endAt.toIso8601String(),
+        'organizer': organizer,
+        'lecturers': lecturers,
+        'coverImage': coverImage,
+        'maxNumberOfPeople': maxNumberOfPeople,
+      };
+      
+      final response = await _apiService.put('Event/$id', data);
+      
+      if (response != null) {
+        return _mapEventFromBackend(response);
+      }
+      
+      return null;
+    } catch (e) {
+      debugPrint('Failed to update event: $e');
+      return null;
+    }
+  }
+  
   // Add a ticket type for an event
   Future<TicketType?> addTicketType({
     required int eventId,
@@ -114,6 +153,49 @@ class EventService {
     } catch (e) {
       debugPrint('Error creating ticket type: $e');
       return null;
+    }
+  }
+  
+  Future<TicketType?> updateTicketType({
+    required int id,
+    required double price,
+    required String name,
+    String? description,
+  }) async {
+    try {
+      final data = {
+        'id': id,
+        'price': price,
+        'name': name,
+        'description': description ?? '',
+      };
+      
+      final response = await _apiService.put('TicketType/$id', data);
+
+      if (response != null && response is Map) {
+        final ticketType = TicketType(
+          id: response['id'],
+          name: response['name'],
+          price: (response['price'] as num).toDouble(),
+          description: response['description'] ?? '',
+          eventId: response['eventId'],
+        );
+        return ticketType;
+      }
+      return null;  
+    } catch (e) {
+      debugPrint('Error updating ticket type: $e');
+      return null;
+    }
+  }
+  
+  Future<bool> deleteTicketType(int id) async {
+    try {
+      final response = await _apiService.delete('TicketType/$id');
+      return response != null;
+    } catch (e) {
+      debugPrint('Error deleting ticket type: $e');
+      return false;
     }
   }
   
