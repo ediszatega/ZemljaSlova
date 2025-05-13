@@ -62,7 +62,7 @@ class EventProvider with ChangeNotifier {
     
     try {
       // Step 1: Create the event
-      final newEvent = await _eventService.addEvent(
+      var newEvent = await _eventService.addEvent(
         title: title,
         description: description,
         location: location,
@@ -82,35 +82,31 @@ class EventProvider with ChangeNotifier {
       }
       
       // Step 2: Create ticket types for the event
-      bool allTicketTypesCreated = true;
+      final createdTicketTypes = await _eventService.batchCreateTicketTypes(
+        eventId: newEvent.id,
+        ticketTypes: ticketTypes,
+      );
       
-      for (var ticketTypeData in ticketTypes) {
-        final ticketType = await _eventService.addTicketType(
-          eventId: newEvent.id,
-          price: ticketTypeData['price'],
-          name: ticketTypeData['name'],
-          description: ticketTypeData['description'],
-        );
-        
-        if (ticketType == null) {
-          allTicketTypesCreated = false;
-          break;
-        }
+      // Check if all ticket types were created
+      if (createdTicketTypes.length < ticketTypes.length) {
+        _error = 'Created event but only ${createdTicketTypes.length} of ${ticketTypes.length} ticket types were saved';
       }
       
-      if (!allTicketTypesCreated) {
-        _error = 'Created event but failed to create some ticket types';
+      try {
+        final refreshedEvent = await _eventService.getEventById(newEvent.id);
+        
+        _events.add(refreshedEvent);
+        _isLoading = false;
+        notifyListeners();
+        return refreshedEvent;
+      } catch (e) {
+        debugPrint('Error refreshing event: $e');
+        _events.add(newEvent);
         _isLoading = false;
         notifyListeners();
         // We return the event anyway since it was created
         return newEvent;
       }
-      
-      // Add event to list and notify
-      _events.add(newEvent);
-      _isLoading = false;
-      notifyListeners();
-      return newEvent;
       
     } catch (e) {
       _error = e.toString();

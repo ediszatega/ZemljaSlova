@@ -99,22 +99,61 @@ class EventService {
       };
       
       final response = await _apiService.post('TicketType', data);
-      
-      if (response['status'] == 200) {
-        final ticketData = response['data'];
-        return TicketType(
-          id: ticketData['id'],
-          name: ticketData['name'],
-          price: ticketData['price'].toDouble(),
-          description: ticketData['description'] ?? '',
-          eventId: ticketData['eventId'],
+
+      if (response != null && response is Map) {
+        final ticketType = TicketType(
+          id: response['id'],
+          name: response['name'],
+          price: (response['price'] as num).toDouble(),
+          description: response['description'] ?? '',
+          eventId: response['eventId'],
         );
+        return ticketType;
       }
-      return null;
+      return null;  
     } catch (e) {
       debugPrint('Error creating ticket type: $e');
       return null;
     }
+  }
+  
+  Future<List<TicketType>> batchCreateTicketTypes({
+    required int eventId,
+    required List<Map<String, dynamic>> ticketTypes,
+  }) async {    
+    final List<TicketType> createdTypes = [];
+    
+    for (int i = 0; i < ticketTypes.length; i++) {
+      final data = ticketTypes[i];
+      final ticketData = {
+        'eventId': eventId,
+        'price': data['price'],
+        'name': data['name'],
+        'description': data['description'] ?? '',
+      };
+      
+      try {
+        final response = await _apiService.post('TicketType', ticketData);
+        
+        if (response != null && response is Map && response.containsKey('id')) {
+          final ticketType = TicketType(
+            id: response['id'],
+            name: response['name'],
+            price: (response['price'] as num).toDouble(),
+            description: response['description'] ?? '',
+            eventId: response['eventId'],
+          );
+          
+          createdTypes.add(ticketType);
+        } else {
+          debugPrint('Failed to create ticket type: ${data['name']}');
+        }
+      } catch (e) {
+        debugPrint('Error creating ticket type: $e');
+      }
+    }
+    
+    return createdTypes;
   }
 
   Event _mapEventFromBackend(dynamic eventData) {

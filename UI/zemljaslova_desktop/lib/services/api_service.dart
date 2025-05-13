@@ -83,7 +83,13 @@ class ApiService {
     
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (response.body.isNotEmpty) {
-        return json.decode(response.body);
+        try {
+          return json.decode(response.body);
+        } catch (e) {
+          debugPrint('Failed to decode JSON response: $e');
+          debugPrint('Raw response body: ${response.body}');
+          throw Exception('Invalid JSON response from server');
+        }
       }
       return null;
     } else {
