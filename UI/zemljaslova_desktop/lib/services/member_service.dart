@@ -44,6 +44,38 @@ class MemberService {
     }
   }
   
+  Future<Member?> createMember(
+    String firstName,
+    String lastName,
+    String email,
+    String password,
+    DateTime dateOfBirth,
+    String? gender,
+  ) async {
+    try {
+      final data = {
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email,
+        'password': password,
+        'dateOfBirth': dateOfBirth.toIso8601String(),
+        'joinedAt': DateTime.now().toIso8601String(),
+        'gender': gender,
+      };
+      
+      final response = await _apiService.post('Member/CreateMember', data);
+      
+      if (response != null) {
+        return _mapMemberFromBackend(response);
+      }
+      
+      return null;
+    } catch (e) {
+      debugPrint('Failed to create member: $e');
+      throw Exception('Failed to create member: $e');
+    }
+  }
+  
   Member _mapMemberFromBackend(dynamic memberData) {
     String? profileImageUrl;
     if (memberData['profileImage'] != null) {

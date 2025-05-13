@@ -41,4 +41,45 @@ class MemberProvider with ChangeNotifier {
       return null;
     }
   }
+
+  Future<bool> addMember(
+    String firstName,
+    String lastName,
+    String email,
+    String password,
+    DateTime dateOfBirth,
+    String? gender,
+  ) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final member = await _memberService.createMember(
+        firstName,
+        lastName,
+        email,
+        password,
+        dateOfBirth,
+        gender,
+      );
+
+      if (member != null) {
+        _members.add(member);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+
+      _error = 'Failed to add member';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 } 

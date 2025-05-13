@@ -8,6 +8,7 @@ import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../screens/members_detail_overview.dart';
+import '../screens/member_add.dart';
 
 class MembersOverview extends StatelessWidget {
   const MembersOverview({super.key});
@@ -131,7 +132,14 @@ class _MembersContentState extends State<MembersContent> {
         
         // Add button
         ZSButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const MemberAddScreen(),
+              ),
+            );
+          },
           text: 'Dodaj korisnika',
           backgroundColor: const Color(0xFFE5FFEE),
           foregroundColor: Colors.green,

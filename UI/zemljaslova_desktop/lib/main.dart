@@ -16,6 +16,7 @@ import 'screens/author_add.dart';
 import 'screens/book_add.dart';
 import 'screens/event_add.dart';
 import 'screens/event_edit.dart';
+import 'screens/member_add.dart';
 import 'services/api_service.dart';
 import 'services/book_service.dart';
 import 'services/author_service.dart';
@@ -89,6 +90,7 @@ class ZemljaSlova extends StatelessWidget {
           '/author-add': (context) => const AuthorAddScreen(),
           '/book-add': (context) => const BookAddScreen(),
           '/event-add': (context) => const EventAddScreen(),
+          '/member-add': (context) => const MemberAddScreen(),
         },
         home: const NavigationScreen(),
       ),
