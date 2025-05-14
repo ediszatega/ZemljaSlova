@@ -7,6 +7,7 @@ import '../widgets/zs_card.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
+import '../screens/employee_details_overview.dart';
 
 class EmployeesOverview extends StatelessWidget {
   const EmployeesOverview({super.key});
@@ -196,7 +197,12 @@ class _EmployeesContentState extends State<EmployeesContent> {
               context,
               employee,
               onTap: () {
-                // TODO: Navigate to employee details
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EmployeeDetailsOverview(employee: employee),
+                  ),
+                );
               },
             );
           },
