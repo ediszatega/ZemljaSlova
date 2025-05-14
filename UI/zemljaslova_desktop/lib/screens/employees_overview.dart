@@ -126,7 +126,7 @@ class _EmployeesContentState extends State<EmployeesContent> {
         
         ZSButton(
           onPressed: () {
-            // TODO: Navigate to employee add screen
+            Navigator.of(context).pushNamed('/employee-add');
           },
           text: 'Dodaj uposlenika',
           backgroundColor: const Color(0xFFE5FFEE),

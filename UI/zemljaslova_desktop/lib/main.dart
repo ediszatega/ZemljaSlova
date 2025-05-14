@@ -19,6 +19,7 @@ import 'screens/event_add.dart';
 import 'screens/event_edit.dart';
 import 'screens/member_add.dart';
 import 'screens/employees_overview.dart';
+import 'screens/employee_add.dart';
 import 'services/api_service.dart';
 import 'services/book_service.dart';
 import 'services/author_service.dart';
@@ -100,6 +101,7 @@ class ZemljaSlova extends StatelessWidget {
           '/event-add': (context) => const EventAddScreen(),
           '/member-add': (context) => const MemberAddScreen(),
           '/employees': (context) => const EmployeesOverview(),
+          '/employee-add': (context) => const EmployeeAddScreen(),
         },
         home: const NavigationScreen(),
       ),

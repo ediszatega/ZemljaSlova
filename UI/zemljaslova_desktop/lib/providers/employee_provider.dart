@@ -43,4 +43,45 @@ class EmployeeProvider with ChangeNotifier {
       return null;
     }
   }
+  
+  Future<bool> addEmployee(
+    String firstName,
+    String lastName,
+    String email,
+    String password,
+    String accessLevel,
+    String? gender,
+  ) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final employee = await _employeeService.createEmployee(
+        firstName,
+        lastName,
+        email,
+        password,
+        accessLevel,
+        gender,
+      );
+
+      if (employee != null) {
+        _employees.add(employee);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+
+      _error = 'Failed to add employee';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }
