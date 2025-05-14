@@ -269,4 +269,32 @@ class ZSCard extends StatelessWidget {
       },
     );
   }
+  
+  // Factory method to create a card from an employee
+  static Widget fromEmployee(
+    BuildContext context, 
+    dynamic employee, 
+    {VoidCallback? onTap}
+  ) {
+    // Create image widget from employee's profile image
+    Widget imageWidget;
+    if (employee.profileImageUrl != null) {
+      imageWidget = Image.network(
+        employee.profileImageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildFallbackImage();
+        },
+      );
+    } else {
+      imageWidget = _buildFallbackImage();
+    }
+    
+    return ZSCard(
+      title: employee.fullName,
+      subtitle: employee.accessLevel,
+      image: imageWidget,
+      onTap: onTap,
+    );
+  }
 } 

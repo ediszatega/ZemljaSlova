@@ -8,6 +8,7 @@ import '../screens/members_overview.dart';
 import '../screens/reports_overview.dart';
 import '../screens/profile_overview.dart';
 import '../screens/authors_overview.dart';
+import '../screens/employees_overview.dart';
 
 class SidebarWidget extends StatelessWidget {
   const SidebarWidget({super.key});
@@ -68,6 +69,12 @@ class SidebarWidget extends StatelessWidget {
             onTap: () => _navigateToScreen(context, NavigationItem.members),
           ),
           SidebarMenuItemWidget(
+            title: 'Uposlenici',
+            icon: Icons.badge,
+            isSelected: navigationProvider.currentItem == NavigationItem.employees,
+            onTap: () => _navigateToScreen(context, NavigationItem.employees),
+          ),
+          SidebarMenuItemWidget(
             title: 'Izvještaji',
             icon: Icons.bar_chart,
             isSelected: navigationProvider.currentItem == NavigationItem.reports,
@@ -112,6 +119,9 @@ class SidebarWidget extends StatelessWidget {
         break;
       case NavigationItem.authors:
         routeName = '/authors';
+        break;
+      case NavigationItem.employees:
+        routeName = '/employees';
         break;
     }
     

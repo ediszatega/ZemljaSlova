@@ -25,6 +25,16 @@ namespace ZemljaSlova.Services
             _userService = userService;
         }
 
+        public override IQueryable<Database.Employee> AddFilter(EmployeeSearchObject search, IQueryable<Database.Employee> query)
+        {
+            if (search.IsUserIncluded == true)
+            {
+                query = query.Include("User");
+            }
+
+            return base.AddFilter(search, query);
+        }
+
         public async Task<Model.Employee> CreateEmployee(EmployeeInsertRequest request)
         {
             Database.Employee employee;
