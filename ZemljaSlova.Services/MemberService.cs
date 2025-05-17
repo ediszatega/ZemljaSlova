@@ -34,6 +34,20 @@ namespace ZemljaSlova.Services
             return base.AddFilter(search, query);
         }
 
+        public override Model.Member GetById(int id)
+        {
+            var entity = _context.Members
+                .Include(m => m.User)
+                .FirstOrDefault(m => m.Id == id);
+
+            if (entity == null)
+            {
+                return null;
+            }
+
+            return _mapper.Map<Model.Member>(entity);
+        }
+
         public async Task<Model.Member> CreateMember(MemberInsertRequest request)
         {
             Database.Member member;
@@ -74,5 +88,53 @@ namespace ZemljaSlova.Services
 
             return _mapper.Map<Model.Member>(member);
         }
+
+        public async Task<Model.Member> UpdateMember(int id, MemberUpdateRequest request)
+        {
+            Database.Member member;
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    // First, get the member with its User
+                    member = await _context.Members
+                        .Include(m => m.User)
+                        .FirstOrDefaultAsync(m => m.Id == id);
+
+                    if (member == null)
+                    {
+                        throw new Exception("Member not found");
+                    }
+
+                    // Update the associated User first
+                    var userUpdateRequest = new UserUpdateRequest
+                    {
+                        FirstName = request.FirstName,
+                        LastName = request.LastName,
+                        Gender = request.Gender,
+                        Password = member.User.Password // Keep the existing password
+                    };
+
+                    _mapper.Map(userUpdateRequest, member.User);
+
+                    // Update the Email separately since it's not in UserUpdateRequest
+                    member.User.Email = request.Email;
+                    
+                    // Now update the Member entity
+                    member.DateOfBirth = request.DateOfBirth;
+                    
+                    await _context.SaveChangesAsync();
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+
+            return _mapper.Map<Model.Member>(member);
+        }
+        
     }
 }

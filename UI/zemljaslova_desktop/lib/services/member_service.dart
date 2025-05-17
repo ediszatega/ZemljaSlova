@@ -31,7 +31,7 @@ class MemberService {
   
   Future<Member> getMemberById(int id) async {
     try {
-      final response = await _apiService.get('Member/$id?IsUserIncluded=true');
+      final response = await _apiService.get('Member/$id');
       
       if (response != null) {
         return _mapMemberFromBackend(response);
@@ -73,6 +73,36 @@ class MemberService {
     } catch (e) {
       debugPrint('Failed to create member: $e');
       throw Exception('Failed to create member: $e');
+    }
+  }
+  
+  Future<Member?> updateMember(
+    int id,
+    String firstName,
+    String lastName,
+    String email,
+    DateTime dateOfBirth,
+    String? gender,
+  ) async {
+    try {
+      final data = {
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email,
+        'dateOfBirth': dateOfBirth.toIso8601String(),
+        'gender': gender,
+      };
+      
+      final response = await _apiService.put('Member/UpdateMember/$id', data);
+      
+      if (response != null) {
+        return _mapMemberFromBackend(response);
+      }
+      
+      return null;
+    } catch (e) {
+      debugPrint('Failed to update member: $e');
+      throw Exception('Failed to update member: $e');
     }
   }
   

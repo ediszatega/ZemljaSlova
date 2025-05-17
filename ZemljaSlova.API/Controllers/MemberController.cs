@@ -24,5 +24,11 @@ namespace ZemljaSlova.API.Controllers
         {
             return await _memberService.CreateMember(request);
         }
+
+        [HttpPut("UpdateMember/{id}")]
+        public async Task<Model.Member> UpdateMember(int id, [FromBody] MemberUpdateRequest request)
+        {
+            return await _memberService.UpdateMember(id, request);
+        }
     }
 }

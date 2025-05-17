@@ -82,4 +82,49 @@ class MemberProvider with ChangeNotifier {
       return false;
     }
   }
+  
+  Future<Member?> updateMember(
+    int id,
+    String firstName,
+    String lastName,
+    String email,
+    DateTime dateOfBirth,
+    String? gender,
+  ) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final updatedMember = await _memberService.updateMember(
+        id,
+        firstName,
+        lastName,
+        email,
+        dateOfBirth,
+        gender,
+      );
+
+      if (updatedMember != null) {
+        final index = _members.indexWhere((member) => member.id == id);
+        if (index >= 0) {
+          _members[index] = updatedMember;
+        }
+        
+        _isLoading = false;
+        notifyListeners();
+        return updatedMember;
+      }
+
+      _error = 'Failed to update member';
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    }
+  }
 } 

@@ -3,14 +3,28 @@ import 'package:zemljaslova_desktop/widgets/zs_button.dart';
 import '../models/member.dart';
 import '../widgets/sidebar.dart';
 import 'members_overview.dart';
+import 'member_edit.dart';
 
-class MembersDetailOverview extends StatelessWidget {
+class MembersDetailOverview extends StatefulWidget {
   final Member member;
   
   const MembersDetailOverview({
     super.key,
     required this.member,
   });
+
+  @override
+  State<MembersDetailOverview> createState() => _MembersDetailOverviewState();
+}
+
+class _MembersDetailOverviewState extends State<MembersDetailOverview> {
+  late Member _member;
+  
+  @override
+  void initState() {
+    super.initState();
+    _member = widget.member;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,9 +81,9 @@ class MembersDetailOverview extends StatelessWidget {
                           child: AspectRatio(
                             aspectRatio: 1,
                             child: Center(
-                              child: member.profileImageUrl != null
+                              child: _member.profileImageUrl != null
                                 ? Image.network(
-                                    member.profileImageUrl!,
+                                    _member.profileImageUrl!,
                                     fit: BoxFit.cover,
                                   )
                                 : const Icon(
@@ -95,7 +109,7 @@ class MembersDetailOverview extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  member.fullName,
+                                  _member.fullName,
                                   style: const TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.bold,
@@ -107,15 +121,15 @@ class MembersDetailOverview extends StatelessWidget {
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: member.isActive 
+                                    color: _member.isActive 
                                         ? Colors.green.shade50
                                         : Colors.red.shade50,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    member.isActive ? 'Aktivan' : 'Neaktivan',
+                                    _member.isActive ? 'Aktivan' : 'Neaktivan',
                                     style: TextStyle(
-                                      color: member.isActive ? Colors.green : Colors.red,
+                                      color: _member.isActive ? Colors.green : Colors.red,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -137,16 +151,16 @@ class MembersDetailOverview extends StatelessWidget {
                             const SizedBox(height: 16),
                             
                             // Detail rows
-                            DetailRow(label: 'Email', value: member.email),
-                            if (member.gender != null)
-                              DetailRow(label: 'Spol', value: member.gender!),
+                            DetailRow(label: 'Email', value: _member.email),
+                            if (_member.gender != null)
+                              DetailRow(label: 'Spol', value: _member.gender!),
                             DetailRow(
                               label: 'Datum rođenja', 
-                              value: '${member.dateOfBirth.day}.${member.dateOfBirth.month}.${member.dateOfBirth.year}'
+                              value: '${_member.dateOfBirth.day}.${_member.dateOfBirth.month}.${_member.dateOfBirth.year}'
                             ),
                             DetailRow(
                               label: 'Datum učlanjenja', 
-                              value: '${member.joinedAt.day}.${member.joinedAt.month}.${member.joinedAt.year}'
+                              value: '${_member.joinedAt.day}.${_member.joinedAt.month}.${_member.joinedAt.year}'
                             ),
                             DetailRow(label: 'Broj aktivnih mjeseci', value: '3'),
                             DetailRow(label: 'Broj kupljenih knjiga', value: '5'),
@@ -179,7 +193,19 @@ class MembersDetailOverview extends StatelessWidget {
                         borderColor: Colors.grey.shade300,
                         width: 410,
                         topPadding: 5,
-                        onPressed: () {},
+                        onPressed: () async {
+                          final updatedMember = await Navigator.of(context).push<Member>(
+                            MaterialPageRoute(
+                              builder: (context) => MemberEditScreen(memberId: _member.id),
+                            ),
+                          );
+                          
+                          if (updatedMember != null) {
+                            setState(() {
+                              _member = updatedMember;
+                            });
+                          }
+                        },
                       ),
 
                       ZSButton(

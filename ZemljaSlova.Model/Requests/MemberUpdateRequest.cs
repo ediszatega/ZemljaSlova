@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ZemljaSlova.Model.Requests
 {
-    public class MemberUpdateRequest : UserUpdateRequest
+    public class MemberUpdateRequest
     {
         public string FirstName { get; set; } = null!;
 
@@ -13,8 +13,6 @@ namespace ZemljaSlova.Model.Requests
         public string? Gender { get; set; }
 
         public string Email { get; set; } = null!;
-
-        public string Password { get; set; } = null!;
         
         public DateTime DateOfBirth { get; set; }
     }

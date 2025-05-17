@@ -12,5 +12,6 @@ namespace ZemljaSlova.Services
     public interface IMemberService : ICRUDService<Member, MemberSearchObject, MemberInsertRequest, MemberUpdateRequest>
     {
         public Task<Model.Member> CreateMember(MemberInsertRequest request);
+        public Task<Model.Member> UpdateMember(int id, MemberUpdateRequest request);
     }
 }
