@@ -12,8 +12,7 @@ namespace ZemljaSlova.Services
     public interface IEmployeeService : ICRUDService<Employee, EmployeeSearchObject, EmployeeInsertRequest, EmployeeUpdateRequest>
     {
         public Task<Model.Employee> CreateEmployee(EmployeeInsertRequest request);
-
-        // TODO: check if this svc method is needed
-        new public Task<Model.Employee> GetById(int id);
+        
+        public Task<Model.Employee> UpdateEmployee(int id, EmployeeUpdateRequest request);
     }
 }

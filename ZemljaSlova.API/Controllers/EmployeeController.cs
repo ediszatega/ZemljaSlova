@@ -31,13 +31,19 @@ namespace ZemljaSlova.API.Controllers
                 return StatusCode(500, "An error occurred while creating the employee.");
             }
         }
-
-        [HttpGet("GetEmployeeById/{id}")]
-        public async Task<ActionResult<Model.Employee>> GetById(int id)
+        
+        [HttpPut("UpdateEmployee/{id}")]
+        public async Task<ActionResult<Model.Employee>> UpdateEmployee(int id, [FromBody] EmployeeUpdateRequest request)
         {
-            var employee = await _employeeService.GetById(id);
-            if (employee == null) return NotFound();
-            return Ok(employee);
+            try
+            {
+                var employee = await _employeeService.UpdateEmployee(id, request);
+                return Ok(employee);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while updating the employee.");
+            }
         }
     }
 }

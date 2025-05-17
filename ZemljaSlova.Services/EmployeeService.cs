@@ -74,32 +74,57 @@ namespace ZemljaSlova.Services
 
             return _mapper.Map<Model.Employee>(employee);
         }
-
-        new public async Task<Model.Employee> GetById(int id)
+        
+        public async Task<Model.Employee> UpdateEmployee(int id, EmployeeUpdateRequest request)
         {
-            var employee = await _context.Employees
-                .Include(e => e.User)
-                .FirstOrDefaultAsync(e => e.UserId == id);
-
-            if (employee == null) return null;
-
-            // Map to model but break circular reference
-            var employeeModel = new Model.Employee
+            Database.Employee employee;
+            using (var transaction = _context.Database.BeginTransaction())
             {
-                Id = employee.Id,
-                UserId = employee.UserId,
-                AccessLevel = employee.AccessLevel,
-                User = new Model.User
+                try
                 {
-                    Id = employee.User.Id,
-                    FirstName = employee.User.FirstName,
-                    LastName = employee.User.LastName,
-                    Email = employee.User.Email,
-                    Gender = employee.User.Gender,
-                }
-            };
+                    employee = await _context.Employees
+                        .Include(e => e.User)
+                        .FirstOrDefaultAsync(e => e.Id == id);
 
-            return employeeModel;
+                    if (employee == null)
+                    {
+                        throw new Exception("Employee not found");
+                    }
+
+                    var userUpdateRequest = new UserUpdateRequest
+                    {
+                        FirstName = request.FirstName,
+                        LastName = request.LastName,
+                        Gender = request.Gender,
+                        Email = request.Email
+                    };
+
+                    _mapper.Map(userUpdateRequest, employee.User);
+                    
+                    employee.AccessLevel = request.AccessLevel;
+                    
+                    await _context.SaveChangesAsync();
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+
+            return _mapper.Map<Model.Employee>(employee);
+        }
+
+        public override Model.Employee GetById(int id)
+        {
+            var entity = _context.Employees
+                .Include(e => e.User)
+                .FirstOrDefault(e => e.Id == id);
+
+            if (entity == null) return null;
+
+            return _mapper.Map<Model.Employee>(entity);
         }
     }
 }

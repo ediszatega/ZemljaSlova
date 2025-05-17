@@ -3,14 +3,28 @@ import 'package:zemljaslova_desktop/widgets/zs_button.dart';
 import '../models/employee.dart';
 import '../widgets/sidebar.dart';
 import 'employees_overview.dart';
+import 'employee_edit.dart';
 
-class EmployeeDetailsOverview extends StatelessWidget {
+class EmployeeDetailsOverview extends StatefulWidget {
   final Employee employee;
   
   const EmployeeDetailsOverview({
     super.key,
     required this.employee,
   });
+
+  @override
+  State<EmployeeDetailsOverview> createState() => _EmployeeDetailsOverviewState();
+}
+
+class _EmployeeDetailsOverviewState extends State<EmployeeDetailsOverview> {
+  late Employee _employee;
+  
+  @override
+  void initState() {
+    super.initState();
+    _employee = widget.employee;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,9 +78,9 @@ class EmployeeDetailsOverview extends StatelessWidget {
                           child: AspectRatio(
                             aspectRatio: 1,
                             child: Center(
-                              child: employee.profileImageUrl != null
+                              child: _employee.profileImageUrl != null
                                 ? Image.network(
-                                    employee.profileImageUrl!,
+                                    _employee.profileImageUrl!,
                                     fit: BoxFit.cover,
                                   )
                                 : const Icon(
@@ -92,7 +106,7 @@ class EmployeeDetailsOverview extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  employee.fullName,
+                                  _employee.fullName,
                                   style: const TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.bold,
@@ -115,8 +129,8 @@ class EmployeeDetailsOverview extends StatelessWidget {
                             const SizedBox(height: 16),
                             
                             // Detail rows
-                            DetailRow(label: 'Email', value: employee.email),
-                            DetailRow(label: 'Pristupni nivo', value: employee.accessLevel),
+                            DetailRow(label: 'Email', value: _employee.email),
+                            DetailRow(label: 'Pristupni nivo', value: _employee.accessLevel),
                             DetailRow(label: 'Broj obrađenih narudžbi', value: '15'),
                             DetailRow(label: 'Broj riješenih tiketa', value: '8'),
                           ],
@@ -137,7 +151,19 @@ class EmployeeDetailsOverview extends StatelessWidget {
                         borderColor: Colors.grey.shade300,
                         width: 410,
                         topPadding: 5,
-                        onPressed: () {},
+                        onPressed: () async {
+                          final updatedEmployee = await Navigator.of(context).push<Employee>(
+                            MaterialPageRoute(
+                              builder: (context) => EmployeeEditScreen(employeeId: _employee.id),
+                            ),
+                          );
+                          
+                          if (updatedEmployee != null) {
+                            setState(() {
+                              _employee = updatedEmployee;
+                            });
+                          }
+                        },
                       ),
 
                       ZSButton(

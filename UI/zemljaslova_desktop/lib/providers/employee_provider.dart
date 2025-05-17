@@ -84,4 +84,49 @@ class EmployeeProvider with ChangeNotifier {
       return false;
     }
   }
+  
+  Future<Employee?> updateEmployee(
+    int id,
+    String firstName,
+    String lastName,
+    String email,
+    String accessLevel,
+    String? gender,
+  ) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final updatedEmployee = await _employeeService.updateEmployee(
+        id,
+        firstName,
+        lastName,
+        email,
+        accessLevel,
+        gender,
+      );
+
+      if (updatedEmployee != null) {
+        final index = _employees.indexWhere((employee) => employee.id == id);
+        if (index >= 0) {
+          _employees[index] = updatedEmployee;
+        }
+        
+        _isLoading = false;
+        notifyListeners();
+        return updatedEmployee;
+      }
+
+      _error = 'Failed to update employee';
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    }
+  }
 }

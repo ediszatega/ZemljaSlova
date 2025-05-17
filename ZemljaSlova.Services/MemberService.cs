@@ -106,21 +106,16 @@ namespace ZemljaSlova.Services
                         throw new Exception("Member not found");
                     }
 
-                    // Update the associated User first
                     var userUpdateRequest = new UserUpdateRequest
                     {
                         FirstName = request.FirstName,
                         LastName = request.LastName,
                         Gender = request.Gender,
-                        Password = member.User.Password // Keep the existing password
+                        Email = request.Email
                     };
 
                     _mapper.Map(userUpdateRequest, member.User);
 
-                    // Update the Email separately since it's not in UserUpdateRequest
-                    member.User.Email = request.Email;
-                    
-                    // Now update the Member entity
                     member.DateOfBirth = request.DateOfBirth;
                     
                     await _context.SaveChangesAsync();

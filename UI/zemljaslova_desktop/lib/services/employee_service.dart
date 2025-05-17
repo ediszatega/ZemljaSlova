@@ -31,7 +31,7 @@ class EmployeeService {
   
   Future<Employee> getEmployeeById(int id) async {
     try {
-      final response = await _apiService.get('Employee/$id?IsUserIncluded=true');
+      final response = await _apiService.get('Employee/$id');
       
       if (response != null) {
         return _mapEmployeeFromBackend(response);
@@ -72,6 +72,36 @@ class EmployeeService {
     } catch (e) {
       debugPrint('Failed to create employee: $e');
       throw Exception('Failed to create employee: $e');
+    }
+  }
+  
+  Future<Employee?> updateEmployee(
+    int id,
+    String firstName,
+    String lastName,
+    String email,
+    String accessLevel,
+    String? gender,
+  ) async {
+    try {
+      final data = {
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email,
+        'gender': gender,
+        'accessLevel': accessLevel
+      };
+      
+      final response = await _apiService.put('Employee/UpdateEmployee/$id', data);
+      
+      if (response != null) {
+        return _mapEmployeeFromBackend(response);
+      }
+      
+      return null;
+    } catch (e) {
+      debugPrint('Failed to update employee: $e');
+      throw Exception('Failed to update employee: $e');
     }
   }
   
