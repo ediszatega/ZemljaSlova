@@ -43,6 +43,9 @@ class _EventEditScreenState extends State<EventEditScreen> {
   DateTime? _startDateTime;
   DateTime? _endDateTime;
   Event? _event;
+  
+  // Used to track which ticket type is being edited, null means adding a new one
+  int? _editingTicketIndex;
 
   @override
   void initState() {
@@ -148,14 +151,49 @@ class _EventEditScreenState extends State<EventEditScreen> {
     }
     
     setState(() {
-      _ticketTypes.add({
-        'name': _ticketNameController.text,
-        'price': price,
-        'description': _ticketDescriptionController.text.isEmpty 
-            ? null 
-            : _ticketDescriptionController.text,
-      });
+      // If editing an existing ticket type
+      if (_editingTicketIndex != null) {
+        // Update the existing ticket type while preserving its ID
+        final existingTicket = _ticketTypes[_editingTicketIndex!];
+        _ticketTypes[_editingTicketIndex!] = {
+          'id': existingTicket.containsKey('id') ? existingTicket['id'] : null,
+          'name': _ticketNameController.text,
+          'price': price,
+          'description': _ticketDescriptionController.text.isEmpty 
+              ? null 
+              : _ticketDescriptionController.text,
+        };
+        _editingTicketIndex = null;
+      } else {
+        // Add a new ticket type
+        _ticketTypes.add({
+          'name': _ticketNameController.text,
+          'price': price,
+          'description': _ticketDescriptionController.text.isEmpty 
+              ? null 
+              : _ticketDescriptionController.text,
+        });
+      }
       
+      _ticketNameController.clear();
+      _ticketPriceController.clear();
+      _ticketDescriptionController.clear();
+    });
+  }
+  
+  void _editTicketType(int index) {
+    final ticket = _ticketTypes[index];
+    setState(() {
+      _editingTicketIndex = index;
+      _ticketNameController.text = ticket['name'];
+      _ticketPriceController.text = ticket['price'].toString();
+      _ticketDescriptionController.text = ticket['description'] ?? '';
+    });
+  }
+  
+  void _cancelEditing() {
+    setState(() {
+      _editingTicketIndex = null;
       _ticketNameController.clear();
       _ticketPriceController.clear();
       _ticketDescriptionController.clear();
@@ -381,6 +419,10 @@ class _EventEditScreenState extends State<EventEditScreen> {
                                                   ),
                                                 ),
                                                 IconButton(
+                                                  icon: const Icon(Icons.edit, color: Colors.blue),
+                                                  onPressed: () => _editTicketType(index),
+                                                ),
+                                                IconButton(
                                                   icon: const Icon(Icons.delete, color: Colors.red),
                                                   onPressed: () => _removeTicketType(index),
                                                 ),
@@ -429,12 +471,28 @@ class _EventEditScreenState extends State<EventEditScreen> {
                                   ),
         
                                   // Add button
-                                  ZSButton(
-                                    text: 'Dodaj ulaznicu',
-                                    backgroundColor: Colors.blue.shade50,
-                                    foregroundColor: Colors.blue,
-                                    borderColor: Colors.grey.shade300,
-                                    onPressed: _addTicketType,
+                                  Row(
+                                    children: [
+                                      ZSButton(
+                                        text: _editingTicketIndex != null 
+                                            ? 'Spremi promjene' 
+                                            : 'Dodaj ulaznicu',
+                                        backgroundColor: Colors.blue.shade50,
+                                        foregroundColor: Colors.blue,
+                                        borderColor: Colors.grey.shade300,
+                                        onPressed: _addTicketType,
+                                      ),
+                                      if (_editingTicketIndex != null) ...[
+                                        const SizedBox(width: 10),
+                                        ZSButton(
+                                          text: 'Odustani',
+                                          backgroundColor: Colors.grey.shade100,
+                                          foregroundColor: Colors.grey.shade700,
+                                          borderColor: Colors.grey.shade300,
+                                          onPressed: _cancelEditing,
+                                        ),
+                                      ],
+                                    ],
                                   ),
 
                                   const SizedBox(height: 10),
