@@ -33,5 +33,18 @@ namespace ZemljaSlova.API.Controllers
 		{
             return await _userService.AuthenticateUser(request.Email, request.Password, "member");
         }
+        
+        [HttpPost("change_password")]
+        public async Task<ActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            var result = await _userService.ChangePassword(request);
+            
+            if (result)
+            {
+                return Ok(new { message = "Password changed successfully." });
+            }
+            
+            return BadRequest(new { message = "Failed to change password. Please verify your current password is correct." });
+        }
     }
 }

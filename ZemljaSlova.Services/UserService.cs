@@ -94,5 +94,33 @@ namespace ZemljaSlova.Services
 
             return userExists;
         }
+        
+        public async Task<bool> ChangePassword(ChangePasswordRequest request)
+        {
+            var user = await Context.Users.FindAsync(request.UserId);
+            
+            if (user == null)
+            {
+                return false;
+            }
+            
+            // Verify current password
+            if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.Password))
+            {
+                return false;
+            }
+
+            if (request.NewPassword != request.NewPasswordConfirmation)
+            {
+                throw new Exception("New password and confirmation password do not match");
+            }
+            
+            // Hash and set new password
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            user.Password = hashedPassword;
+            
+            await Context.SaveChangesAsync();
+            return true;
+        }
     }
 }
