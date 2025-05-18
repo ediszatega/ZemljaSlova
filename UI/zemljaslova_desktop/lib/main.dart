@@ -6,6 +6,7 @@ import 'providers/navigation_provider.dart';
 import 'providers/event_provider.dart';
 import 'providers/author_provider.dart';
 import 'providers/employee_provider.dart';
+import 'providers/user_provider.dart';
 import 'screens/members_overview.dart';
 import 'screens/books_sell_overview.dart';
 import 'screens/book_rent_overview.dart';
@@ -28,6 +29,7 @@ import 'services/author_service.dart';
 import 'services/member_service.dart';
 import 'services/event_service.dart';
 import 'services/employee_service.dart';
+import 'services/user_service.dart';
 
 void main() {
   final apiService = ApiService();
@@ -37,6 +39,7 @@ void main() {
   final memberService = MemberService(apiService);
   final eventService = EventService(apiService);
   final employeeService = EmployeeService(apiService);
+  final userService = UserService(apiService);
   
   runApp(
     ZemljaSlova(
@@ -46,6 +49,7 @@ void main() {
       memberService: memberService,
       eventService: eventService,
       employeeService: employeeService,
+      userService: userService,
     ),
   );
 }
@@ -57,6 +61,7 @@ class ZemljaSlova extends StatelessWidget {
   final MemberService memberService;
   final EventService eventService;
   final EmployeeService employeeService;
+  final UserService userService;
   
   const ZemljaSlova({
     super.key,
@@ -66,6 +71,7 @@ class ZemljaSlova extends StatelessWidget {
     required this.memberService,
     required this.eventService,
     required this.employeeService,
+    required this.userService,
   });
 
   @override
@@ -78,6 +84,7 @@ class ZemljaSlova extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => EventProvider(eventService)),
         ChangeNotifierProvider(create: (_) => AuthorProvider(authorService)),
         ChangeNotifierProvider(create: (_) => EmployeeProvider(employeeService)),
+        ChangeNotifierProvider(create: (_) => UserProvider(userService)),
       ],
       child: MaterialApp(
         title: 'Zemlja Slova',
