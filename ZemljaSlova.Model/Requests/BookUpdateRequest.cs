@@ -36,6 +36,6 @@ namespace ZemljaSlova.Model.Requests
 
         public int? DiscountId { get; set; }
 
-        public int? AuthorId { get; set; }
+        public List<int> AuthorIds { get; set; } = new List<int>();
     }
 }

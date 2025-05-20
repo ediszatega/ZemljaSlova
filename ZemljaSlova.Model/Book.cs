@@ -38,9 +38,7 @@ namespace ZemljaSlova.Model
 
         public int? DiscountId { get; set; }
 
-        public int? AuthorId { get; set; }
-
-        public virtual Author? Author { get; set; }
+        public virtual ICollection<Author> Authors { get; set; } = new List<Author>();
 
         public virtual ICollection<BookReservation> BookReservations { get; set; } = new List<BookReservation>();
 

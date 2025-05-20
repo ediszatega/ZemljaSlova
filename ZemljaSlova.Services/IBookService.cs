@@ -11,5 +11,7 @@ namespace ZemljaSlova.Services
 {
     public interface IBookService : ICRUDService<Book, BookSearchObject, BookInsertRequest, BookUpdateRequest>
     {
+        void AddAuthorToBook(int bookId, int authorId);
+        void RemoveAuthorFromBook(int bookId, int authorId);
     }
 }

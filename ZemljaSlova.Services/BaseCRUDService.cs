@@ -33,7 +33,7 @@ namespace ZemljaSlova.Services
 
         public virtual void AfterInsert(TInsert request, TDbEntity entity) { }
 
-        public TModel Update(int id, TUpdate request)
+        public virtual TModel Update(int id, TUpdate request)
         {
             var set = Context.Set<TDbEntity>();
             var entity = set.Find(id);
@@ -48,5 +48,28 @@ namespace ZemljaSlova.Services
         }
 
         public virtual void BeforeUpdate(TUpdate request, TDbEntity entity) { }
+
+        public virtual async Task<TModel> Delete(int id)
+        {
+            var set = Context.Set<TDbEntity>();
+            var entity = await set.FindAsync(id);
+            if (entity == null)
+            {
+                return Mapper.Map<TModel>(null);
+            }
+            
+            BeforeDelete(entity);
+            
+            Context.Remove(entity);
+            await Context.SaveChangesAsync();
+            
+            AfterDelete(entity);
+            
+            return Mapper.Map<TModel>(entity);
+        }
+        
+        public virtual void BeforeDelete(TDbEntity entity) { }
+        
+        public virtual void AfterDelete(TDbEntity entity) { }
     }
 }

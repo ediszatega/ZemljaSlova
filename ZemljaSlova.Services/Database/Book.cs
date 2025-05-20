@@ -37,10 +37,6 @@ public partial class Book
 
     public int? DiscountId { get; set; }
 
-    public int? AuthorId { get; set; }
-
-    public virtual Author? Author { get; set; }
-
     public virtual ICollection<BookReservation> BookReservations { get; set; } = new List<BookReservation>();
 
     public virtual ICollection<BookTransaction> BookTransactions { get; set; } = new List<BookTransaction>();
@@ -50,4 +46,6 @@ public partial class Book
     public virtual ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();
 
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+
+    public virtual ICollection<Author> Authors { get; set; } = new List<Author>();
 }

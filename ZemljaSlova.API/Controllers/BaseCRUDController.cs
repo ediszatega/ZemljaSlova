@@ -23,5 +23,11 @@ namespace ZemljaSlova.API.Controllers
         {
             return _service.Update(id, request);
         }
+
+        [HttpDelete("{id}")]
+		public virtual async Task<TModel> Delete(int id)
+		{
+			return await _service.Delete(id);
+		}
     }
 }

@@ -19,6 +19,8 @@ public partial class _200036Context : DbContext
 
     public virtual DbSet<Book> Books { get; set; }
 
+    public virtual DbSet<BookAuthor> BookAuthors { get; set; }
+
     public virtual DbSet<BookReservation> BookReservations { get; set; }
 
     public virtual DbSet<BookTransaction> BookTransactions { get; set; }
@@ -71,6 +73,22 @@ public partial class _200036Context : DbContext
             entity.Property(e => e.LastName).HasMaxLength(100);
         });
 
+        modelBuilder.Entity<BookAuthor>(entity =>
+        {
+            entity.HasKey(e => new { e.BookId, e.AuthorId });
+            entity.ToTable("BookAuthor");
+
+            entity.HasOne(e => e.Book)
+                .WithMany()
+                .HasForeignKey(e => e.BookId)
+                .HasConstraintName("FK_BookAuthor_Book");
+
+            entity.HasOne(e => e.Author)
+                .WithMany()
+                .HasForeignKey(e => e.AuthorId)
+                .HasConstraintName("FK_BookAuthor_Author");
+        });
+
         modelBuilder.Entity<Book>(entity =>
         {
             entity.ToTable("Book");
@@ -86,13 +104,13 @@ public partial class _200036Context : DbContext
             entity.Property(e => e.Title).HasMaxLength(255);
             entity.Property(e => e.Weight).HasColumnType("decimal(5, 2)");
 
-            entity.HasOne(d => d.Author).WithMany(p => p.Books)
-                .HasForeignKey(d => d.AuthorId)
-                .HasConstraintName("FK_Book_Author");
-
             entity.HasOne(d => d.Discount).WithMany(p => p.Books)
                 .HasForeignKey(d => d.DiscountId)
                 .HasConstraintName("FK_Book_Discount");
+
+            entity.HasMany(d => d.Authors)
+                .WithMany(p => p.Books)
+                .UsingEntity<BookAuthor>();
         });
 
         modelBuilder.Entity<BookReservation>(entity =>
@@ -108,7 +126,6 @@ public partial class _200036Context : DbContext
 
             entity.HasOne(d => d.Member).WithMany(p => p.BookReservations)
                 .HasForeignKey(d => d.MemberId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_BookReservation_Member");
         });
 
@@ -149,7 +166,6 @@ public partial class _200036Context : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.Employees)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Employee_User");
         });
 
@@ -175,7 +191,6 @@ public partial class _200036Context : DbContext
 
             entity.HasOne(d => d.Member).WithMany(p => p.Favourites)
                 .HasForeignKey(d => d.MemberId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Favourites_Member");
         });
 
@@ -190,7 +205,6 @@ public partial class _200036Context : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.Members)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Member_User");
         });
 
@@ -203,7 +217,6 @@ public partial class _200036Context : DbContext
 
             entity.HasOne(d => d.Member).WithMany(p => p.Memberships)
                 .HasForeignKey(d => d.MemberId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Membership_Member");
         });
 
@@ -291,7 +304,6 @@ public partial class _200036Context : DbContext
 
             entity.HasOne(d => d.Member).WithMany(p => p.Tickets)
                 .HasForeignKey(d => d.MemberId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Ticket_Member");
 
             entity.HasOne(d => d.OrderItem).WithMany(p => p.Tickets)
@@ -352,7 +364,6 @@ public partial class _200036Context : DbContext
 
             entity.HasOne(d => d.Member).WithMany(p => p.UserBookClubs)
                 .HasForeignKey(d => d.MemberId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_UserBookClub_Member");
         });
 
