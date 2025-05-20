@@ -161,9 +161,9 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
                                   
                                   const SizedBox(height: 8),
                                   
-                                  // Author
+                                  // Authors
                                   Text(
-                                    'Autor: ${book.author}',
+                                    'Autori: ${book.authorNames}',
                                     style: const TextStyle(
                                       fontSize: 18,
                                       color: Colors.black87,
@@ -314,9 +314,7 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
                                     DetailRow(label: 'Tip korica', value: book.binding!),
                                   if (book.language != null && book.language!.isNotEmpty)
                                     DetailRow(label: 'Jezik', value: book.language!),
-                                  if (book.authorId != null)
-                                    DetailRow(label: 'ID autora', value: book.authorId.toString()),
-                                ],
+                                                                    ],
                               ),
                             ),
                           ],

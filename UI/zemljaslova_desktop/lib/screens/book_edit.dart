@@ -7,7 +7,7 @@ import '../providers/author_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_input.dart';
-import '../widgets/zs_datetime_picker.dart';
+import '../widgets/zs_date_picker.dart';
 import '../widgets/zs_dropdown.dart';
 
 // TODO: add image and discount fields
@@ -40,7 +40,8 @@ class _BookEditScreenState extends State<BookEditScreen> {
   late TextEditingController _bindingController;
   late TextEditingController _languageController;
   
-  int? _selectedAuthorId;
+  // Replace single author ID with a list of selected author IDs
+  final List<int> _selectedAuthorIds = [];
   bool _isLoading = true;
   List<Author> _authors = [];
 
@@ -63,7 +64,9 @@ class _BookEditScreenState extends State<BookEditScreen> {
     _bindingController = TextEditingController(text: widget.book.binding);
     _languageController = TextEditingController(text: widget.book.language);
     
-    _selectedAuthorId = widget.book.authorId;
+    if (widget.book.authorIds.isNotEmpty) {
+      _selectedAuthorIds.addAll(widget.book.authorIds);
+    }
     
     // Load authors for dropdown
     _loadAuthors();
@@ -197,7 +200,7 @@ class _BookEditScreenState extends State<BookEditScreen> {
                                   const SizedBox(height: 20),
                                   
                                   // Date of publish field with datepicker
-                                  ZSDatetimePicker(
+                                  ZSDatePicker(
                                     label: 'Datum izdavanja',
                                     controller: _dateOfPublishController,
                                   ),
@@ -291,24 +294,70 @@ class _BookEditScreenState extends State<BookEditScreen> {
                                   
                                   const SizedBox(height: 20),
                                   
-                                  // Author dropdown
-                                  ZSDropdown<int?>(
-                                    label: 'Autor',
-                                    value: _selectedAuthorId,
-                                    items: [
-                                      for (var author in _authors)
-                                        DropdownMenuItem(
-                                          value: author.id,
-                                          child: Text(author.fullName),
+                                  // Authors selection
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Autori',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
                                         ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Container(
+                                        width: 600,
+                                        padding: const EdgeInsets.all(16),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(color: Colors.grey.shade300),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Wrap(
+                                              spacing: 8,
+                                              runSpacing: 8,
+                                              children: _selectedAuthorIds.map((authorId) {
+                                                final author = _authors.firstWhere(
+                                                  (a) => a.id == authorId,
+                                                  orElse: () => Author(id: 0, firstName: 'Autor', lastName: 'nepoznat'),
+                                                );
+                                                return Chip(
+                                                  label: Text(author.fullName),
+                                                  deleteIcon: const Icon(Icons.close, size: 16),
+                                                  onDeleted: () {
+                                                    setState(() {
+                                                      _selectedAuthorIds.remove(authorId);
+                                                    });
+                                                  },
+                                                );
+                                              }).toList(),
+                                            ),
+                                            const SizedBox(height: 16),
+                                            DropdownButton<int>(
+                                              hint: const Text('Dodaj autora'),
+                                              isExpanded: true,
+                                              items: _authors
+                                                  .where((author) => !_selectedAuthorIds.contains(author.id))
+                                                  .map((author) => DropdownMenuItem(
+                                                        value: author.id,
+                                                        child: Text(author.fullName),
+                                                      ))
+                                                  .toList(),
+                                              onChanged: (value) {
+                                                if (value != null) {
+                                                  setState(() {
+                                                    _selectedAuthorIds.add(value);
+                                                  });
+                                                }
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ],
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _selectedAuthorId = value;
-                                      });
-                                    },
-                                    borderColor: Colors.grey.shade300,
-                                    width: 600.0,
                                   ),
                                   
                                   const SizedBox(height: 40),
@@ -375,7 +424,7 @@ class _BookEditScreenState extends State<BookEditScreen> {
         _genreController.text.isEmpty ? null : _genreController.text,
         _bindingController.text.isEmpty ? null : _bindingController.text,
         _languageController.text.isEmpty ? null : _languageController.text,
-        _selectedAuthorId,
+        _selectedAuthorIds,
       ).then((success) {
         if (success) {
           // Show success message

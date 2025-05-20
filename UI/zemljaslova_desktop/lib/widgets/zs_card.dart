@@ -207,7 +207,7 @@ class ZSCard extends StatelessWidget {
     
     return ZSCard(
       title: book.title,
-      subtitle: book.author,
+      subtitle: book.authorNames,
       additionalText: '${book.price.toStringAsFixed(2)} KM',
       image: imageWidget,
       onTap: onTap,

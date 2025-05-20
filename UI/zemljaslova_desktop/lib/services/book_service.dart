@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../models/book.dart';
+import '../models/author.dart';
 import 'api_service.dart';
 
 class BookService {
@@ -59,7 +60,7 @@ class BookService {
     String? genre,
     String? binding,
     String? language,
-    int? authorId,
+    List<int> authorIds,
   ) async {
     try {
       // Convert date string to datetime format if provided
@@ -90,7 +91,7 @@ class BookService {
         'genre': genre,
         'binding': binding,
         'language': language,
-        'authorId': authorId,
+        'authorIds': authorIds,
       };
       
       final response = await _apiService.put('Book/$id', data);
@@ -120,7 +121,7 @@ class BookService {
     String? genre,
     String? binding,
     String? language,
-    int? authorId,
+    List<int> authorIds,
   ) async {
     try {
       // Convert date string to datetime format if provided
@@ -150,7 +151,7 @@ class BookService {
         'genre': genre,
         'binding': binding,
         'language': language,
-        'authorId': authorId,
+        'authorIds': authorIds,
       };
       
       final response = await _apiService.post('Book', data);
@@ -168,12 +169,12 @@ class BookService {
 
   Book _mapBookFromBackend(dynamic bookData) {
     String? coverImageUrl;
-    if (bookData['coverImage'] != null) {
-      if (bookData['coverImage'] is List) {
-        final bytes = List<int>.from(bookData['coverImage']);
+    if (bookData['image'] != null) {
+      if (bookData['image'] is List) {
+        final bytes = List<int>.from(bookData['image']);
         coverImageUrl = 'data:image/jpeg;base64,${base64Encode(bytes)}';
-      } else if (bookData['coverImage'] is String) {
-        coverImageUrl = bookData['coverImage'];
+      } else if (bookData['image'] is String) {
+        coverImageUrl = bookData['image'];
       }
     }
 
@@ -195,26 +196,29 @@ class BookService {
     String? genre = bookData['genre'];
     String? binding = bookData['binding'];
     String? language = bookData['language'];
-    int? authorId = bookData['authorId'];
     
-    String? authorFirstName;
-    String? authorLastName;
-    String? authorFullName;
+    List<Author> authors = [];
+    List<int> authorIds = [];
     
-    if (bookData['author'] is Map) {
-      Map<String, dynamic> authorData = bookData['author'];
-      authorFirstName = authorData['firstName'];
-      authorLastName = authorData['lastName'];
-      authorFullName = '${authorFirstName ?? ''} ${authorLastName ?? ''}'.trim();
-    } else {
-      authorFullName = "Autor nepoznat";
+    if (bookData['authors'] != null && bookData['authors'] is List && (bookData['authors'] as List).isNotEmpty) {
+      List<dynamic> authorsList = bookData['authors'];
+      authors = authorsList.map((authorData) => Author(
+        id: authorData['id'] ?? 0,
+        firstName: authorData['firstName'] ?? '',
+        lastName: authorData['lastName'] ?? '',
+        dateOfBirth: authorData['dateOfBirth'] != null 
+            ? DateTime.parse(authorData['dateOfBirth']).toString()
+            : null,
+        genre: authorData['genre'],
+        biography: authorData['biography'],
+      )).toList();
+      
+      authorIds = authors.map((author) => author.id).toList();
     }
-
 
     return Book(
       id: bookData['id'] ?? 0,
       title: bookData['title'] ?? '',
-      author: authorFullName,
       price: (bookData['price'] ?? 0).toDouble(),
       coverImageUrl: coverImageUrl,
       isAvailable: isAvailable,
@@ -231,9 +235,8 @@ class BookService {
       genre: genre,
       binding: binding,
       language: language,
-      authorId: authorId,
-      authorFirstName: authorFirstName,
-      authorLastName: authorLastName,
+      authorIds: authorIds,
+      authors: authors.isNotEmpty ? authors : null,
     );
   }
 } 

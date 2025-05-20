@@ -210,7 +210,7 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
             sortedBooks.sort((a, b) => b.title.compareTo(a.title));
             break;
           case 'Autor (A-Z)':
-            sortedBooks.sort((a, b) => a.author.compareTo(b.author));
+            sortedBooks.sort((a, b) => a.authorNames.compareTo(b.authorNames));
             break;
           case 'Cijena (veća)':
             sortedBooks.sort((a, b) => b.price.compareTo(a.price));

@@ -57,7 +57,7 @@ class BookProvider with ChangeNotifier {
     String? genre,
     String? binding,
     String? language,
-    int? authorId,
+    List<int> authorIds,
   ) async {
     _isLoading = true;
     _error = null;
@@ -79,7 +79,7 @@ class BookProvider with ChangeNotifier {
         genre,
         binding,
         language,
-        authorId,
+        authorIds,
       );
       
       if (updatedBook != null) {
@@ -118,7 +118,7 @@ class BookProvider with ChangeNotifier {
     String? genre,
     String? binding,
     String? language,
-    int? authorId,
+    List<int> authorIds,
   ) async {
     _isLoading = true;
     _error = null;
@@ -139,7 +139,7 @@ class BookProvider with ChangeNotifier {
         genre,
         binding,
         language,
-        authorId,
+        authorIds,
       );
       
       if (newBook != null) {

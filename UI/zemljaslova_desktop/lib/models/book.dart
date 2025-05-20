@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'author.dart';
 
 part 'book.g.dart';
 
@@ -6,7 +7,6 @@ part 'book.g.dart';
 class Book {
   final int id;
   final String title;
-  final String author;
   final double price;
   final String? coverImageUrl;
   final bool isAvailable;
@@ -23,16 +23,13 @@ class Book {
   final String? dimensions;
   final String? genre;
   final String? binding;
-  final String? language;
-  final int? authorId;
-  
-  final String? authorFirstName;
-  final String? authorLastName;
+  final String? language;  
+  final List<int> authorIds;  
+  final List<Author>? authors;
 
   Book({
     required this.id,
     required this.title,
-    required this.author,
     required this.price,
     this.coverImageUrl,
     this.isAvailable = true,
@@ -49,10 +46,16 @@ class Book {
     this.genre,
     this.binding,
     this.language,
-    this.authorId,
-    this.authorFirstName,
-    this.authorLastName,
+    this.authorIds = const [],
+    this.authors,
   });
+
+  String get authorNames {
+    if (authors != null && authors!.isNotEmpty) {
+      return authors!.map((a) => '${a.firstName} ${a.lastName}').join(', ');
+    }
+    return "Autor nepoznat";
+  }
 
   factory Book.fromJson(Map<String, dynamic> json) => _$BookFromJson(json);
 
