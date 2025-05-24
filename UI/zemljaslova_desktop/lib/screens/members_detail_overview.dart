@@ -4,6 +4,7 @@ import 'package:zemljaslova_desktop/widgets/zs_button.dart';
 import '../models/member.dart';
 import '../widgets/sidebar.dart';
 import '../providers/user_provider.dart';
+import '../providers/member_provider.dart';
 import '../services/user_service.dart';
 import 'members_overview.dart';
 import 'member_edit.dart';
@@ -28,6 +29,58 @@ class _MembersDetailOverviewState extends State<MembersDetailOverview> {
   void initState() {
     super.initState();
     _member = widget.member;
+  }
+
+  Future<void> handleMemberDeleted() async {
+    final memberProvider = Provider.of<MemberProvider>(context, listen: false);
+    
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Izbriši korisnika'),
+        content: Text(
+          'Da li ste sigurni da želite izbrisati korisnika ${_member.fullName}?\n\n'
+          'Ova akcija će trajno obrisati korisnika i sve povezane podatke.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Odustani'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Izbriši'),
+          ),
+        ],
+      ),
+    );
+    
+    if (confirmed == true) {
+      try {
+        final success = await memberProvider.deleteMember(_member.id);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Korisnik je uspješno izbrisan'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/members',
+          (route) => false,
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Greška prilikom brisanja korisnika'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -235,13 +288,13 @@ class _MembersDetailOverviewState extends State<MembersDetailOverview> {
                         ),
 
                         ZSButton(
-                          text: 'Arhiviraj korisnika',
+                          text: 'Izbriši korisnika',
                           backgroundColor: Colors.red.shade50,
                           foregroundColor: Colors.red,
                           borderColor: Colors.grey.shade300,
                           width: 410,
                           topPadding: 5,
-                          onPressed: () {},
+                          onPressed: handleMemberDeleted,
                         ),
                       ],
                     ),

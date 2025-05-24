@@ -126,6 +126,7 @@ public partial class _200036Context : DbContext
 
             entity.HasOne(d => d.Member).WithMany(p => p.BookReservations)
                 .HasForeignKey(d => d.MemberId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_BookReservation_Member");
         });
 
@@ -166,6 +167,7 @@ public partial class _200036Context : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.Employees)
                 .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Employee_User");
         });
 
@@ -191,6 +193,7 @@ public partial class _200036Context : DbContext
 
             entity.HasOne(d => d.Member).WithMany(p => p.Favourites)
                 .HasForeignKey(d => d.MemberId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Favourites_Member");
         });
 
@@ -205,6 +208,7 @@ public partial class _200036Context : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.Members)
                 .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Member_User");
         });
 
@@ -217,6 +221,7 @@ public partial class _200036Context : DbContext
 
             entity.HasOne(d => d.Member).WithMany(p => p.Memberships)
                 .HasForeignKey(d => d.MemberId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Membership_Member");
         });
 
@@ -304,6 +309,7 @@ public partial class _200036Context : DbContext
 
             entity.HasOne(d => d.Member).WithMany(p => p.Tickets)
                 .HasForeignKey(d => d.MemberId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Ticket_Member");
 
             entity.HasOne(d => d.OrderItem).WithMany(p => p.Tickets)
@@ -364,6 +370,7 @@ public partial class _200036Context : DbContext
 
             entity.HasOne(d => d.Member).WithMany(p => p.UserBookClubs)
                 .HasForeignKey(d => d.MemberId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_UserBookClub_Member");
         });
 

@@ -127,4 +127,31 @@ class MemberProvider with ChangeNotifier {
       return null;
     }
   }
+  
+  Future<bool> deleteMember(int id) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final success = await _memberService.deleteMember(id);
+
+      if (success) {
+        _members.removeWhere((member) => member.id == id);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+
+      _error = 'Failed to delete member';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 } 

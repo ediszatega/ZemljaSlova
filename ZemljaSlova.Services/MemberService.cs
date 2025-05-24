@@ -131,5 +131,96 @@ namespace ZemljaSlova.Services
             return _mapper.Map<Model.Member>(member);
         }
         
+        public override async Task<Model.Member> Delete(int id)
+        {
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    // Get the member with all related data
+                    var member = await _context.Members
+                        .Include(m => m.User)
+                        .Include(m => m.BookReservations)
+                            .ThenInclude(br => br.Notifications)
+                        .Include(m => m.Favourites)
+                        .Include(m => m.Memberships)
+                            .ThenInclude(ms => ms.Notifications)
+                        .Include(m => m.Memberships)
+                            .ThenInclude(ms => ms.OrderItems)
+                        .Include(m => m.Orders)
+                            .ThenInclude(o => o.Notifications)
+                        .Include(m => m.Orders)
+                            .ThenInclude(o => o.OrderItems)
+                                .ThenInclude(oi => oi.Tickets)
+                        .Include(m => m.Tickets)
+                        .Include(m => m.UserBookClubs)
+                            .ThenInclude(ubc => ubc.UserBookClubTransactions)
+                        .FirstOrDefaultAsync(m => m.Id == id);
+
+                    if (member == null)
+                    {
+                        return null;
+                    }
+
+                    var memberModel = _mapper.Map<Model.Member>(member);
+
+                    // Remove all related entities
+                    
+                    foreach (var reservation in member.BookReservations)
+                    {
+                        _context.Notifications.RemoveRange(reservation.Notifications);
+                    }
+                    
+                    _context.BookReservations.RemoveRange(member.BookReservations);
+                    
+                    _context.Favourites.RemoveRange(member.Favourites);
+                    
+                    foreach (var membership in member.Memberships)
+                    {
+                        _context.Notifications.RemoveRange(membership.Notifications);
+                        _context.OrderItems.RemoveRange(membership.OrderItems);
+                    }
+                    
+                    _context.Memberships.RemoveRange(member.Memberships);
+                    
+                    foreach (var order in member.Orders)
+                    {
+                        _context.Notifications.RemoveRange(order.Notifications);
+                        
+                        foreach (var orderItem in order.OrderItems)
+                        {
+                            _context.Tickets.RemoveRange(orderItem.Tickets);
+                        }
+                        
+                        _context.OrderItems.RemoveRange(order.OrderItems);
+                    }
+                    
+                    _context.Orders.RemoveRange(member.Orders);
+                    
+                    _context.Tickets.RemoveRange(member.Tickets);
+                    
+                    foreach (var userBookClub in member.UserBookClubs)
+                    {
+                        _context.UserBookClubTransactions.RemoveRange(userBookClub.UserBookClubTransactions);
+                    }
+                    
+                    _context.UserBookClubs.RemoveRange(member.UserBookClubs);
+                    
+                    _context.Members.Remove(member);
+                    
+                    _context.Users.Remove(member.User);
+                    
+                    await _context.SaveChangesAsync();                
+                    transaction.Commit();
+    
+                    return memberModel;
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        }
     }
 }

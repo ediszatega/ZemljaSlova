@@ -106,6 +106,17 @@ class MemberService {
     }
   }
   
+  Future<bool> deleteMember(int id) async {
+    try {
+      final response = await _apiService.delete('Member/$id');
+      
+      return response != null;
+    } catch (e) {
+      debugPrint('Failed to delete member: $e');
+      throw Exception('Failed to delete member: $e');
+    }
+  }
+  
   Member _mapMemberFromBackend(dynamic memberData) {
     String? profileImageUrl;
     if (memberData['profileImage'] != null) {
