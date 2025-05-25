@@ -15,7 +15,13 @@ public partial class Voucher
 
     public DateTime ExpirationDate { get; set; }
 
+    public int? PurchasedByMemberId { get; set; }
+
+    public DateTime? PurchasedAt { get; set; }
+
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+
+    public virtual Member? PurchasedByMember { get; set; }
 }

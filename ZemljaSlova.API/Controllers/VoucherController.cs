@@ -10,8 +10,52 @@ namespace ZemljaSlova.API.Controllers
     //[Authorize]
     [ApiController]
     [Route("[controller]")]
-    public class VoucherController : BaseCRUDController<Model.Voucher, VoucherSearchObject, VoucherUpsertRequest, VoucherUpsertRequest>
+    public class VoucherController : BaseController<Model.Voucher, VoucherSearchObject>
     {
-        public VoucherController(IVoucherService service) : base(service) { }
+        private readonly IVoucherService _voucherService;
+        
+        public VoucherController(IVoucherService service) : base(service)
+        {
+            _voucherService = service;
+        }
+
+        [HttpPost("CreateMemberVoucher")]
+        //[Authorize(Roles = "Member")]
+        public virtual Model.Voucher CreateMemberVoucher(VoucherMemberInsertRequest request)
+        {
+            return _voucherService.InsertMemberVoucher(request);
+        }
+
+        [HttpPost("CreateAdminVoucher")]
+        //[Authorize(Roles = "Admin")]
+        public virtual Model.Voucher CreateAdminVoucher(VoucherAdminInsertRequest request)
+        {
+            return _voucherService.InsertAdminVoucher(request);
+        }
+
+        [HttpDelete("{id}")]
+        //[Authorize(Roles = "Admin")]
+        public virtual async Task<Model.Voucher> Delete(int id)
+        {
+            return await _voucherService.Delete(id);
+        }
+
+        [HttpGet("GetVoucherByCode/{code}")]
+        public async Task<ActionResult<Model.Voucher>> GetVoucherByCode(string code)
+        {
+            try
+            {
+                var voucher = await _voucherService.GetVoucherByCode(code);
+                if (voucher == null)
+                {
+                    return NotFound("Voucher not found");
+                }
+                return Ok(voucher);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while retrieving the voucher.");
+            }
+        }
     }
 }

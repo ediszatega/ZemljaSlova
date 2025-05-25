@@ -402,7 +402,12 @@ public partial class _200036Context : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.ExpirationDate).HasColumnType("datetime");
+            entity.Property(e => e.PurchasedAt).HasColumnType("datetime");
             entity.Property(e => e.Value).HasColumnType("decimal(10, 2)");
+
+            entity.HasOne(d => d.PurchasedByMember).WithMany(p => p.Vouchers)
+                .HasForeignKey(d => d.PurchasedByMemberId)
+                .HasConstraintName("FK_Voucher_Member");
         });
 
         OnModelCreatingPartial(modelBuilder);

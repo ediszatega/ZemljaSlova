@@ -9,7 +9,11 @@ using ZemljaSlova.Model.SearchObjects;
 
 namespace ZemljaSlova.Services
 {
-    public interface IVoucherService : ICRUDService<Voucher, VoucherSearchObject, VoucherUpsertRequest, VoucherUpsertRequest>
+    public interface IVoucherService : IService<Voucher, VoucherSearchObject>
     {
+        Voucher InsertMemberVoucher(VoucherMemberInsertRequest request);
+        Voucher InsertAdminVoucher(VoucherAdminInsertRequest request);
+        Task<Voucher> Delete(int id);
+        Task<Voucher?> GetVoucherByCode(string code);
     }
 }

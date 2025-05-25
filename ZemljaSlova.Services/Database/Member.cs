@@ -26,4 +26,6 @@ public partial class Member
     public virtual User User { get; set; } = null!;
 
     public virtual ICollection<UserBookClub> UserBookClubs { get; set; } = new List<UserBookClub>();
+
+    public virtual ICollection<Voucher> Vouchers { get; set; } = new List<Voucher>();
 }
