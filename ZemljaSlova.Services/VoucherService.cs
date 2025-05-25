@@ -81,6 +81,9 @@ namespace ZemljaSlova.Services
 
         public override IQueryable<Database.Voucher> AddFilter(VoucherSearchObject search, IQueryable<Database.Voucher> query)
         {
+            query = query.Include(v => v.PurchasedByMember)
+                         .ThenInclude(m => m.User);
+
             if (search.MemberId.HasValue)
             {
                 query = query.Where(v => v.PurchasedByMemberId == search.MemberId.Value);
@@ -109,9 +112,26 @@ namespace ZemljaSlova.Services
             return base.AddFilter(search, query);
         }
 
+        public override Model.Voucher GetById(int id)
+        {
+            var entity = Context.Vouchers
+                .Include(v => v.PurchasedByMember)
+                .ThenInclude(m => m.User)
+                .FirstOrDefault(v => v.Id == id);
+                
+            if (entity == null)
+            {
+                return null;
+            }
+            
+            return Mapper.Map<Model.Voucher>(entity);
+        }
+
         public async Task<Model.Voucher?> GetVoucherByCode(string code)
         {
             var voucher = await Context.Vouchers
+                .Include(v => v.PurchasedByMember)
+                .ThenInclude(m => m.User)
                 .FirstOrDefaultAsync(v => v.Code == code);
 
             return voucher != null ? Mapper.Map<Model.Voucher>(voucher) : null;

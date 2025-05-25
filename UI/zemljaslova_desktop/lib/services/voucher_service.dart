@@ -45,11 +45,9 @@ class VoucherService {
       
       final response = await _apiService.get(endpoint);
       
-      debugPrint('API response: $response');
-      
       if (response != null) {
         final vouchersList = response['resultList'] as List;
-        
+
         return vouchersList
             .map((voucherJson) => _mapVoucherFromBackend(voucherJson))
             .toList();
@@ -132,16 +130,18 @@ class VoucherService {
     
     if (voucherData['purchasedByMember'] != null) {
       final memberData = voucherData['purchasedByMember'];
+      final userData = memberData['user'] as Map<String, dynamic>?;
+      
       purchasedByMember = Member(
         id: memberData['id'],
-        firstName: memberData['firstName'] ?? '',
-        lastName: memberData['lastName'] ?? '',
-        email: memberData['email'] ?? '',
+        firstName: userData?['firstName'] ?? '',
+        lastName: userData?['lastName'] ?? '',
+        email: userData?['email'] ?? '',
         dateOfBirth: DateTime.tryParse(memberData['dateOfBirth'] ?? '') ?? DateTime.now(),
         joinedAt: DateTime.tryParse(memberData['joinedAt'] ?? '') ?? DateTime.now(),
-        gender: memberData['gender'],
+        gender: userData?['gender'],
         userId: memberData['userId'],
-        isActive: memberData['isActive'] ?? true,
+        isActive: userData?['isActive'] ?? true,
       );
     }
 
