@@ -295,10 +295,6 @@ public partial class _200036Context : DbContext
             entity.HasOne(d => d.TicketType).WithMany(p => p.OrderItems)
                 .HasForeignKey(d => d.TicketTypeId)
                 .HasConstraintName("FK_OrderItem_TicketType");
-
-            entity.HasOne(d => d.Voucher).WithMany(p => p.OrderItems)
-                .HasForeignKey(d => d.VoucherId)
-                .HasConstraintName("FK_OrderItem_Voucher");
         });
 
         modelBuilder.Entity<Ticket>(entity =>
