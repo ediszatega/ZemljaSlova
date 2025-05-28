@@ -31,6 +31,8 @@ namespace ZemljaSlova.Services
                 query = query.Include("User");
             }
 
+            query = query.Include("Memberships");
+
             return base.AddFilter(search, query);
         }
 

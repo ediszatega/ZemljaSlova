@@ -11,5 +11,9 @@ namespace ZemljaSlova.Services
 {
     public interface IMembershipService : ICRUDService<Membership, MembershipSearchObject, MembershipInsertRequest, MembershipUpdateRequest>
     {
+        Membership CreateMembershipByMember(MembershipInsertRequest request);
+        Membership GetActiveMembership(int memberId);
+        List<Membership> GetMemberMemberships(int memberId);
+        bool HasActiveMembership(int memberId);
     }
 }
