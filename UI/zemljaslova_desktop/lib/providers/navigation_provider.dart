@@ -5,6 +5,7 @@ enum NavigationItem {
   bookRent,
   events,
   members,
+  memberships,
   reports,
   profile,
   authors,

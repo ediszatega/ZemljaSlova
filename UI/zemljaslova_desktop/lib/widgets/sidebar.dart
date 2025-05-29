@@ -69,6 +69,12 @@ class SidebarWidget extends StatelessWidget {
             onTap: () => _navigateToScreen(context, NavigationItem.members),
           ),
           SidebarMenuItemWidget(
+            title: 'Članarine',
+            icon: Icons.card_membership,
+            isSelected: navigationProvider.currentItem == NavigationItem.memberships,
+            onTap: () => _navigateToScreen(context, NavigationItem.memberships),
+          ),
+          SidebarMenuItemWidget(
             title: 'Uposlenici',
             icon: Icons.badge,
             isSelected: navigationProvider.currentItem == NavigationItem.employees,
@@ -116,6 +122,9 @@ class SidebarWidget extends StatelessWidget {
         break;
       case NavigationItem.members:
         routeName = '/members';
+        break;
+      case NavigationItem.memberships:
+        routeName = '/memberships';
         break;
       case NavigationItem.reports:
         routeName = '/reports';

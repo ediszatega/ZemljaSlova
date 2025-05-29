@@ -8,6 +8,7 @@ import 'providers/author_provider.dart';
 import 'providers/employee_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/voucher_provider.dart';
+import 'providers/membership_provider.dart';
 import 'screens/members_overview.dart';
 import 'screens/books_sell_overview.dart';
 import 'screens/book_rent_overview.dart';
@@ -25,6 +26,7 @@ import 'screens/employees_overview.dart';
 import 'screens/employee_add.dart';
 import 'screens/employee_edit.dart';
 import 'screens/vouchers_overview.dart';
+import 'screens/memberships_overview.dart';
 import 'services/api_service.dart';
 import 'services/book_service.dart';
 import 'services/author_service.dart';
@@ -33,6 +35,7 @@ import 'services/event_service.dart';
 import 'services/employee_service.dart';
 import 'services/user_service.dart';
 import 'services/voucher_service.dart';
+import 'services/membership_service.dart';
 
 void main() {
   final apiService = ApiService();
@@ -44,6 +47,7 @@ void main() {
   final employeeService = EmployeeService(apiService);
   final userService = UserService(apiService);
   final voucherService = VoucherService(apiService);
+  final membershipService = MembershipService(apiService);
   
   runApp(
     ZemljaSlova(
@@ -55,6 +59,7 @@ void main() {
       employeeService: employeeService,
       userService: userService,
       voucherService: voucherService,
+      membershipService: membershipService,
     ),
   );
 }
@@ -68,6 +73,7 @@ class ZemljaSlova extends StatelessWidget {
   final EmployeeService employeeService;
   final UserService userService;
   final VoucherService voucherService;
+  final MembershipService membershipService;
   
   const ZemljaSlova({
     super.key,
@@ -79,6 +85,7 @@ class ZemljaSlova extends StatelessWidget {
     required this.employeeService,
     required this.userService,
     required this.voucherService,
+    required this.membershipService,
   });
 
   @override
@@ -93,6 +100,7 @@ class ZemljaSlova extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => EmployeeProvider(employeeService)),
         ChangeNotifierProvider(create: (_) => UserProvider(userService)),
         ChangeNotifierProvider(create: (_) => VoucherProvider(voucherService)),
+        ChangeNotifierProvider(create: (_) => MembershipProvider(membershipService)),
       ],
       child: MaterialApp(
         title: 'Zemlja Slova',
@@ -110,6 +118,7 @@ class ZemljaSlova extends StatelessWidget {
           '/book-rent': (context) => const BookRentOverview(),
           '/events': (context) => const EventsOverview(),
           '/members': (context) => const MembersOverview(),
+          '/memberships': (context) => const MembershipsOverview(),
           '/reports': (context) => const ReportsOverview(),
           '/profile': (context) => const ProfileOverview(),
           '/authors': (context) => const AuthorsOverview(),
@@ -150,6 +159,8 @@ class NavigationScreen extends StatelessWidget {
         return const EventsOverview();
       case NavigationItem.members:
         return const MembersOverview();
+      case NavigationItem.memberships:
+        return const MembershipsOverview();
       case NavigationItem.reports:
         return const ReportsOverview();
       case NavigationItem.profile:
