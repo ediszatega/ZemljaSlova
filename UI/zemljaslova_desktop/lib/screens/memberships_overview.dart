@@ -5,6 +5,7 @@ import '../providers/membership_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/search_input.dart';
+import 'membership_add.dart';
 
 class MembershipsOverview extends StatefulWidget {
   const MembershipsOverview({super.key});
@@ -108,12 +109,9 @@ class _MembershipsOverviewState extends State<MembershipsOverview> {
         // Add membership button
         ZSButton(
           onPressed: () {
-            // TODO: Navigate to add membership screen
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Dodavanje članarine će biti implementirano'),
-                backgroundColor: Colors.blue,
-              ),
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const MembershipAddScreen()),
             );
           },
           text: 'Dodaj članarinu',
@@ -178,11 +176,11 @@ class _MembershipsOverviewState extends State<MembershipsOverview> {
             ),
             child: Table(
               columnWidths: const {
-                0: FixedColumnWidth(60),   // Redni broj
+                0: FixedColumnWidth(50),   // Redni broj
                 1: FlexColumnWidth(2),     // Član
                 2: FixedColumnWidth(100),  // Datum početka
                 3: FixedColumnWidth(100),  // Datum kraja
-                4: FixedColumnWidth(80),   // Status
+                4: FixedColumnWidth(90),   // Status
                 5: FixedColumnWidth(90),   // Trajanje
                 6: FixedColumnWidth(90),   // Preostalo dana
                 7: FixedColumnWidth(140),  // Akcije
