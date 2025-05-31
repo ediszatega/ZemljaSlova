@@ -14,6 +14,8 @@ namespace ZemljaSlova.Model
 
         public int MemberId { get; set; }
 
+        public virtual Member? Member { get; set; }
+
         public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();

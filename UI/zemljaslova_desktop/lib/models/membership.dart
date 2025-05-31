@@ -43,7 +43,7 @@ class Membership {
 
   String get memberDisplay {
     if (member != null) {
-      return member!.fullName;
+      return '${member!.firstName} ${member!.lastName}';
     }
     return 'Član ID: $memberId';
   }

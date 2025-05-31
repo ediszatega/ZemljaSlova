@@ -31,8 +31,6 @@ namespace ZemljaSlova.Services
                 query = query.Include("User");
             }
 
-            query = query.Include("Memberships");
-
             return base.AddFilter(search, query);
         }
 
@@ -145,10 +143,6 @@ namespace ZemljaSlova.Services
                         .Include(m => m.BookReservations)
                             .ThenInclude(br => br.Notifications)
                         .Include(m => m.Favourites)
-                        .Include(m => m.Memberships)
-                            .ThenInclude(ms => ms.Notifications)
-                        .Include(m => m.Memberships)
-                            .ThenInclude(ms => ms.OrderItems)
                         .Include(m => m.Orders)
                             .ThenInclude(o => o.Notifications)
                         .Include(m => m.Orders)
@@ -176,14 +170,6 @@ namespace ZemljaSlova.Services
                     _context.BookReservations.RemoveRange(member.BookReservations);
                     
                     _context.Favourites.RemoveRange(member.Favourites);
-                    
-                    foreach (var membership in member.Memberships)
-                    {
-                        _context.Notifications.RemoveRange(membership.Notifications);
-                        _context.OrderItems.RemoveRange(membership.OrderItems);
-                    }
-                    
-                    _context.Memberships.RemoveRange(member.Memberships);
                     
                     foreach (var order in member.Orders)
                     {

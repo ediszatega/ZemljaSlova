@@ -18,8 +18,6 @@ namespace ZemljaSlova.Model
 
         public virtual ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();
 
-        public virtual ICollection<Membership> Memberships { get; set; } = new List<Membership>();
-
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
         public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
