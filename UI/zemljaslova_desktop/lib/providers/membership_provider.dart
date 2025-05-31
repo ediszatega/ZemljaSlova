@@ -102,9 +102,7 @@ class MembershipProvider with ChangeNotifier {
       );
 
       if (membership != null) {
-        _memberships.add(membership);
-        _isLoading = false;
-        notifyListeners();
+        await fetchMemberships(includeMember: true);
         return true;
       }
 
@@ -133,9 +131,7 @@ class MembershipProvider with ChangeNotifier {
       );
 
       if (membership != null) {
-        _memberships.add(membership);
-        _isLoading = false;
-        notifyListeners();
+        await fetchMemberships(includeMember: true);
         return true;
       }
 
