@@ -5,10 +5,12 @@ import '../models/member.dart';
 import '../widgets/sidebar.dart';
 import '../providers/user_provider.dart';
 import '../providers/member_provider.dart';
+import '../providers/membership_provider.dart';
 import '../services/user_service.dart';
 import 'members_overview.dart';
 import 'member_edit.dart';
 import 'change_password_screen.dart';
+import 'membership_add.dart';
 
 class MembersDetailOverview extends StatefulWidget {
   final Member member;
@@ -24,11 +26,44 @@ class MembersDetailOverview extends StatefulWidget {
 
 class _MembersDetailOverviewState extends State<MembersDetailOverview> {
   late Member _member;
+  bool _loadingMembership = false;
+  String? _membershipStatus;
   
   @override
   void initState() {
     super.initState();
     _member = widget.member;
+    _loadMembershipStatus();
+  }
+
+  Future<void> _loadMembershipStatus() async {
+    setState(() {
+      _loadingMembership = true;
+    });
+
+    try {
+      final membershipProvider = Provider.of<MembershipProvider>(context, listen: false);
+      final activeMembership = await membershipProvider.getActiveMembership(_member.id);
+      
+      setState(() {
+        if (activeMembership != null) {
+          final daysRemaining = activeMembership.daysRemaining;
+          if (daysRemaining > 0) {
+            _membershipStatus = 'Aktivna (još $daysRemaining dana)';
+          } else {
+            _membershipStatus = 'Istekla';
+          }
+        } else {
+          _membershipStatus = 'Nema članarine';
+        }
+        _loadingMembership = false;
+      });
+    } catch (e) {
+      setState(() {
+        _membershipStatus = 'Greška pri učitavanju';
+        _loadingMembership = false;
+      });
+    }
   }
 
   Future<void> handleMemberDeleted() async {
@@ -220,6 +255,12 @@ class _MembersDetailOverviewState extends State<MembersDetailOverview> {
                                 label: 'Datum učlanjenja', 
                                 value: '${_member.joinedAt.day}.${_member.joinedAt.month}.${_member.joinedAt.year}'
                               ),
+                              DetailRow(
+                                label: 'Status članarine', 
+                                value: _loadingMembership 
+                                    ? 'Učitavam...' 
+                                    : _membershipStatus ?? 'Nepoznato'
+                              ),
                               DetailRow(label: 'Broj aktivnih mjeseci', value: '3'),
                               DetailRow(label: 'Broj kupljenih knjiga', value: '5'),
                               DetailRow(label: 'Broj iznajmljenih knjiga', value: '2'),
@@ -241,7 +282,20 @@ class _MembersDetailOverviewState extends State<MembersDetailOverview> {
                           borderColor: Colors.grey.shade300,
                           width: 410,
                           topPadding: 5,
-                          onPressed: () {},
+                          onPressed: () async {
+                            final result = await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => MembershipAddScreen(
+                                  preselectedMember: _member,
+                                ),
+                              ),
+                            );
+                            
+                            // Optionally refresh data if needed
+                            if (result == true) {
+                              _loadMembershipStatus();
+                            }
+                          },
                         ),
                         
                         ZSButton(

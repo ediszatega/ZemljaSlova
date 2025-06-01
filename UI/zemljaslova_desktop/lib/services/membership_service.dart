@@ -85,7 +85,7 @@ class MembershipService {
 
   Future<Membership?> getActiveMembership(int memberId) async {
     try {
-      final response = await _apiService.get('Membership/GetActiveMembership/$memberId');
+      final response = await _apiService.get('Membership/get_active_membership/$memberId');
       
       if (response != null) {
         return _mapMembershipFromBackend(response);
@@ -100,7 +100,7 @@ class MembershipService {
 
   Future<List<Membership>> getMemberMemberships(int memberId) async {
     try {
-      final response = await _apiService.get('Membership/GetMemberMemberships/$memberId');
+      final response = await _apiService.get('Membership/get_member_memberships/$memberId');
       
       if (response != null) {
         final membershipsList = response as List;
