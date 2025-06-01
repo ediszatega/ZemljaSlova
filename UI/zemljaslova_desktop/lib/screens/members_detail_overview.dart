@@ -28,6 +28,7 @@ class _MembersDetailOverviewState extends State<MembersDetailOverview> {
   late Member _member;
   bool _loadingMembership = false;
   String? _membershipStatus;
+  bool? _hasMembershipActive;
   
   @override
   void initState() {
@@ -47,19 +48,22 @@ class _MembersDetailOverviewState extends State<MembersDetailOverview> {
       
       setState(() {
         if (activeMembership != null) {
+          _hasMembershipActive = activeMembership.isActive;
           final daysRemaining = activeMembership.daysRemaining;
           if (daysRemaining > 0) {
             _membershipStatus = 'Aktivna (još $daysRemaining dana)';
           } else {
-            _membershipStatus = 'Istekla';
+            _membershipStatus = 'Nema aktivnu članarinu';
           }
         } else {
-          _membershipStatus = 'Nema članarine';
+          _hasMembershipActive = false;
+          _membershipStatus = 'Nema aktivnu članarinu';
         }
         _loadingMembership = false;
       });
     } catch (e) {
       setState(() {
+        _hasMembershipActive = false;
         _membershipStatus = 'Greška pri učitavanju';
         _loadingMembership = false;
       });
@@ -214,15 +218,25 @@ class _MembersDetailOverviewState extends State<MembersDetailOverview> {
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: _member.isActive 
-                                          ? Colors.green.shade50
-                                          : Colors.red.shade50,
+                                      color: _loadingMembership 
+                                          ? Colors.grey.shade50
+                                          : (_hasMembershipActive == true)
+                                              ? Colors.green.shade50
+                                              : Colors.red.shade50,
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
-                                      _member.isActive ? 'Aktivan' : 'Neaktivan',
+                                      _loadingMembership 
+                                          ? 'Učitavam...'
+                                          : (_hasMembershipActive == true) 
+                                              ? 'Aktivan' 
+                                              : 'Neaktivan',
                                       style: TextStyle(
-                                        color: _member.isActive ? Colors.green : Colors.red,
+                                        color: _loadingMembership 
+                                            ? Colors.grey.shade600
+                                            : (_hasMembershipActive == true) 
+                                                ? Colors.green 
+                                                : Colors.red,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
