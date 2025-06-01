@@ -143,7 +143,7 @@ class ZSCard extends StatelessWidget {
   static Widget fromMember(
     BuildContext context, 
     dynamic member, 
-    {VoidCallback? onTap}
+    {VoidCallback? onTap, bool? isActive, bool hideStatus = false}
   ) {
     // Create image widget from member's profile image
     Widget imageWidget;
@@ -162,7 +162,7 @@ class ZSCard extends StatelessWidget {
     return ZSCard(
       title: member.fullName,
       image: imageWidget,
-      isActive: member.isActive,
+      isActive: hideStatus ? null : (isActive ?? member.isActive), // Hide status completely if hideStatus is true
       onTap: onTap,
     );
   }

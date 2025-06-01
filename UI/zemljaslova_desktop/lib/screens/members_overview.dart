@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/member.dart';
 import '../providers/member_provider.dart';
+import '../providers/membership_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_card.dart';
 import '../widgets/zs_button.dart';
@@ -42,6 +43,9 @@ class MembersContent extends StatefulWidget {
 
 class _MembersContentState extends State<MembersContent> {
   String _sortOption = 'Ime (A-Z)';
+  Map<int, bool> _membershipStatus = {}; // Track membership status for each member
+  bool _loadingMembershipStatuses = false;
+  bool _membershipStatusesLoaded = false; // Track if membership statuses have been loaded
   
   @override
   void initState() {
@@ -49,7 +53,43 @@ class _MembersContentState extends State<MembersContent> {
     // Load members data
     Future.microtask(() {
       Provider.of<MemberProvider>(context, listen: false).fetchMembers(isUserIncluded: true);
+      _loadMembershipStatuses();
     });
+  }
+
+  Future<void> _loadMembershipStatuses() async {
+    setState(() {
+      _loadingMembershipStatuses = true;
+      _membershipStatusesLoaded = false;
+    });
+
+    final memberProvider = Provider.of<MemberProvider>(context, listen: false);
+    final membershipProvider = Provider.of<MembershipProvider>(context, listen: false);
+    
+    // Wait for members to load first
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    final members = memberProvider.members;
+    final Map<int, bool> statuses = {};
+    
+    for (final member in members) {
+      try {
+        final activeMembership = await membershipProvider.getActiveMembership(member.id);
+        statuses[member.id] = activeMembership != null && activeMembership.isActive;
+      } catch (e) {
+        statuses[member.id] = false; // Default to inactive on error
+      }
+    }
+    
+    setState(() {
+      _membershipStatus = statuses;
+      _loadingMembershipStatuses = false;
+      _membershipStatusesLoaded = true;
+    });
+  }
+
+  Future<void> _refreshMembershipStatuses() async {
+    await _loadMembershipStatuses();
   }
 
   @override
@@ -60,12 +100,32 @@ class _MembersContentState extends State<MembersContent> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
-          const Text(
-            'Pregled korisnika',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              const Text(
+                'Pregled korisnika',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (_loadingMembershipStatuses) ...[
+                const SizedBox(width: 16),
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Učitavanje statusa članarina...',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: 24),
           
@@ -194,8 +254,12 @@ class _MembersContentState extends State<MembersContent> {
             sortedMembers.sort((a, b) => a.id.compareTo(b.id));
             break;
           case 'Status':
-            // Sort active users first
-            sortedMembers.sort((a, b) => b.isActive == a.isActive ? 0 : (b.isActive ? 1 : -1));
+            // Sort by membership status (active memberships first)
+            sortedMembers.sort((a, b) {
+              final aHasActiveMembership = _membershipStatus[a.id] ?? false;
+              final bHasActiveMembership = _membershipStatus[b.id] ?? false;
+              return bHasActiveMembership == aHasActiveMembership ? 0 : (bHasActiveMembership ? 1 : -1);
+            });
             break;
         }
         
@@ -210,11 +274,15 @@ class _MembersContentState extends State<MembersContent> {
           itemCount: sortedMembers.length,
           itemBuilder: (context, index) {
             final member = sortedMembers[index];
+            final hasActiveMembership = _membershipStatus[member.id] ?? false;
+            
             return ZSCard.fromMember(
               context,
               member,
-              onTap: () {
-                Navigator.push(
+              isActive: hasActiveMembership,
+              hideStatus: !_membershipStatusesLoaded, // Hide status until membership data is loaded
+              onTap: () async {
+                await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => MembersDetailOverview(
@@ -222,6 +290,8 @@ class _MembersContentState extends State<MembersContent> {
                     ),
                   ),
                 );
+                // Refresh membership statuses when returning from details
+                _refreshMembershipStatuses();
               },
             );
           },
