@@ -11,5 +11,11 @@ namespace ZemljaSlova.Services
 {
     public interface IDiscountService : ICRUDService<Discount, DiscountSearchObject, DiscountUpsertRequest, DiscountUpsertRequest>
     {
+        Task<Discount?> GetDiscountByCode(string code);
+        Task<bool> CanUseDiscountCode(string code);
+        Task<int> GetDiscountUsageCount(int discountId);
+        Task<decimal> CalculateOrderDiscount(List<OrderItem> orderItems, string? discountCode = null);
+        Task IncrementDiscountUsage(int discountId);
+        Task<List<Book>> GetBooksWithDiscount(int discountId);
     }
 }

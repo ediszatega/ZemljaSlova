@@ -8,7 +8,10 @@ namespace ZemljaSlova.Model.Requests
     {
         public int MemberId { get; set; }
 
+        // TODO: handle discount
         public int? DiscountId { get; set; }
+
+        // public string? DiscountCode { get; set; }
 
         public DateTime PurchasedAt { get; set; }
 

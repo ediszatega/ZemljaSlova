@@ -12,6 +12,86 @@ namespace ZemljaSlova.API.Controllers
     [Route("[controller]")]
     public class DiscountController : BaseCRUDController<Model.Discount, DiscountSearchObject, DiscountUpsertRequest, DiscountUpsertRequest>
     {
-        public DiscountController(IDiscountService service) : base(service) { }
+        private readonly IDiscountService _discountService;
+
+        public DiscountController(IDiscountService service) : base(service) 
+        {
+            _discountService = service;
+        }
+
+        [HttpGet("get_discount_by_code/{code}")]
+        public async Task<ActionResult<Model.Discount>> GetDiscountByCode(string code)
+        {
+            try
+            {
+                var discount = await _discountService.GetDiscountByCode(code);
+                if (discount == null)
+                {
+                    return NotFound("Discount code not found");
+                }
+                return Ok(discount);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while retrieving the discount.");
+            }
+        }
+
+        [HttpPost("validate_discount_code/{code}")]
+        public async Task<ActionResult<bool>> ValidateDiscountCode(string code)
+        {
+            try
+            {
+                var isValid = await _discountService.CanUseDiscountCode(code);
+                return Ok(isValid);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while validating the discount code.");
+            }
+        }
+
+        [HttpPost("calculate_order_discount")]
+        public async Task<ActionResult<decimal>> CalculateOrderDiscount([FromBody] Model.Requests.OrderDiscountRequest request)
+        {
+            try
+            {
+                var totalDiscount = await _discountService.CalculateOrderDiscount(request.OrderItems, request.DiscountCode);
+                return Ok(totalDiscount);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while calculating order discount.");
+            }
+        }
+
+        [HttpGet("get_discount_usage/{id}")]
+        //[Authorize(Roles = "Admin,Employee")] // Only admin/employee should see usage statistics
+        public async Task<ActionResult<int>> GetDiscountUsage(int id)
+        {
+            try
+            {
+                var usageCount = await _discountService.GetDiscountUsageCount(id);
+                return Ok(usageCount);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while retrieving usage count.");
+            }
+        }
+
+        [HttpGet("get_books_with_discount/{id}")]
+        public async Task<ActionResult<List<Model.Book>>> GetBooksWithDiscount(int id)
+        {
+            try
+            {
+                var books = await _discountService.GetBooksWithDiscount(id);
+                return Ok(books);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while retrieving books with discount.");
+            }
+        }
     }
 }

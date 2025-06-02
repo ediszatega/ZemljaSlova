@@ -152,8 +152,11 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("Discount");
 
-            entity.Property(e => e.DiscountAmount).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.Code).HasMaxLength(50);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.DiscountPercentage).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.EndDate).HasColumnType("datetime");
+            entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.StartDate).HasColumnType("datetime");
         });
 
