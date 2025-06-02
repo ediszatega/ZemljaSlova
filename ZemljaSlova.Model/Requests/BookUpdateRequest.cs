@@ -6,11 +6,11 @@ namespace ZemljaSlova.Model.Requests
 {
     public class BookUpdateRequest
     {
-        public string Title { get; set; } = null!;
+        public string? Title { get; set; }
 
         public string? Description { get; set; }
 
-        public decimal Price { get; set; }
+        public decimal? Price { get; set; }
 
         public DateTime? DateOfPublish { get; set; }
 
@@ -18,9 +18,9 @@ namespace ZemljaSlova.Model.Requests
 
         public string? Publisher { get; set; }
 
-        public string BookPurpos { get; set; } = null!;
+        public string? BookPurpos { get; set; }
 
-        public int NumberOfPages { get; set; }
+        public int? NumberOfPages { get; set; }
 
         public decimal? Weight { get; set; }
 
@@ -36,6 +36,6 @@ namespace ZemljaSlova.Model.Requests
 
         public int? DiscountId { get; set; }
 
-        public List<int> AuthorIds { get; set; } = new List<int>();
+        public List<int>? AuthorIds { get; set; }
     }
 }

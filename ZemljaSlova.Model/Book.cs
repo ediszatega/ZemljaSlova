@@ -49,5 +49,21 @@ namespace ZemljaSlova.Model
         public virtual ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();
 
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        
+        public decimal? DiscountedPrice 
+        { 
+            get 
+            {
+                if (Discount != null && 
+                    Discount.IsActive && 
+                    Discount.StartDate <= DateTime.Now && 
+                    Discount.EndDate >= DateTime.Now &&
+                    (!Discount.MaxUsage.HasValue || Discount.UsageCount < Discount.MaxUsage.Value))
+                {
+                    return Price - (Price * (Discount.DiscountPercentage / 100));
+                }
+                return null;
+            }
+        }
     }
 }

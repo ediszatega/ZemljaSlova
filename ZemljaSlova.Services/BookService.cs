@@ -25,6 +25,8 @@ namespace ZemljaSlova.Services
                 query = query.Include(b => b.Authors);
             }
 
+            query = query.Include(b => b.Discount);
+
             return base.AddFilter(search, query);
         }
 
@@ -43,6 +45,7 @@ namespace ZemljaSlova.Services
             
             var entity = Context.Books
                 .Include(b => b.Authors)
+                .Include(b => b.Discount)
                 .FirstOrDefault(x => x.Id == id);
 
             if (entity == null)
@@ -55,6 +58,12 @@ namespace ZemljaSlova.Services
             if (entity.Authors != null)
             {
                 result.Authors = Mapper.Map<List<Model.Author>>(entity.Authors);
+            }
+
+            // Map discount information
+            if (entity.Discount != null)
+            {
+                result.Discount = Mapper.Map<Model.Discount>(entity.Discount);
             }
 
             return result;
