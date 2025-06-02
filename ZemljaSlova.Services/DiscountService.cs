@@ -246,6 +246,41 @@ namespace ZemljaSlova.Services
             return Mapper.Map<List<Model.Book>>(books);
         }
 
+        public async Task<int> RemoveExpiredDiscountsFromBooks()
+        {
+            var now = DateTime.Now;
+            
+            // Find all books that have expired discounts
+            var booksWithExpiredDiscounts = await Context.Books
+                .Where(b => b.DiscountId != null && 
+                           Context.Discounts.Any(d => d.Id == b.DiscountId && 
+                                                     d.EndDate < now))
+                .ToListAsync();
+
+            // Remove discount associations
+            foreach (var book in booksWithExpiredDiscounts)
+            {
+                book.DiscountId = null;
+            }
+
+            if (booksWithExpiredDiscounts.Any())
+            {
+                await Context.SaveChangesAsync();
+            }
+
+            return booksWithExpiredDiscounts.Count;
+        }
+
+        public async Task<List<Model.Discount>> GetExpiredDiscounts()
+        {
+            var now = DateTime.Now;
+            var expiredDiscounts = await Context.Discounts
+                .Where(d => d.EndDate < now)
+                .ToListAsync();
+            
+            return Mapper.Map<List<Model.Discount>>(expiredDiscounts);
+        }
+
         private void ValidateDiscountRequest(DiscountUpsertRequest request)
         {
             if (request.StartDate >= request.EndDate)

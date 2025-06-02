@@ -28,8 +28,19 @@ namespace ZemljaSlova.Services
             return base.AddFilter(search, query);
         }
 
+        public override PagedResult<Model.Book> GetPaged(BookSearchObject search)
+        {
+            // Proactively clean up expired discounts when loading books for display
+            CleanupExpiredDiscountsFromBooks();
+            
+            return base.GetPaged(search);
+        }
+
         public override Model.Book GetById(int id)
         {
+            // Clean up expired discounts when loading individual books
+            CleanupExpiredDiscountsFromBooks();
+            
             var entity = Context.Books
                 .Include(b => b.Authors)
                 .FirstOrDefault(x => x.Id == id);
@@ -161,6 +172,27 @@ namespace ZemljaSlova.Services
             if (bookAuthor != null)
             {
                 Context.BookAuthors.Remove(bookAuthor);
+                Context.SaveChanges();
+            }
+        }
+
+        private void CleanupExpiredDiscountsFromBooks()
+        {
+            var now = DateTime.Now;
+            
+            // Find books with expired discounts and remove them
+            var booksWithExpiredDiscounts = Context.Books
+                .Where(b => b.DiscountId != null && 
+                           Context.Discounts.Any(d => d.Id == b.DiscountId && d.EndDate < now))
+                .ToList();
+
+            foreach (var book in booksWithExpiredDiscounts)
+            {
+                book.DiscountId = null;
+            }
+
+            if (booksWithExpiredDiscounts.Any())
+            {
                 Context.SaveChanges();
             }
         }

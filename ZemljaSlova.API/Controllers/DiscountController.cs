@@ -93,5 +93,35 @@ namespace ZemljaSlova.API.Controllers
                 return StatusCode(500, "An error occurred while retrieving books with discount.");
             }
         }
+
+        [HttpPost("cleanup_expired_discounts")]
+        //[Authorize(Roles = "Admin,Employee")] // Only admin/employee should be able to trigger cleanup
+        public async Task<ActionResult<string>> CleanupExpiredDiscounts()
+        {
+            try
+            {
+                var removedCount = await _discountService.RemoveExpiredDiscountsFromBooks();
+                return Ok($"Successfully removed expired discounts from {removedCount} books.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while cleaning up expired discounts.");
+            }
+        }
+
+        [HttpGet("get_expired_discounts")]
+        //[Authorize(Roles = "Admin,Employee")] // Only admin/employee should see expired discounts
+        public async Task<ActionResult<List<Model.Discount>>> GetExpiredDiscounts()
+        {
+            try
+            {
+                var expiredDiscounts = await _discountService.GetExpiredDiscounts();
+                return Ok(expiredDiscounts);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while retrieving expired discounts.");
+            }
+        }
     }
 }

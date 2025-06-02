@@ -17,5 +17,7 @@ namespace ZemljaSlova.Services
         Task<decimal> CalculateOrderDiscount(List<OrderItem> orderItems, string? discountCode = null);
         Task IncrementDiscountUsage(int discountId);
         Task<List<Book>> GetBooksWithDiscount(int discountId);
+        Task<int> RemoveExpiredDiscountsFromBooks();
+        Task<List<Discount>> GetExpiredDiscounts();
     }
 }
