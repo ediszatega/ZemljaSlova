@@ -11,6 +11,7 @@ enum NavigationItem {
   authors,
   employees,
   vouchers,
+  discounts,
 }
 
 class NavigationProvider with ChangeNotifier {
