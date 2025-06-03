@@ -177,7 +177,7 @@ class DiscountService {
       if (maxUsage != null) data['maxUsage'] = maxUsage;
       if (isActive != null) data['isActive'] = isActive;
       if (bookIds != null) data['bookIds'] = bookIds;
-      
+    
       final response = await _apiService.put('Discount/$id', data);
       
       if (response != null) {
@@ -234,6 +234,22 @@ class DiscountService {
       return [];
     } catch (e) {
       debugPrint('Failed to get expired discounts: $e');
+      return [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getBooksWithDiscount(int discountId) async {
+    try {
+      final response = await _apiService.get('Discount/get_books_with_discount/$discountId');
+      
+      if (response != null) {
+        final booksList = response as List;
+        return booksList.cast<Map<String, dynamic>>();
+      }
+      
+      return [];
+    } catch (e) {
+      debugPrint('Failed to get books with discount: $e');
       return [];
     }
   }

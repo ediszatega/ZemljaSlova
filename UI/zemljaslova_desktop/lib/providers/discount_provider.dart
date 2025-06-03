@@ -235,6 +235,16 @@ class DiscountProvider with ChangeNotifier {
     }
   }
 
+  Future<List<Map<String, dynamic>>> getBooksWithDiscount(int discountId) async {
+    try {
+      return await _discountService.getBooksWithDiscount(discountId);
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return [];
+    }
+  }
+
   void clearError() {
     _error = null;
     notifyListeners();

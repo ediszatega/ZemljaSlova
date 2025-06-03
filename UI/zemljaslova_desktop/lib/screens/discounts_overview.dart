@@ -5,6 +5,7 @@ import '../providers/discount_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/search_input.dart';
+import '../providers/book_provider.dart';
 
 class DiscountsOverview extends StatefulWidget {
   const DiscountsOverview({super.key});
@@ -370,13 +371,446 @@ class _DiscountsOverviewState extends State<DiscountsOverview> {
   }
 
   void _editDiscount(Discount discount) {
-    // TODO: Navigate to edit discount screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Uređivanje popusta "${discount.name}" - funkcionalnost će biti dodana'),
-        backgroundColor: Colors.blue,
-      ),
+    // Create controllers and initialize with current values
+    final nameController = TextEditingController(text: discount.name);
+    final descriptionController = TextEditingController(text: discount.description ?? '');
+    final percentageController = TextEditingController(text: discount.discountPercentage.toString());
+    final codeController = TextEditingController(text: discount.code ?? '');
+    final maxUsageController = TextEditingController(text: discount.maxUsage?.toString() ?? '');
+    final startDateController = TextEditingController(text: _formatDate(discount.startDate));
+    final endDateController = TextEditingController(text: _formatDate(discount.endDate));
+    final bookSearchController = TextEditingController();
+    
+    DateTime selectedStartDate = discount.startDate;
+    DateTime selectedEndDate = discount.endDate;
+    int selectedScope = discount.scope;
+    bool isActive = discount.isActive;
+    List<int> selectedBookIds = [];
+    String bookSearchQuery = '';
+    
+    // Load books for book-specific discounts
+    final bookProvider = Provider.of<BookProvider>(context, listen: false);
+    final discountService = Provider.of<DiscountProvider>(context, listen: false);
+    
+    if (discount.scope == 1) {
+      // Get books with this discount
+      discountService.getBooksWithDiscount(discount.id).then((books) {
+        selectedBookIds = books.map((book) => book['id'] as int).toList();
+      });
+    }
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Uredi popust - ${discount.name}'),
+              content: SizedBox(
+                width: 500,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Name field
+                      TextField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Ime popusta',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Description field
+                      TextField(
+                        controller: descriptionController,
+                        decoration: const InputDecoration(
+                          labelText: 'Opis (opciono)',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Percentage field
+                      TextField(
+                        controller: percentageController,
+                        decoration: const InputDecoration(
+                          labelText: 'Procenat popusta',
+                          border: OutlineInputBorder(),
+                          suffixText: '%',
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Code field
+                      TextField(
+                        controller: codeController,
+                        decoration: const InputDecoration(
+                          labelText: 'Kod popusta (opciono)',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Max Usage field
+                      TextField(
+                        controller: maxUsageController,
+                        decoration: const InputDecoration(
+                          labelText: 'Maksimalno korištenja (opciono)',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Scope dropdown
+                      DropdownButtonFormField<int>(
+                        value: selectedScope,
+                        decoration: const InputDecoration(
+                          labelText: 'Tip popusta',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 1, child: Text('Knjiga')),
+                          DropdownMenuItem(value: 2, child: Text('Narudžba')),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() {
+                              selectedScope = value;
+                              if (value == 2) {
+                                selectedBookIds.clear(); // Clear book selection if changing to order scope
+                              }
+                            });
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Start date field
+                      TextField(
+                        controller: startDateController,
+                        decoration: const InputDecoration(
+                          labelText: 'Datum početka',
+                          border: OutlineInputBorder(),
+                        ),
+                        readOnly: true,
+                        onTap: () async {
+                          final date = await showDatePicker(
+                            context: context,
+                            initialDate: selectedStartDate,
+                            firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                            lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+                          );
+                          if (date != null) {
+                            setState(() {
+                              selectedStartDate = date;
+                              startDateController.text = _formatDate(date);
+                            });
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // End date field
+                      TextField(
+                        controller: endDateController,
+                        decoration: const InputDecoration(
+                          labelText: 'Datum kraja',
+                          border: OutlineInputBorder(),
+                        ),
+                        readOnly: true,
+                        onTap: () async {
+                          final date = await showDatePicker(
+                            context: context,
+                            initialDate: selectedEndDate,
+                            firstDate: selectedStartDate,
+                            lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+                          );
+                          if (date != null) {
+                            setState(() {
+                              selectedEndDate = date;
+                              endDateController.text = _formatDate(date);
+                            });
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Active checkbox
+                      CheckboxListTile(
+                        title: const Text('Aktivan'),
+                        value: isActive,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            isActive = value ?? true;
+                          });
+                        },
+                      ),
+                      
+                      // Book selection for book-specific discounts
+                      if (selectedScope == 1) ...[
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Odaberite knjige za popust:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        
+                        // Selected books tags
+                        Consumer<BookProvider>(
+                          builder: (context, bookProvider, child) {
+                            final selectedBooks = bookProvider.books.where((book) => selectedBookIds.contains(book.id)).toList();
+                            
+                            if (selectedBooks.isNotEmpty) {
+                              return Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey.shade300),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: selectedBooks.map((book) {
+                                    return Chip(
+                                      label: Text(
+                                        book.title,
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                      deleteIcon: const Icon(Icons.close, size: 18),
+                                      onDeleted: () {
+                                        setState(() {
+                                          selectedBookIds.remove(book.id);
+                                        });
+                                      },
+                                      backgroundColor: Colors.blue.shade50,
+                                      side: BorderSide(color: Colors.blue.shade200),
+                                    );
+                                  }).toList(),
+                                ),
+                              );
+                            } else {
+                              return Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey.shade300),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'Nijedna knjiga nije odabrana',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        
+                        // Search input for books
+                        TextField(
+                          controller: bookSearchController,
+                          decoration: const InputDecoration(
+                            labelText: 'Pretražite knjige',
+                            hintText: 'Unesite naziv knjige...',
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.search),
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              bookSearchQuery = value.toLowerCase();
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        
+                        // Filtered books list
+                        Consumer<BookProvider>(
+                          builder: (context, bookProvider, child) {
+                            if (bookProvider.isLoading) {
+                              return const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(20),
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            }
+                            
+                            final books = bookProvider.books.where((book) {
+                              final matchesSearch = bookSearchQuery.isEmpty || 
+                                  book.title.toLowerCase().contains(bookSearchQuery);
+                              final notSelected = !selectedBookIds.contains(book.id);
+                              return matchesSearch && notSelected;
+                            }).toList();
+                            
+                            if (books.isEmpty) {
+                              return Container(
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey.shade300),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    bookSearchQuery.isEmpty 
+                                        ? 'Sve knjige su već odabrane'
+                                        : 'Nema knjiga koje odgovaraju pretraži',
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                            
+                            return Container(
+                              height: 150,
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: ListView.builder(
+                                itemCount: books.length,
+                                itemBuilder: (context, index) {
+                                  final book = books[index];
+                                  
+                                  return ListTile(
+                                    title: Text(
+                                      book.title,
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                    subtitle: Text(
+                                      '${book.price.toStringAsFixed(2)} KM',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                    trailing: IconButton(
+                                      icon: const Icon(Icons.add, color: Colors.green),
+                                      onPressed: () {
+                                        setState(() {
+                                          selectedBookIds.add(book.id);
+                                          bookSearchController.clear();
+                                          bookSearchQuery = '';
+                                        });
+                                      },
+                                    ),
+                                    dense: true,
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Otkaži'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    // Validate input
+                    if (nameController.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Ime popusta je obavezno'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+                    
+                    final percentage = double.tryParse(percentageController.text);
+                    if (percentage == null || percentage <= 0 || percentage > 100) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Procenat popusta mora biti između 0.01% i 100%'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+                    
+                    if (selectedStartDate.isAfter(selectedEndDate)) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Datum početka mora biti prije datuma kraja'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+                    
+                    if (selectedScope == 1 && selectedBookIds.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Morate odabrati najmanje jednu knjigu za popust na knjige'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+                    
+                    Navigator.of(context).pop();
+                    
+                    final maxUsage = maxUsageController.text.trim().isNotEmpty 
+                        ? int.tryParse(maxUsageController.text) 
+                        : null;
+                    
+                    final success = await Provider.of<DiscountProvider>(context, listen: false)
+                        .updateDiscount(
+                      id: discount.id,
+                      discountPercentage: percentage,
+                      startDate: selectedStartDate,
+                      endDate: selectedEndDate,
+                      code: codeController.text.trim().isNotEmpty ? codeController.text.trim() : null,
+                      name: nameController.text.trim(),
+                      description: descriptionController.text.trim().isNotEmpty ? descriptionController.text.trim() : null,
+                      scope: selectedScope,
+                      maxUsage: maxUsage,
+                      isActive: isActive,
+                      bookIds: selectedScope == 1 ? selectedBookIds : null,
+                    );
+                    
+                    if (success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Popust je uspješno ažuriran'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Greška pri ažuriranju popusta'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Sačuvaj'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
+    
+    // Load books when dialog opens
+    bookProvider.fetchBooks();
   }
 
   void _showDeleteDialog(Discount discount) {

@@ -313,10 +313,6 @@ namespace ZemljaSlova.Services
             if (startDate >= endDate)
                 throw new ArgumentException("Start date must be before end date");
             
-            // Only validate start date if it's being updated
-            if (request.StartDate.HasValue && request.StartDate < DateTime.Today)
-                throw new ArgumentException("Start date cannot be in the past");
-            
             // Validate discount percentage if provided
             if (request.DiscountPercentage.HasValue)
             {
