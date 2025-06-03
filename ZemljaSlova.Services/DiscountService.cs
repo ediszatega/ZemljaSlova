@@ -281,6 +281,28 @@ namespace ZemljaSlova.Services
             return Mapper.Map<List<Model.Discount>>(expiredDiscounts);
         }
 
+        public override void BeforeDelete(Database.Discount entity)
+        {
+            // Check if discount has been used in orders or order items
+            var hasOrderUsage = Context.Orders.Any(o => o.DiscountId == entity.Id);
+            var hasOrderItemUsage = Context.OrderItems.Any(oi => oi.DiscountId == entity.Id);
+            
+            if (hasOrderUsage || hasOrderItemUsage)
+            {
+                throw new InvalidOperationException("Cannot delete discount that has been used in orders. Consider deactivating it instead.");
+            }
+            
+            // Remove discount reference from all books that have this discount
+            var booksWithDiscount = Context.Books
+                .Where(b => b.DiscountId == entity.Id)
+                .ToList();
+                
+            foreach (var book in booksWithDiscount)
+            {
+                book.DiscountId = null;
+            }
+        }
+
         private void ValidateDiscountInsertRequest(DiscountInsertRequest request)
         {
             if (request.StartDate >= request.EndDate)
