@@ -122,7 +122,6 @@ class DiscountService {
     String? description,
     required int scope,
     int? maxUsage,
-    bool isActive = true,
     List<int>? bookIds,
   }) async {
     try {
@@ -135,7 +134,6 @@ class DiscountService {
         'description': description,
         'scope': scope,
         'maxUsage': maxUsage,
-        'isActive': isActive,
         'bookIds': bookIds,
       };
       
@@ -154,30 +152,31 @@ class DiscountService {
 
   Future<Discount?> updateDiscount({
     required int id,
-    required double discountPercentage,
-    required DateTime startDate,
-    required DateTime endDate,
+    double? discountPercentage,
+    DateTime? startDate,
+    DateTime? endDate,
     String? code,
-    required String name,
+    String? name,
     String? description,
-    required int scope,
+    int? scope,
     int? maxUsage,
-    bool isActive = true,
+    bool? isActive,
     List<int>? bookIds,
   }) async {
     try {
-      final Map<String, dynamic> data = {
-        'discountPercentage': discountPercentage,
-        'startDate': startDate.toIso8601String(),
-        'endDate': endDate.toIso8601String(),
-        'code': code,
-        'name': name,
-        'description': description,
-        'scope': scope,
-        'maxUsage': maxUsage,
-        'isActive': isActive,
-        'bookIds': bookIds,
-      };
+      final Map<String, dynamic> data = {};
+      
+      // Only include non-null values for partial updates
+      if (discountPercentage != null) data['discountPercentage'] = discountPercentage;
+      if (startDate != null) data['startDate'] = startDate.toIso8601String();
+      if (endDate != null) data['endDate'] = endDate.toIso8601String();
+      if (code != null) data['code'] = code;
+      if (name != null) data['name'] = name;
+      if (description != null) data['description'] = description;
+      if (scope != null) data['scope'] = scope;
+      if (maxUsage != null) data['maxUsage'] = maxUsage;
+      if (isActive != null) data['isActive'] = isActive;
+      if (bookIds != null) data['bookIds'] = bookIds;
       
       final response = await _apiService.put('Discount/$id', data);
       

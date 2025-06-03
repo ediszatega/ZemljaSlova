@@ -189,11 +189,10 @@ class _DiscountsOverviewState extends State<DiscountsOverview> {
                 2: FixedColumnWidth(90),   // Procenat
                 3: FixedColumnWidth(100),  // Tip
                 4: FixedColumnWidth(100),  // Status
-                5: FixedColumnWidth(120),  // Kod
-                6: FixedColumnWidth(100),   // Korištenje
-                7: FixedColumnWidth(120),  // Početak
-                8: FixedColumnWidth(110),  // Kraj
-                9: FixedColumnWidth(100),  // Akcije
+                5: FixedColumnWidth(100),  // Korištenje
+                6: FixedColumnWidth(120),  // Početak
+                7: FixedColumnWidth(110),  // Kraj
+                8: FixedColumnWidth(140),  // Akcije (wider)
               },
               children: [
                 // Header
@@ -207,7 +206,6 @@ class _DiscountsOverviewState extends State<DiscountsOverview> {
                     _buildTableHeader('Procenat'),
                     _buildTableHeader('Tip'),
                     _buildTableHeader('Status'),
-                    _buildTableHeader('Kod'),
                     _buildTableHeader('Korištenje'),
                     _buildTableHeader('Početak'),
                     _buildTableHeader('Kraj'),
@@ -254,7 +252,6 @@ class _DiscountsOverviewState extends State<DiscountsOverview> {
           discount.statusDisplay,
           color: discount.statusColor,
         ),
-        _buildTableCell(discount.code ?? '-'),
         _buildTableCell(discount.usageDisplay),
         _buildTableCell(_formatDate(discount.startDate)),
         _buildTableCell(
@@ -290,6 +287,13 @@ class _DiscountsOverviewState extends State<DiscountsOverview> {
             icon: const Icon(Icons.delete, size: 18),
             tooltip: 'Obriši',
             color: Colors.red,
+          ),
+          
+          IconButton(
+            onPressed: () => _editDiscount(discount),
+            icon: const Icon(Icons.edit, size: 18),
+            tooltip: 'Uredi',
+            color: Colors.blue,
           ),
           
           IconButton(
@@ -365,6 +369,16 @@ class _DiscountsOverviewState extends State<DiscountsOverview> {
     );
   }
 
+  void _editDiscount(Discount discount) {
+    // TODO: Navigate to edit discount screen
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Uređivanje popusta "${discount.name}" - funkcionalnost će biti dodana'),
+        backgroundColor: Colors.blue,
+      ),
+    );
+  }
+
   void _showDeleteDialog(Discount discount) {
     showDialog(
       context: context,
@@ -421,14 +435,13 @@ class _DiscountsOverviewState extends State<DiscountsOverview> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildDetailRow('ID:', discount.id.toString()),
               _buildDetailRow('Ime:', discount.name),
+              _buildDetailRow('Opis:', discount.description ?? 'Nema'),
               _buildDetailRow('Procenat:', '${discount.discountPercentage}%'),
               _buildDetailRow('Tip:', discount.scopeDisplay),
               _buildDetailRow('Status:', discount.statusDisplay),
               _buildDetailRow('Kod:', discount.code ?? 'Nema'),
               _buildDetailRow('Korištenje:', discount.usageDisplay),
-              _buildDetailRow('Opis:', discount.description ?? 'Nema'),
               _buildDetailRow('Početak:', _formatDate(discount.startDate)),
               _buildDetailRow('Kraj:', _formatDate(discount.endDate)),
             ],

@@ -9,7 +9,7 @@ using ZemljaSlova.Model.SearchObjects;
 
 namespace ZemljaSlova.Services
 {
-    public interface IDiscountService : ICRUDService<Discount, DiscountSearchObject, DiscountUpsertRequest, DiscountUpsertRequest>
+    public interface IDiscountService : ICRUDService<Discount, DiscountSearchObject, DiscountInsertRequest, DiscountUpdateRequest>
     {
         Task<Discount?> GetDiscountByCode(string code);
         Task<bool> CanUseDiscountCode(string code);

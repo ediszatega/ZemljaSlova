@@ -102,7 +102,6 @@ class DiscountProvider with ChangeNotifier {
         description: description,
         scope: scope,
         maxUsage: maxUsage,
-        isActive: isActive,
         bookIds: bookIds,
       );
 

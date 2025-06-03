@@ -10,7 +10,7 @@ namespace ZemljaSlova.API.Controllers
     //[Authorize]
     [ApiController]
     [Route("[controller]")]
-    public class DiscountController : BaseCRUDController<Model.Discount, DiscountSearchObject, DiscountUpsertRequest, DiscountUpsertRequest>
+    public class DiscountController : BaseCRUDController<Model.Discount, DiscountSearchObject, DiscountInsertRequest, DiscountUpdateRequest>
     {
         private readonly IDiscountService _discountService;
 

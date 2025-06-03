@@ -11,21 +11,21 @@ using ZemljaSlova.Services.Database;
 
 namespace ZemljaSlova.Services
 {
-    public class DiscountService : BaseCRUDService<Model.Discount, DiscountSearchObject, Database.Discount, DiscountUpsertRequest, DiscountUpsertRequest>, IDiscountService
+    public class DiscountService : BaseCRUDService<Model.Discount, DiscountSearchObject, Database.Discount, DiscountInsertRequest, DiscountUpdateRequest>, IDiscountService
     {
         public DiscountService(_200036Context context, IMapper mapper) : base(context, mapper)
         {
         }
 
-        public override void BeforeInsert(DiscountUpsertRequest request, Database.Discount entity)
+        public override void BeforeInsert(DiscountInsertRequest request, Database.Discount entity)
         {
-            ValidateDiscountRequest(request);
+            ValidateDiscountInsertRequest(request);
             
             entity.UsageCount = 0;
             entity.IsActive = true; // New discounts are active by default
         }
 
-        public override void AfterInsert(DiscountUpsertRequest request, Database.Discount entity)
+        public override void AfterInsert(DiscountInsertRequest request, Database.Discount entity)
         {
             // For book-specific discounts add associations to books
             if (request.Scope == Model.DiscountScope.Book && request.BookIds?.Any() == true)
@@ -39,9 +39,9 @@ namespace ZemljaSlova.Services
             }
         }
 
-        public override void BeforeUpdate(DiscountUpsertRequest request, Database.Discount entity)
+        public override void BeforeUpdate(DiscountUpdateRequest request, Database.Discount entity)
         {
-            ValidateDiscountRequest(request);
+            ValidateDiscountUpdateRequest(request, entity);
             
             // Handle book associations for book-specific discounts
             if (request.Scope == Model.DiscountScope.Book)
@@ -281,7 +281,7 @@ namespace ZemljaSlova.Services
             return Mapper.Map<List<Model.Discount>>(expiredDiscounts);
         }
 
-        private void ValidateDiscountRequest(DiscountUpsertRequest request)
+        private void ValidateDiscountInsertRequest(DiscountInsertRequest request)
         {
             if (request.StartDate >= request.EndDate)
                 throw new ArgumentException("Start date must be before end date");
@@ -297,6 +297,39 @@ namespace ZemljaSlova.Services
 
             // Validate unique code if provided
             if (!string.IsNullOrEmpty(request.Code))
+            {
+                var existingDiscount = Context.Discounts.FirstOrDefault(d => d.Code == request.Code);
+                if (existingDiscount != null)
+                    throw new ArgumentException("Discount code already exists");
+            }
+        }
+
+        private void ValidateDiscountUpdateRequest(DiscountUpdateRequest request, Database.Discount entity)
+        {
+            // Validate date range if both dates are provided
+            var startDate = request.StartDate ?? entity.StartDate;
+            var endDate = request.EndDate ?? entity.EndDate;
+            
+            if (startDate >= endDate)
+                throw new ArgumentException("Start date must be before end date");
+            
+            // Only validate start date if it's being updated
+            if (request.StartDate.HasValue && request.StartDate < DateTime.Today)
+                throw new ArgumentException("Start date cannot be in the past");
+            
+            // Validate discount percentage if provided
+            if (request.DiscountPercentage.HasValue)
+            {
+                if (request.DiscountPercentage <= 0 || request.DiscountPercentage > 100)
+                    throw new ArgumentException("Discount percentage must be between 0.01% and 100%");
+            }
+
+            // Validate book requirements if scope is being changed to Book
+            if (request.Scope.HasValue && request.Scope == Model.DiscountScope.Book && (request.BookIds == null || !request.BookIds.Any()))
+                throw new ArgumentException("At least one book must be specified for book-specific discounts");
+
+            // Validate unique code if provided and different from current
+            if (!string.IsNullOrEmpty(request.Code) && request.Code != entity.Code)
             {
                 var existingDiscount = Context.Discounts.FirstOrDefault(d => d.Code == request.Code);
                 if (existingDiscount != null)

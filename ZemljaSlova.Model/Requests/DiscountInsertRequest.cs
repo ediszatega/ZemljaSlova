@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace ZemljaSlova.Model.Requests
 {
-    public partial class DiscountUpsertRequest
+    public partial class DiscountInsertRequest
     {
         public decimal DiscountPercentage { get; set; }
 
@@ -22,9 +22,7 @@ namespace ZemljaSlova.Model.Requests
 
         public int? MaxUsage { get; set; }
 
-        public bool IsActive { get; set; } = true;
-
         // For book-specific discounts (null for order-level discounts)
         public List<int>? BookIds { get; set; }
     }
-}
+} 
