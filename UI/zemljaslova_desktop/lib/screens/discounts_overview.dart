@@ -121,7 +121,7 @@ class _DiscountsOverviewState extends State<DiscountsOverview> {
         // Add discount button
         ZSButton(
           onPressed: () {
-            // TODO: Navigate to add discount screen
+            Navigator.of(context).pushNamed('/discount-add');
           },
           text: 'Dodaj popust',
           backgroundColor: const Color(0xFFE5FFEE),
@@ -407,7 +407,7 @@ class _DiscountsOverviewState extends State<DiscountsOverview> {
             return AlertDialog(
               title: Text('Uredi popust - ${discount.name}'),
               content: SizedBox(
-                width: 500,
+                width: 550,
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -865,20 +865,23 @@ class _DiscountsOverviewState extends State<DiscountsOverview> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Detalji popusta "${discount.name}"'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildDetailRow('Ime:', discount.name),
-              _buildDetailRow('Opis:', discount.description ?? 'Nema'),
-              _buildDetailRow('Procenat:', '${discount.discountPercentage}%'),
-              _buildDetailRow('Tip:', discount.scopeDisplay),
-              _buildDetailRow('Status:', discount.statusDisplay),
-              _buildDetailRow('Kod:', discount.code ?? 'Nema'),
-              _buildDetailRow('Korištenje:', discount.usageDisplay),
-              _buildDetailRow('Početak:', _formatDate(discount.startDate)),
-              _buildDetailRow('Kraj:', _formatDate(discount.endDate)),
-            ],
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildDetailRow('Ime:', discount.name),
+                _buildDetailRow('Opis:', discount.description ?? 'Nema'),
+                _buildDetailRow('Procenat:', '${discount.discountPercentage}%'),
+                _buildDetailRow('Tip:', discount.scopeDisplay),
+                _buildDetailRow('Status:', discount.statusDisplay),
+                _buildDetailRow('Kod:', discount.code ?? 'Nema'),
+                _buildDetailRow('Korištenje:', discount.usageDisplay),
+                _buildDetailRow('Početak:', _formatDate(discount.startDate)),
+                _buildDetailRow('Kraj:', _formatDate(discount.endDate)),
+              ],
+            ),
           ),
           actions: [
             TextButton(

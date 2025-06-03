@@ -29,6 +29,7 @@ import 'screens/employee_edit.dart';
 import 'screens/vouchers_overview.dart';
 import 'screens/discounts_overview.dart';
 import 'screens/memberships_overview.dart';
+import 'screens/discount_add.dart';
 import 'services/api_service.dart';
 import 'services/book_service.dart';
 import 'services/author_service.dart';
@@ -141,6 +142,7 @@ class ZemljaSlova extends StatelessWidget {
           '/employee-edit': (context) => const EmployeeEditScreen(employeeId: 0),
           '/vouchers': (context) => const VouchersOverview(),
           '/discounts': (context) => const DiscountsOverview(),
+          '/discount-add': (context) => const DiscountAddScreen(),
         },
         home: const NavigationScreen(),
       ),
