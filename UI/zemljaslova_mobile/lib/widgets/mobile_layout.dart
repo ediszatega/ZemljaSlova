@@ -4,6 +4,7 @@ import '../providers/navigation_provider.dart';
 import '../widgets/top_branding.dart';
 import '../widgets/bottom_navigation.dart';
 import '../screens/home_screen.dart';
+import '../screens/voucher_purchase_screen.dart';
 
 class MobileLayout extends StatelessWidget {
   const MobileLayout({super.key});
@@ -27,6 +28,13 @@ class MobileLayout extends StatelessWidget {
   }
   
   Widget _buildCurrentScreen(MobileNavigationItem item) {
-    return const HomeScreen();
+    switch (item) {
+      case MobileNavigationItem.home:
+        return const HomeScreen();
+      case MobileNavigationItem.voucherPurchase:
+        return const VoucherPurchaseScreen();
+      default:
+        return const HomeScreen();
+    }
   }
 } 

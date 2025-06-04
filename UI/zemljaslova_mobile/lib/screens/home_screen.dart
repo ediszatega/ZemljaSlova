@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/navigation_provider.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -118,7 +120,8 @@ class HomeScreen extends StatelessWidget {
           title: 'Kupi poklon bon',
           icon: Icons.card_giftcard_outlined,
           onTap: () {
-            // TODO: Navigate to gift card purchase
+            final navigationProvider = Provider.of<MobileNavigationProvider>(context, listen: false);
+            navigationProvider.navigateTo(MobileNavigationItem.voucherPurchase);
           },
         ),
       ],
