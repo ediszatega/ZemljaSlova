@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import '../providers/navigation_provider.dart';
 import '../widgets/top_branding.dart';
 import '../widgets/bottom_navigation.dart';
-import '../screens/home_screen.dart';
-import '../screens/voucher_purchase_screen.dart';
+import '../screens/home.dart';
+import '../screens/voucher_purchase.dart';
 
 class MobileLayout extends StatelessWidget {
   const MobileLayout({super.key});
