@@ -5,14 +5,7 @@ import '../services/membership_service.dart';
 class MembershipProvider with ChangeNotifier {
   final MembershipService _membershipService;
   
-  MembershipProvider(MembershipService membershipService) 
-      : _membershipService = membershipService {
-    print('MembershipProvider constructor called with service: $_membershipService');
-    if (_membershipService == null) {
-      print('ERROR: MembershipService is null!');
-      throw ArgumentError('MembershipService cannot be null');
-    }
-  }
+  MembershipProvider(this._membershipService);
   
   List<Membership> _memberships = [];
   bool _isLoading = false;
