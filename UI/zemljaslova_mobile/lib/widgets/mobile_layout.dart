@@ -4,6 +4,7 @@ import '../providers/navigation_provider.dart';
 import '../widgets/top_branding.dart';
 import '../widgets/bottom_navigation.dart';
 import '../screens/home.dart';
+import '../screens/cart.dart';
 import '../screens/voucher_purchase.dart';
 
 class MobileLayout extends StatelessWidget {
@@ -31,6 +32,8 @@ class MobileLayout extends StatelessWidget {
     switch (item) {
       case MobileNavigationItem.home:
         return const HomeScreen();
+      case MobileNavigationItem.cart:
+        return const CartScreen();
       case MobileNavigationItem.voucherPurchase:
         return const VoucherPurchaseScreen();
       default:

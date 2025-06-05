@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../widgets/zs_input.dart';
 import '../widgets/zs_button.dart';
+import '../providers/cart_provider.dart';
+import '../models/cart_item.dart';
 
 class VoucherPurchaseScreen extends StatefulWidget {
   const VoucherPurchaseScreen({super.key});
@@ -241,6 +244,9 @@ class _VoucherPurchaseScreenState extends State<VoucherPurchaseScreen> {
       foregroundColor: Colors.green,
       borderColor: Colors.grey.shade300,
       onPressed: () {
+        double voucherAmount;
+        String voucherTitle;
+        
         if (selectedAmount == 'custom') {
           final customAmountText = _customAmountController.text.trim();
           
@@ -265,12 +271,29 @@ class _VoucherPurchaseScreenState extends State<VoucherPurchaseScreen> {
             _showValidationError('Maksimalna vrijednost poklon bona je 1000 KM.');
             return;
           }
+          
+          voucherAmount = customAmount;
+          voucherTitle = 'Poklon bon ${customAmount.toInt()} KM';
         } else if (selectedAmount == null) {
           _showValidationError('Molimo odaberite vrijednost poklon bona.');
           return;
+        } else {
+          final amountText = selectedAmount!.replaceAll(' KM', '');
+          voucherAmount = double.parse(amountText);
+          voucherTitle = 'Poklon bon $selectedAmount';
         }
         
-        // TODO: Implement purchase functionality
+        // Add voucher to cart
+        final cartProvider = Provider.of<CartProvider>(context, listen: false);
+        final cartItem = CartItem(
+          id: 'voucher_${voucherAmount.toInt()}_${DateTime.now().microsecondsSinceEpoch}',
+          title: voucherTitle,
+          price: voucherAmount,
+          quantity: 1,
+          type: CartItemType.voucher,
+        );
+        
+        cartProvider.addItem(cartItem);
         _showSuccessMessage('Poklon bon je dodan u korpu! Da biste završili kupovinu otvorite korpu.');
       },
     );

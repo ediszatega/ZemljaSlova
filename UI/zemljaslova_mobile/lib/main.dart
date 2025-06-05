@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/navigation_provider.dart';
+import 'providers/cart_provider.dart';
 import 'widgets/mobile_layout.dart';
 
 void main() {
@@ -12,8 +13,11 @@ class ZemljaSlova extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => MobileNavigationProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => MobileNavigationProvider()),
+        ChangeNotifierProvider(create: (context) => CartProvider()),
+      ],
       child: MaterialApp(
         title: 'Zemlja slova',
         debugShowCheckedModeBanner: false,
