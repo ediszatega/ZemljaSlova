@@ -15,5 +15,17 @@ namespace ZemljaSlova.Services
         public AuthorService(_200036Context context, IMapper mapper) : base(context, mapper)  
         {
         }
+
+        public override void BeforeDelete(Database.Author entity)
+        {
+            // Check if author has books associated
+            var bookAuthors = Context.BookAuthors.Where(ba => ba.AuthorId == entity.Id).ToList();
+            
+            if (bookAuthors.Any())
+            {
+                var bookCount = bookAuthors.Count;
+                throw new InvalidOperationException($"Cannot delete author who has {bookCount} book(s) associated. Please remove the author from all books first.");
+            }
+        }
     }
 }

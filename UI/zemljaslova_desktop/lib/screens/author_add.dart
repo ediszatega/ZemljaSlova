@@ -5,7 +5,7 @@ import '../providers/author_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_input.dart';
-import '../widgets/zs_datetime_picker.dart';
+import '../widgets/zs_date_picker.dart';
 
 class AuthorAddScreen extends StatefulWidget {
   const AuthorAddScreen({super.key});
@@ -112,7 +112,7 @@ class _AuthorAddScreenState extends State<AuthorAddScreen> {
                             const SizedBox(height: 20),
                             
                             // Date of birth field with datepicker
-                            ZSDatetimePicker(
+                            ZSDatePicker(
                               label: 'Datum rođenja',
                               controller: _dateOfBirthController,
                             ),

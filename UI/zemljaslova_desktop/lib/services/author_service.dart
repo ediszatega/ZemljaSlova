@@ -130,6 +130,16 @@ class AuthorService {
     }
   }
 
+  Future<bool> deleteAuthor(int id) async {
+    try {
+      final response = await _apiService.delete('Author/$id');
+      return response != null;
+    } catch (e) {
+      debugPrint('Failed to delete author: $e');
+      return false;
+    }
+  }
+
   Author _mapAuthorFromBackend(dynamic authorData) {
     String? dateOfBirth;
     if (authorData['dateOfBirth'] != null) {

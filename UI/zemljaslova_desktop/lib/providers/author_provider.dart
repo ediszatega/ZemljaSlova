@@ -123,4 +123,31 @@ class AuthorProvider with ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> deleteAuthor(int id) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final success = await _authorService.deleteAuthor(id);
+      
+      if (success) {
+        _authors.removeWhere((author) => author.id == id);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = "Failed to delete author";
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 } 
