@@ -205,5 +205,46 @@ namespace ZemljaSlova.Services
                 Context.SaveChanges();
             }
         }
+
+        public override void BeforeDelete(Database.Book entity)
+        {
+            // Restrict deletion on these cases
+            var hasOrderItems = Context.OrderItems.Any(oi => oi.BookId == entity.Id);
+            if (hasOrderItems)
+            {
+                throw new InvalidOperationException("Cannot delete book that has been ordered. Books with order history must be preserved for record keeping.");
+            }
+
+            var hasReservations = Context.BookReservations.Any(br => br.BookId == entity.Id);
+            if (hasReservations)
+            {
+                throw new InvalidOperationException("Cannot delete book that has active reservations. Please cancel all reservations first.");
+            }
+
+            var hasTransactions = Context.BookTransactions.Any(bt => bt.BookId == entity.Id);
+            if (hasTransactions)
+            {
+                throw new InvalidOperationException("Cannot delete book that has transaction history. Books with transaction records must be preserved for auditing purposes.");
+            }
+
+            // Remove book-author relationships and favourites
+            var bookAuthors = Context.BookAuthors
+                .Where(ba => ba.BookId == entity.Id)
+                .ToList();
+            
+            if (bookAuthors.Any())
+            {
+                Context.BookAuthors.RemoveRange(bookAuthors);
+            }
+
+            var favourites = Context.Favourites
+                .Where(f => f.BookId == entity.Id)
+                .ToList();
+                
+            if (favourites.Any())
+            {
+                Context.Favourites.RemoveRange(favourites);
+            }
+        }
     }
 }

@@ -365,7 +365,7 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
                               borderColor: Colors.grey.shade300,
                               width: 410,
                               topPadding: 5,
-                              onPressed: () {},
+                              onPressed: () => _showDeleteDialog(),
                             ),
                           ],
                         ),
@@ -381,6 +381,67 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
         ],
       ),
     );
+  }
+  
+  void _showDeleteDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Potvrda brisanja'),
+          content: Text(
+            'Da li ste sigurni da želite obrisati knjigu "${widget.book.title}"?\n\n'
+            'Ova akcija se ne može poništiti.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Otkaži'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _deleteBook();
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Obriši'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  Future<void> _deleteBook() async {
+    try {
+      final success = await Provider.of<BookProvider>(context, listen: false)
+          .deleteBook(widget.book.id);
+      
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Knjiga je uspješno obrisana'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Navigate back to books overview
+        Navigator.of(context).pop();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Greška pri brisanju knjige'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Greška: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }
 

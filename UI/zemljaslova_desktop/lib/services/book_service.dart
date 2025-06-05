@@ -167,6 +167,16 @@ class BookService {
     }
   }
 
+  Future<bool> deleteBook(int id) async {
+    try {
+      final response = await _apiService.delete('Book/$id');
+      return response != null;
+    } catch (e) {
+      debugPrint('Failed to delete book: $e');
+      return false;
+    }
+  }
+
   Book _mapBookFromBackend(dynamic bookData) {
     String? coverImageUrl;
     if (bookData['image'] != null) {

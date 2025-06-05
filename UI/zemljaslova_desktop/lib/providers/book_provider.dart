@@ -160,4 +160,31 @@ class BookProvider with ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> deleteBook(int id) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final success = await _bookService.deleteBook(id);
+      
+      if (success) {
+        _books.removeWhere((book) => book.id == id);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = "Failed to delete book";
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 } 
