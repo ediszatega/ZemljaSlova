@@ -8,6 +8,7 @@ import '../widgets/zs_card.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
+import '../widgets/empty_state.dart';
 import '../screens/members_detail_overview.dart';
 import '../screens/member_add.dart';
 
@@ -231,8 +232,10 @@ class _MembersContentState extends State<MembersContent> {
         final members = memberProvider.members;
         
         if (members.isEmpty) {
-          return const Center(
-            child: Text('Nema korisnika za prikaz.'),
+          return const EmptyState(
+            icon: Icons.account_circle_outlined,
+            title: 'Nema korisnika za prikaz',
+            description: 'Trenutno nema registrovanih korisnika.\nPodelite pozivnice za nove članove.',
           );
         }
         

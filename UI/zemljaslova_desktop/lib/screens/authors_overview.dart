@@ -7,6 +7,7 @@ import '../widgets/zs_card.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
+import '../widgets/empty_state.dart';
 import 'author_detail_overview.dart';
 import 'author_add.dart';
 
@@ -175,8 +176,10 @@ class _AuthorsContentState extends State<AuthorsContent> {
         final authors = authorProvider.authors;
         
         if (authors.isEmpty) {
-          return const Center(
-            child: Text('Nema autora za prikaz.'),
+          return const EmptyState(
+            icon: Icons.person_outline,
+            title: 'Nema autora za prikaz',
+            description: 'Trenutno nema autora u sistemu.\nDodajte novi profil autora da biste počeli.',
           );
         }
         

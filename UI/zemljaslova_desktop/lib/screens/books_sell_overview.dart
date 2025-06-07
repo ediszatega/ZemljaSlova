@@ -7,6 +7,7 @@ import '../widgets/zs_card.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
+import '../widgets/empty_state.dart';
 import 'book_detail_overview.dart';
 import 'book_add.dart';
 
@@ -193,10 +194,22 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
         
         final books = bookProvider.books;
         
-        // TODO: make better empty state
         if (books.isEmpty) {
-          return const Center(
-            child: Text('Nema knjiga za prikaz.'),
+          return EmptyState(
+            icon: Icons.book_outlined,
+            title: 'Nema knjiga za prikaz',
+            description: 'Trenutno nema knjiga u sistemu.\nDodajte novu knjigu da biste počeli.',
+            actionText: 'Dodaj novu knjigu',
+            onAction: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const BookAddScreen(),
+                ),
+              ).then((_) {
+                _loadBooks();
+              });
+            },
           );
         }
         

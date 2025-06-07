@@ -7,6 +7,7 @@ import '../widgets/zs_card.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
+import '../widgets/empty_state.dart';
 import '../screens/employee_details_overview.dart';
 
 class EmployeesOverview extends StatelessWidget {
@@ -159,8 +160,10 @@ class _EmployeesContentState extends State<EmployeesContent> {
         final employees = employeeProvider.employees;
         
         if (employees.isEmpty) {
-          return const Center(
-            child: Text('Nema uposlenika za prikaz.'),
+          return const EmptyState(
+            icon: Icons.people_outline,
+            title: 'Nema uposlenika za prikaz',
+            description: 'Trenutno nema uposlenika u sistemu.\nDodajte nove uposljenike da biste proširili tim.',
           );
         }
         

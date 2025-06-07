@@ -6,6 +6,7 @@ import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
+import '../widgets/empty_state.dart';
 import 'voucher_add.dart';
 
 class VouchersOverview extends StatefulWidget {
@@ -160,14 +161,10 @@ class _VouchersOverviewState extends State<VouchersOverview> {
         final vouchers = _getFilteredVouchers(voucherProvider.vouchers);
 
         if (vouchers.isEmpty) {
-          return const Center(
-            child: Text(
-              'Nema vaučera za prikaz',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
-            ),
+          return const EmptyState(
+            icon: Icons.confirmation_number_outlined,
+            title: 'Nema vaučera za prikaz',
+            description: 'Trenutno nema izdatih vaučera.\nKreirajte vaučere za posebne promocije.',
           );
         }
 

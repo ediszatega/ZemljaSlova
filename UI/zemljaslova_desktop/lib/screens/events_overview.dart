@@ -7,6 +7,7 @@ import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../widgets/zs_card_vertical.dart';
+import '../widgets/empty_state.dart';
 import 'event_add.dart';
 import 'event_detail_overview.dart';
 
@@ -173,8 +174,10 @@ class _EventsContentState extends State<EventsContent> {
         final events = eventProvider.events;
         
         if (events.isEmpty) {
-          return const Center(
-            child: Text('Nema događaja za prikaz.'),
+          return const EmptyState(
+            icon: Icons.event_note_outlined,
+            title: 'Nema događaja za prikaz',
+            description: 'Trenutno nema planiranih događaja.\nKreirajte novi događaj da zainteresujete posetioce.',
           );
         }
         

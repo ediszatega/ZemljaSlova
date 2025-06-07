@@ -1,0 +1,80 @@
+import 'package:flutter/material.dart';
+
+class EmptyState extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String description;
+  final String? actionText;
+  final VoidCallback? onAction;
+  final Color? iconColor;
+  final double iconSize;
+
+  const EmptyState({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.description,
+    this.actionText,
+    this.onAction,
+    this.iconColor,
+    this.iconSize = 64,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Icon
+          Icon(
+            icon,
+            size: iconSize,
+            color: iconColor ?? Colors.grey.shade400,
+          ),
+          const SizedBox(height: 24),
+          
+          // Title
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade700,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          
+          // Description
+          Text(
+            description,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey.shade600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          
+          // Optional action button
+          if (actionText != null && onAction != null) ...[
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: onAction,
+              icon: const Icon(Icons.add),
+              label: Text(actionText!),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFE5FFEE),
+                foregroundColor: Colors.green,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+} 

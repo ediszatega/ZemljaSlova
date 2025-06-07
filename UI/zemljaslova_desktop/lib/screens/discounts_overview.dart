@@ -5,6 +5,7 @@ import '../providers/discount_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/search_input.dart';
+import '../widgets/empty_state.dart';
 import '../providers/book_provider.dart';
 
 class DiscountsOverview extends StatefulWidget {
@@ -166,14 +167,10 @@ class _DiscountsOverviewState extends State<DiscountsOverview> {
         final discounts = _getFilteredDiscounts(discountProvider.discounts);
 
         if (discounts.isEmpty) {
-          return const Center(
-            child: Text(
-              'Nema popusta za prikaz',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
-            ),
+          return const EmptyState(
+            icon: Icons.local_offer_outlined,
+            title: 'Nema popusta za prikaz',
+            description: 'Trenutno nema aktivnih popusta u sistemu.\nKreirajte novi popust da biste privukli kupce.',
           );
         }
 

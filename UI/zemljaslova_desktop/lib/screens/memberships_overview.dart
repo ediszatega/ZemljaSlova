@@ -5,6 +5,7 @@ import '../providers/membership_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/search_input.dart';
+import '../widgets/empty_state.dart';
 import 'membership_add.dart';
 
 class MembershipsOverview extends StatefulWidget {
@@ -157,14 +158,10 @@ class _MembershipsOverviewState extends State<MembershipsOverview> {
         final memberships = _getFilteredMemberships(membershipProvider.memberships);
 
         if (memberships.isEmpty) {
-          return const Center(
-            child: Text(
-              'Nema članarina za prikaz',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
-            ),
+          return const EmptyState(
+            icon: Icons.card_membership_outlined,
+            title: 'Nema članarina za prikaz',
+            description: 'Trenutno nema dostupnih tipova članarina.\nKreirajte različite opcije članarina.',
           );
         }
 
