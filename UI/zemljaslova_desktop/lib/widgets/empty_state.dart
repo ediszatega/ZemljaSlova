@@ -4,8 +4,6 @@ class EmptyState extends StatelessWidget {
   final IconData icon;
   final String title;
   final String description;
-  final String? actionText;
-  final VoidCallback? onAction;
   final Color? iconColor;
   final double iconSize;
 
@@ -14,8 +12,6 @@ class EmptyState extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.description,
-    this.actionText,
-    this.onAction,
     this.iconColor,
     this.iconSize = 64,
   });
@@ -55,24 +51,6 @@ class EmptyState extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          
-          // Optional action button
-          if (actionText != null && onAction != null) ...[
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: onAction,
-              icon: const Icon(Icons.add),
-              label: Text(actionText!),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFE5FFEE),
-                foregroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );

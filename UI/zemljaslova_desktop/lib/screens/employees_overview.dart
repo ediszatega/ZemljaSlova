@@ -161,7 +161,7 @@ class _EmployeesContentState extends State<EmployeesContent> {
         
         if (employees.isEmpty) {
           return const EmptyState(
-            icon: Icons.people_outline,
+            icon: Icons.badge,
             title: 'Nema uposlenika za prikaz',
             description: 'Trenutno nema uposlenika u sistemu.\nDodajte nove uposljenike da biste proširili tim.',
           );

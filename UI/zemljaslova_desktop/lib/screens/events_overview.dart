@@ -175,9 +175,9 @@ class _EventsContentState extends State<EventsContent> {
         
         if (events.isEmpty) {
           return const EmptyState(
-            icon: Icons.event_note_outlined,
+            icon: Icons.event,
             title: 'Nema događaja za prikaz',
-            description: 'Trenutno nema planiranih događaja.\nKreirajte novi događaj da zainteresujete posetioce.',
+            description: 'Trenutno nema događaja u sistemu.\nKreirajte novi događaj da zainteresujete posjetioce.',
           );
         }
         

@@ -233,9 +233,9 @@ class _MembersContentState extends State<MembersContent> {
         
         if (members.isEmpty) {
           return const EmptyState(
-            icon: Icons.account_circle_outlined,
+            icon: Icons.people,
             title: 'Nema korisnika za prikaz',
-            description: 'Trenutno nema registrovanih korisnika.\nPodelite pozivnice za nove članove.',
+            description: 'Trenutno nema registrovanih korisnika.\nKreirajte novog korisnika.',
           );
         }
         

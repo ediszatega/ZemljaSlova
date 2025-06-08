@@ -195,21 +195,10 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
         final books = bookProvider.books;
         
         if (books.isEmpty) {
-          return EmptyState(
-            icon: Icons.book_outlined,
+          return const EmptyState(
+            icon: Icons.shopping_cart,
             title: 'Nema knjiga za prikaz',
-            description: 'Trenutno nema knjiga u sistemu.\nDodajte novu knjigu da biste počeli.',
-            actionText: 'Dodaj novu knjigu',
-            onAction: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const BookAddScreen(),
-                ),
-              ).then((_) {
-                _loadBooks();
-              });
-            },
+            description: 'Trenutno u sistemu nema knjiga za prodaju.\nDodajte novu knjigu da biste počeli.',
           );
         }
         

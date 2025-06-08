@@ -159,9 +159,9 @@ class _MembershipsOverviewState extends State<MembershipsOverview> {
 
         if (memberships.isEmpty) {
           return const EmptyState(
-            icon: Icons.card_membership_outlined,
+            icon: Icons.card_membership,
             title: 'Nema članarina za prikaz',
-            description: 'Trenutno nema dostupnih tipova članarina.\nKreirajte različite opcije članarina.',
+            description: 'Trenutno nema zapisa o članarinama.\nKreirajte članarinu za korisnika.',
           );
         }
 

@@ -168,9 +168,9 @@ class _DiscountsOverviewState extends State<DiscountsOverview> {
 
         if (discounts.isEmpty) {
           return const EmptyState(
-            icon: Icons.local_offer_outlined,
+            icon: Icons.local_offer,
             title: 'Nema popusta za prikaz',
-            description: 'Trenutno nema aktivnih popusta u sistemu.\nKreirajte novi popust da biste privukli kupce.',
+            description: 'Trenutno nema popusta u sistemu.\nKreirajte novi popust da biste privukli kupce.',
           );
         }
 

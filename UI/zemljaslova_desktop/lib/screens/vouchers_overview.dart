@@ -162,9 +162,9 @@ class _VouchersOverviewState extends State<VouchersOverview> {
 
         if (vouchers.isEmpty) {
           return const EmptyState(
-            icon: Icons.confirmation_number_outlined,
+            icon: Icons.card_giftcard,
             title: 'Nema vaučera za prikaz',
-            description: 'Trenutno nema izdatih vaučera.\nKreirajte vaučere za posebne promocije.',
+            description: 'Trenutno nema izdatih vaučera.\nKreirajte vaučere za promocije.',
           );
         }
 
