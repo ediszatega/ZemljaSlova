@@ -36,7 +36,7 @@ class _VoucherPurchaseScreenState extends State<VoucherPurchaseScreen> {
           _buildBenefitsSection(),
           const SizedBox(height: 32),
           _buildAmountSelectionSection(),
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
           _buildPurchaseButton(),
           const SizedBox(height: 20),
         ],
@@ -139,14 +139,10 @@ class _VoucherPurchaseScreenState extends State<VoucherPurchaseScreen> {
             color: Colors.black87,
           ),
         ),
-        const SizedBox(height: 16),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 2.5,
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 16,
+          runSpacing: 12,
           children: [
             _buildAmountOption('25 KM'),
             _buildAmountOption('50 KM'),
@@ -175,6 +171,8 @@ class _VoucherPurchaseScreenState extends State<VoucherPurchaseScreen> {
         });
       },
       child: Container(
+        width: (MediaQuery.of(context).size.width - 50) / 2, // Half width minus padding and spacing
+        height: 50,
         decoration: BoxDecoration(
           color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.1) : Colors.grey.shade200,
           borderRadius: BorderRadius.circular(8),
@@ -205,6 +203,8 @@ class _VoucherPurchaseScreenState extends State<VoucherPurchaseScreen> {
         });
       },
       child: Container(
+        width: (MediaQuery.of(context).size.width - 50) / 2, // Half width minus padding and spacing
+        height: 50,
         decoration: BoxDecoration(
           color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.1) : Colors.grey.shade200,
           borderRadius: BorderRadius.circular(8),
