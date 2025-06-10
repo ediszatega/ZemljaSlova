@@ -6,6 +6,7 @@ import '../widgets/bottom_navigation.dart';
 import '../screens/home.dart';
 import '../screens/cart.dart';
 import '../screens/voucher_purchase.dart';
+import '../screens/books_sell_overview.dart';
 
 class MobileLayout extends StatelessWidget {
   const MobileLayout({super.key});
@@ -36,6 +37,8 @@ class MobileLayout extends StatelessWidget {
         return const CartScreen();
       case MobileNavigationItem.voucherPurchase:
         return const VoucherPurchaseScreen();
+      case MobileNavigationItem.booksSellOverview:
+        return const BooksSellOverviewScreen();
       default:
         return const HomeScreen();
     }

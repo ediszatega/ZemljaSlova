@@ -45,9 +45,8 @@ class ZSButton extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey.shade700,
+              fontSize: 12,
+              color: Colors.grey.shade600,
             ),
           )
         else if (topPadding > 0)
@@ -55,7 +54,7 @@ class ZSButton extends StatelessWidget {
         else
           const SizedBox(height: 0), 
 
-        if (label.isNotEmpty) const SizedBox(height: 8),
+        if (label.isNotEmpty) const SizedBox(height: 4),
 
         SizedBox(
           width: width ?? double.infinity, // Full width by default for mobile

@@ -93,7 +93,8 @@ class HomeScreen extends StatelessWidget {
           title: 'Pregled knjiga na prodaju',
           icon: Icons.shopping_cart_outlined,
           onTap: () {
-            // TODO: Navigate to books for sale
+            final navigationProvider = Provider.of<MobileNavigationProvider>(context, listen: false);
+            navigationProvider.navigateTo(MobileNavigationItem.booksSellOverview);
           },
         ),
         const SizedBox(height: 12),

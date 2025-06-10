@@ -52,7 +52,7 @@ class ZSDropdown<T> extends StatelessWidget {
           
         SizedBox(
           width: width,
-          height: 40,
+          height: 54,
           child: Container(
             decoration: BoxDecoration(
               color: backgroundColor,

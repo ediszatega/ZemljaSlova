@@ -21,8 +21,8 @@ class ZSCard extends StatelessWidget {
     this.additionalText,
     this.isActive,
     this.onTap,
-    this.imageHeightRatio = 0.75,
-    this.contentHeightRatio = 0.25,
+    this.imageHeightRatio = 0.70,
+    this.contentHeightRatio = 0.30,
   }) : assert(imageHeightRatio + contentHeightRatio == 1.0, 
          "imageHeightRatio + contentHeightRatio must equal 1.0");
 
@@ -44,6 +44,7 @@ class ZSCard extends StatelessWidget {
             final contentHeight = constraints.maxHeight * contentHeightRatio;
             
             return Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // Image section
                 SizedBox(
