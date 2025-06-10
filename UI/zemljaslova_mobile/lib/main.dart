@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/navigation_provider.dart';
 import 'providers/cart_provider.dart';
+import 'providers/book_provider.dart';
+import 'services/api_service.dart';
+import 'services/book_service.dart';
 import 'widgets/mobile_layout.dart';
 
 void main() {
@@ -17,6 +20,11 @@ class ZemljaSlova extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => MobileNavigationProvider()),
         ChangeNotifierProvider(create: (context) => CartProvider()),
+        ChangeNotifierProvider(
+          create: (context) => BookProvider(
+            BookService(ApiService()),
+          ),
+        ),
       ],
       child: MaterialApp(
         title: 'Zemlja slova',
