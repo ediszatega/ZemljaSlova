@@ -8,7 +8,9 @@ class TopBranding extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final navigationProvider = Provider.of<MobileNavigationProvider>(context);
-    final canGoBack = navigationProvider.canGoBack;
+    final canGoBackProvider = navigationProvider.canGoBack;
+    final canGoBackNavigator = Navigator.canPop(context);
+    final canGoBack = canGoBackProvider || canGoBackNavigator;
     
     return Container(
       width: double.infinity,
@@ -41,7 +43,16 @@ class TopBranding extends StatelessWidget {
                       color: Colors.black87,
                       size: 24,
                     ),
-                    onPressed: () => navigationProvider.goBack(),
+                    onPressed: () {
+                      // If we have navigation provider history, use it
+                      if (canGoBackProvider) {
+                        navigationProvider.goBack();
+                      } 
+                      // Otherwise use Navigator (for screens opened with push)
+                      else if (canGoBackNavigator) {
+                        Navigator.of(context).pop();
+                      }
+                    },
                   ),
                 ),
               

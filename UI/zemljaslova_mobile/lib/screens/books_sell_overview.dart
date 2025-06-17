@@ -7,6 +7,7 @@ import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../providers/book_provider.dart';
+import 'book_detail_overview.dart';
 
 class BooksSellOverviewScreen extends StatefulWidget {
   const BooksSellOverviewScreen({super.key});
@@ -221,7 +222,14 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> {
                   context,
                   book,
                   onTap: () {
-                    // TODO: Navigate to book detail
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BookDetailOverviewScreen(
+                          book: book,
+                        ),
+                      ),
+                    );
                   },
                 );
               },
