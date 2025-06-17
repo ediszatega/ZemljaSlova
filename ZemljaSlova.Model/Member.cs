@@ -16,8 +16,6 @@ namespace ZemljaSlova.Model
 
         public virtual ICollection<BookReservation> BookReservations { get; set; } = new List<BookReservation>();
 
-        public virtual ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();
-
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
         public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();

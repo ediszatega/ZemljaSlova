@@ -46,8 +46,6 @@ namespace ZemljaSlova.Model
 
         public virtual Discount? Discount { get; set; }
 
-        public virtual ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();
-
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
         
         public decimal? DiscountedPrice 
