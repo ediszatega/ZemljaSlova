@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import 'providers/navigation_provider.dart';
 import 'providers/cart_provider.dart';
 import 'providers/book_provider.dart';
+import 'providers/event_provider.dart';
 import 'services/api_service.dart';
 import 'services/book_service.dart';
+import 'services/event_service.dart';
 import 'widgets/mobile_layout.dart';
 
 void main() {
@@ -23,6 +25,11 @@ class ZemljaSlova extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => BookProvider(
             BookService(ApiService()),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => EventProvider(
+            EventService(ApiService()),
           ),
         ),
       ],

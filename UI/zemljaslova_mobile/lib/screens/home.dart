@@ -112,7 +112,8 @@ class HomeScreen extends StatelessWidget {
           title: 'Pregled događaja',
           icon: Icons.event_outlined,
           onTap: () {
-            // TODO: Navigate to events
+            final navigationProvider = Provider.of<MobileNavigationProvider>(context, listen: false);
+            navigationProvider.navigateTo(MobileNavigationItem.eventsOverview);
           },
         ),
         const SizedBox(height: 12),

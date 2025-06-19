@@ -5,6 +5,7 @@ enum MobileNavigationItem {
   cart,
   voucherPurchase,
   booksSellOverview,
+  eventsOverview,
 }
 
 class MobileNavigationProvider with ChangeNotifier {
