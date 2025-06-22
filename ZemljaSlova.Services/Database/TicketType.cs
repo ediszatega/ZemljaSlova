@@ -15,6 +15,8 @@ public partial class TicketType
 
     public string? Description { get; set; }
 
+    public int? InitialQuantity { get; set; }
+
     public virtual Event Event { get; set; } = null!;
 
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();

@@ -17,10 +17,6 @@ namespace ZemljaSlova.Model
 
         public string? Description { get; set; }
 
-        public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-
-        public virtual ICollection<TicketTypeTransaction> TicketTypeTransactions { get; set; } = new List<TicketTypeTransaction>();
-
-        public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
+        public int? InitialQuantity { get; set; }
     }
 }
