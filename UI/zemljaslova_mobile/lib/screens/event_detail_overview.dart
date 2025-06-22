@@ -5,6 +5,7 @@ import '../providers/event_provider.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/top_branding.dart';
 import '../widgets/bottom_navigation.dart';
+import 'ticket_type_selection.dart';
 
 class EventDetailOverviewScreen extends StatefulWidget {
   final Event event;
@@ -247,7 +248,11 @@ class _EventDetailOverviewScreenState extends State<EventDetailOverviewScreen> {
       foregroundColor: Colors.white,
       borderColor: const Color(0xFF28A745),
       onPressed: () {
-        // TODO: Navigate to event ticket selection screen
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => TicketTypeSelectionScreen(event: event),
+          ),
+        );
       },
     );
   }

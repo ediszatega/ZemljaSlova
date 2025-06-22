@@ -15,7 +15,7 @@ class ZSButton extends StatelessWidget {
   final double fontSize;
   final FontWeight fontWeight;
   final double? width;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   const ZSButton({
     super.key,
@@ -33,7 +33,7 @@ class ZSButton extends StatelessWidget {
     this.fontSize = 16,
     this.fontWeight = FontWeight.w400,
     this.width,
-    required this.onPressed,
+    this.onPressed,
   });
 
   @override
