@@ -7,38 +7,56 @@ class SnackBarUtil {
     bool isError = false,
     Duration duration = const Duration(seconds: 3),
   }) {
-    // Get screen height and safe area
-    final mediaQuery = MediaQuery.of(context);
-    final screenHeight = mediaQuery.size.height;
-    final topPadding = mediaQuery.padding.top;
+    final overlay = Overlay.of(context);
+    late OverlayEntry overlayEntry;
     
-    // Calculate bottom margin to position at top
-    final bottomMargin = screenHeight - topPadding - 100; // 100 is approximate height for snackbar
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 14,
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 16,
+        left: 16,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isError ? Colors.red.shade400 : Colors.green.shade400,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    message,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                    maxLines: null,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => overlayEntry.remove(),
+                  child: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ],
+            ),
           ),
-          maxLines: null, // Allow text to wrap to multiple lines
-          overflow: TextOverflow.visible,
         ),
-        backgroundColor: isError ? Colors.red.shade400 : Colors.green.shade400,
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(
-          top: topPadding + 16,
-          left: 16,
-          right: 16,
-          bottom: bottomMargin > 0 ? bottomMargin : 16, // Fallback to normal bottom positioning
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        duration: duration,
-        dismissDirection: DismissDirection.up,
-        padding: const EdgeInsets.all(16), // Add more padding for better text display
       ),
     );
+    
+    overlay.insert(overlayEntry);
+    
+    // Auto-dismiss after duration
+    Future.delayed(duration, () {
+      if (overlayEntry.mounted) {
+        overlayEntry.remove();
+      }
+    });
   }
 } 
