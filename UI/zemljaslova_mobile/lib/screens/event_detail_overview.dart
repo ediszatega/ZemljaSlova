@@ -60,7 +60,8 @@ class _EventDetailOverviewScreenState extends State<EventDetailOverviewScreen> {
                       
                       const SizedBox(height: 8),
 
-                      _buildActionButtons(event),
+                      if (event.ticketTypes != null && event.ticketTypes!.isNotEmpty)
+                        _buildActionButtons(event),
 
                       const SizedBox(height: 30),
                       

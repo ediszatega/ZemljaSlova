@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/event.dart';
 import '../models/ticket_type.dart';
+import '../models/cart_item.dart';
+import '../providers/cart_provider.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/top_branding.dart';
 import '../widgets/bottom_navigation.dart';
@@ -379,12 +382,55 @@ class _TicketTypeSelectionScreenState extends State<TicketTypeSelectionScreen> {
       foregroundColor: Colors.white,
       borderColor: const Color(0xFF28A745),
       onPressed: _selectedTicketType != null ? () {
-        // TODO: Implement add to cart functionality
+        _addToCart();
       } : null,
     );
   }
 
   String _formatEventDate(DateTime date) {
     return '${date.day}.${date.month}.${date.year} u ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
+  void _addToCart() {
+    if (_selectedTicketType == null) return;
+
+    // Create unique ID for the cart item
+    final cartItemId = 'ticket_${_selectedTicketType!.id}_${widget.event.id}';
+    
+    // Create cart item
+    final cartItem = CartItem(
+      id: cartItemId,
+      title: '${widget.event.title} - ${_selectedTicketType!.name}',
+      price: _selectedTicketType!.price,
+      quantity: _quantity,
+      type: CartItemType.ticket,
+    );
+
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    cartProvider.addItem(cartItem);
+
+    if (_quantity == 1) {
+      _showSuccessMessage('Ulaznica je dodana u korpu! Da biste završili kupovinu otvorite korpu.');
+    } else {
+      _showSuccessMessage('Ulaznice su dodane u korpu! Da biste završili kupovinu otvorite korpu.');
+    }
+  }
+
+  void _showSuccessMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: const Color(0xFF28A745),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          top: MediaQuery.of(context).padding.top + 16,
+          left: 16,
+          right: 16,
+          bottom: MediaQuery.of(context).size.height - 120,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 }
