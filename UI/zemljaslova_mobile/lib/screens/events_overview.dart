@@ -6,6 +6,7 @@ import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../providers/event_provider.dart';
+import 'event_detail_overview.dart';
 
 class EventsOverviewScreen extends StatefulWidget {
   const EventsOverviewScreen({super.key});
@@ -235,7 +236,14 @@ class _EventsOverviewScreenState extends State<EventsOverviewScreen> {
               context,
               event,
               onTap: () {
-                // TODO: Navigate to event detail screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EventDetailOverviewScreen(
+                      event: event,
+                    ),
+                  ),
+                );
               },
             );
           },
