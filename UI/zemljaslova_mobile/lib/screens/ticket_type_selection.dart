@@ -7,6 +7,7 @@ import '../providers/cart_provider.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/top_branding.dart';
 import '../widgets/bottom_navigation.dart';
+import '../utils/snackbar_util.dart';
 
 class TicketTypeSelectionScreen extends StatefulWidget {
   final Event event;
@@ -410,27 +411,9 @@ class _TicketTypeSelectionScreenState extends State<TicketTypeSelectionScreen> {
     cartProvider.addItem(cartItem);
 
     if (_quantity == 1) {
-      _showSuccessMessage('Ulaznica je dodana u korpu! Da biste završili kupovinu otvorite korpu.');
+      SnackBarUtil.showTopSnackBar(context, 'Ulaznica je dodana u korpu! Da biste završili kupovinu otvorite korpu.');
     } else {
-      _showSuccessMessage('Ulaznice su dodane u korpu! Da biste završili kupovinu otvorite korpu.');
+      SnackBarUtil.showTopSnackBar(context, 'Ulaznice su dodane u korpu! Da biste završili kupovinu otvorite korpu.');
     }
-  }
-
-  void _showSuccessMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: const Color(0xFF28A745),
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(
-          top: MediaQuery.of(context).padding.top + 16,
-          left: 16,
-          right: 16,
-          bottom: MediaQuery.of(context).size.height - 120,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        duration: const Duration(seconds: 3),
-      ),
-    );
   }
 }

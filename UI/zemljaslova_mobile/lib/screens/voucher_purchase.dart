@@ -4,6 +4,7 @@ import '../widgets/zs_input.dart';
 import '../widgets/zs_button.dart';
 import '../providers/cart_provider.dart';
 import '../models/cart_item.dart';
+import '../utils/snackbar_util.dart';
 
 class VoucherPurchaseScreen extends StatefulWidget {
   const VoucherPurchaseScreen({super.key});
@@ -300,38 +301,10 @@ class _VoucherPurchaseScreenState extends State<VoucherPurchaseScreen> {
   }
 
   void _showValidationError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red.shade300,
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(
-          top: MediaQuery.of(context).padding.top + 16,
-          left: 16,
-          right: 16,
-          bottom: MediaQuery.of(context).size.height - 120,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    SnackBarUtil.showTopSnackBar(context, message, isError: true);
   }
 
   void _showSuccessMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green.shade300,
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(
-          top: MediaQuery.of(context).padding.top + 16,
-          left: 16,
-          right: 16,
-          bottom: MediaQuery.of(context).size.height - 120,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    SnackBarUtil.showTopSnackBar(context, message);
   }
 } 
