@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/book.dart';
+import '../models/cart_item.dart';
 import '../providers/book_provider.dart';
+import '../providers/cart_provider.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/top_branding.dart';
 import '../widgets/bottom_navigation.dart';
+import '../utils/snackbar_util.dart';
 
 class BookDetailOverviewScreen extends StatefulWidget {
   final Book book;
@@ -246,7 +249,7 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
             foregroundColor: Colors.white,
             borderColor: const Color(0xFF28A745),
             onPressed: () {
-              // TODO: Implement add to cart
+              _addBookToCart(book);
             },
           ),
           const SizedBox(height: 12),
@@ -272,6 +275,23 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
         color: Colors.black54,
       ),
     );
+  }
+
+  void _addBookToCart(Book book) {
+    final cartItemId = 'book_${book.id}';
+    
+    final cartItem = CartItem(
+      id: cartItemId,
+      title: book.title,
+      price: book.price,
+      quantity: 1,
+      type: CartItemType.book,
+    );
+
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    cartProvider.addItem(cartItem);
+
+    SnackBarUtil.showTopSnackBar(context, 'Knjiga je dodana u korpu! Da biste završili kupovinu otvorite korpu.');
   }
 }
 
