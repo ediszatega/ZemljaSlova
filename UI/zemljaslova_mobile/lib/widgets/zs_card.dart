@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ZSCard extends StatelessWidget {
   // Required parameters
@@ -146,12 +147,16 @@ class ZSCard extends StatelessWidget {
     // Create image widget from member's profile image
     Widget imageWidget;
     if (member.profileImageUrl != null) {
-      imageWidget = Image.network(
-        member.profileImageUrl,
+      imageWidget = CachedNetworkImage(
+        imageUrl: member.profileImageUrl,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildFallbackImage();
-        },
+        placeholder: (context, url) => Container(
+          color: Colors.grey.shade200,
+          child: const Center(
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+        errorWidget: (context, url, error) => _buildFallbackImage(),
       );
     } else {
       imageWidget = _buildFallbackImage();
@@ -192,12 +197,16 @@ class ZSCard extends StatelessWidget {
     // Create image widget from book's cover image
     Widget imageWidget;
     if (book.coverImageUrl != null) {
-      imageWidget = Image.network(
-        book.coverImageUrl,
+      imageWidget = CachedNetworkImage(
+        imageUrl: book.coverImageUrl,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildFallbackBookImage();
-        },
+        placeholder: (context, url) => Container(
+          color: Colors.grey.shade200,
+          child: const Center(
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+        errorWidget: (context, url, error) => _buildFallbackBookImage(),
       );
     } else {
       imageWidget = _buildFallbackBookImage();
@@ -277,12 +286,16 @@ class ZSCard extends StatelessWidget {
     // Create image widget from employee's profile image
     Widget imageWidget;
     if (employee.profileImageUrl != null) {
-      imageWidget = Image.network(
-        employee.profileImageUrl,
+      imageWidget = CachedNetworkImage(
+        imageUrl: employee.profileImageUrl,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildFallbackImage();
-        },
+        placeholder: (context, url) => Container(
+          color: Colors.grey.shade200,
+          child: const Center(
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+        errorWidget: (context, url, error) => _buildFallbackImage(),
       );
     } else {
       imageWidget = _buildFallbackImage();

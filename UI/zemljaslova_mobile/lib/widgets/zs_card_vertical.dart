@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ZSCardVertical extends StatelessWidget {
   // Required parameters
@@ -138,14 +139,18 @@ class ZSCardVertical extends StatelessWidget {
     // Create image widget from event's image
     Widget imageWidget;
     if (event.coverImageUrl != null) {
-      imageWidget = Image.network(
-        event.coverImageUrl,
+      imageWidget = CachedNetworkImage(
+        imageUrl: event.coverImageUrl,
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildFallbackEventImage();
-        },
+        placeholder: (context, url) => Container(
+          color: Colors.grey.shade200,
+          child: const Center(
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+        errorWidget: (context, url, error) => _buildFallbackEventImage(),
       );
     } else {
       imageWidget = _buildFallbackEventImage();
