@@ -55,8 +55,8 @@ class BottomNavigation extends StatelessWidget {
                 context,
                 icon: Icons.favorite,
                 label: 'Favoriti',
-                isSelected: false,
-                onTap: () => navigationProvider.setCurrentItem(MobileNavigationItem.home),
+                isSelected: navigationProvider.currentItem == MobileNavigationItem.favourites,
+                onTap: () => navigationProvider.setCurrentItem(MobileNavigationItem.favourites),
               ),
               _buildNavItem(
                 context,

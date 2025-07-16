@@ -4,6 +4,7 @@ import '../models/book.dart';
 import '../models/cart_item.dart';
 import '../providers/book_provider.dart';
 import '../providers/cart_provider.dart';
+import '../providers/favourite_provider.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/top_branding.dart';
 import '../widgets/bottom_navigation.dart';
@@ -23,18 +24,25 @@ class BookDetailOverviewScreen extends StatefulWidget {
 
 class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
   late Future<Book?> _bookFuture;
-  bool _isFavorite = false;
   
   @override
   void initState() {
     super.initState();
     // Load fresh book data to ensure we have the latest info including author
     _loadBookData();
+    // Load favourites for the current user
+    _loadFavouriteStatus();
   }
   
   void _loadBookData() {
     final bookProvider = Provider.of<BookProvider>(context, listen: false);
     _bookFuture = bookProvider.getBookById(widget.book.id);
+  }
+  
+  void _loadFavouriteStatus() {
+    const mockMemberId = 3008; // In a real app, get from authentication
+    final favouriteProvider = Provider.of<FavouriteProvider>(context, listen: false);
+    favouriteProvider.fetchFavourites(mockMemberId);
   }
 
   @override
@@ -120,24 +128,39 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
               Positioned(
                 top: 8,
                 right: 8,
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _isFavorite = !_isFavorite;
-                    });
+                child: Consumer<FavouriteProvider>(
+                  builder: (context, favouriteProvider, child) {
+                    final isFavourite = favouriteProvider.isFavourite(book.id);
+                    
+                    return GestureDetector(
+                      onTap: () async {
+                        const mockMemberId = 3008; // In a real app, get from authentication
+                        await favouriteProvider.toggleFavourite(mockMemberId, book.id);
+                        
+                        if (mounted) {
+                          final isNowFavourite = favouriteProvider.isFavourite(book.id);
+                          SnackBarUtil.showTopSnackBar(
+                            context,
+                            isNowFavourite 
+                              ? 'Knjiga je dodana u favourite!'
+                              : 'Knjiga je uklonjena iz favorita!',
+                          );
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          isFavourite ? Icons.favorite : Icons.favorite_border,
+                          color: isFavourite ? Colors.red : Colors.grey,
+                          size: 24,
+                        ),
+                      ),
+                    );
                   },
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      _isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: _isFavorite ? Colors.red : Colors.grey,
-                      size: 24,
-                    ),
-                  ),
                 ),
               ),
             ],

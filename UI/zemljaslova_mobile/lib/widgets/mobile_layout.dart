@@ -5,6 +5,7 @@ import '../widgets/top_branding.dart';
 import '../widgets/bottom_navigation.dart';
 import '../screens/home.dart';
 import '../screens/cart.dart';
+import '../screens/favourites_overview.dart';
 import '../screens/voucher_purchase.dart';
 import '../screens/books_sell_overview.dart';
 import '../screens/events_overview.dart';
@@ -36,6 +37,8 @@ class MobileLayout extends StatelessWidget {
         return const HomeScreen();
       case MobileNavigationItem.cart:
         return const CartScreen();
+      case MobileNavigationItem.favourites:
+        return const FavouritesOverviewScreen();
       case MobileNavigationItem.voucherPurchase:
         return const VoucherPurchaseScreen();
       case MobileNavigationItem.booksSellOverview:

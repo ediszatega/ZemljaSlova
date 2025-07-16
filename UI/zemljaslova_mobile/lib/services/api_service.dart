@@ -32,6 +32,39 @@ class ApiService {
     }
   }
   
+  Future<dynamic> post(String endpoint, Map<String, dynamic> body) async {
+    try {
+      final url = Uri.parse('$baseUrl/$endpoint');
+      
+      debugPrint('Making POST request to: $url');
+      debugPrint('Request body: ${json.encode(body)}');
+      final response = await http.post(
+        url, 
+        headers: headers,
+        body: json.encode(body),
+      );
+      
+      return _handleResponse(response);
+    } catch (e) {
+      debugPrint('Error in POST request: $e');
+      throw Exception('Failed to perform POST request: $e');
+    }
+  }
+  
+  Future<dynamic> delete(String endpoint) async {
+    try {
+      final url = Uri.parse('$baseUrl/$endpoint');
+      
+      debugPrint('Making DELETE request to: $url');
+      final response = await http.delete(url, headers: headers);
+      
+      return _handleResponse(response);
+    } catch (e) {
+      debugPrint('Error in DELETE request: $e');
+      throw Exception('Failed to perform DELETE request: $e');
+    }
+  }
+  
   dynamic _handleResponse(http.Response response) {
     debugPrint('Response status code: ${response.statusCode}');
     debugPrint('Response body: ${response.body}');

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 enum MobileNavigationItem {
   home,
   cart,
+  favourites,
   voucherPurchase,
   booksSellOverview,
   eventsOverview,
