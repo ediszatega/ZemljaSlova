@@ -19,14 +19,14 @@ namespace ZemljaSlova.Services
 
         public override IQueryable<Database.Favourite> AddFilter(FavouriteSearchObject search, IQueryable<Database.Favourite> query)
         {
-            if (search.IsBookIncluded == true)
+            if (search.IsBookIncluded != false)
             {
                 query = query.Include(x => x.Book);
             }
 
-            if (search.IsMemberIncluded == true)
+            if (search.IsMemberIncluded != false)
             {
-                query = query.Include(x => x.Member);
+                query = query.Include(x => x.Member).ThenInclude(m => m.User);
             }
 
             if (search.MemberId.HasValue)
@@ -40,6 +40,49 @@ namespace ZemljaSlova.Services
             }
 
             return base.AddFilter(search, query);
+        }
+
+        public override Model.Favourite GetById(int id)
+        {
+            var entity = Context.Favourites
+                .Include(f => f.Book)
+                .Include(f => f.Member)
+                    .ThenInclude(m => m.User)
+                .FirstOrDefault(f => f.Id == id);
+
+            if (entity == null)
+            {
+                return null;
+            }
+
+            return Mapper.Map<Model.Favourite>(entity);
+        }
+
+        public bool Unfavourite(int memberId, int bookId)
+        {
+            var favourite = Context.Favourites
+                .FirstOrDefault(f => f.MemberId == memberId && f.BookId == bookId);
+            
+            if (favourite == null)
+            {
+                return false;
+            }
+
+            Context.Favourites.Remove(favourite);
+            Context.SaveChanges();
+            return true;
+        }
+
+        public override void BeforeInsert(FavouriteInsertRequest request, Database.Favourite entity)
+        {
+            // Check if book is already favourited by this member
+            var existingFavourite = Context.Favourites
+                .Any(f => f.MemberId == request.MemberId && f.BookId == request.BookId);
+            
+            if (existingFavourite)
+            {
+                throw new InvalidOperationException("Book is already in favourites");
+            }
         }
     }
 }

@@ -12,6 +12,22 @@ namespace ZemljaSlova.API.Controllers
     [Route("[controller]")]
     public class FavouriteController : BaseCRUDController<Model.Favourite, FavouriteSearchObject, FavouriteInsertRequest, FavouriteUpdateRequest>
     {
-        public FavouriteController(IFavouriteService service) : base(service) { }
+        private readonly IFavouriteService _favouriteService;
+
+        public FavouriteController(IFavouriteService service) : base(service) 
+        { 
+            _favouriteService = service;
+        }
+
+        [HttpDelete("unfavourite")]
+        public IActionResult Unfavourite([FromQuery] int memberId, [FromQuery] int bookId)
+        {
+            var result = _favouriteService.Unfavourite(memberId, bookId);
+            if (result)
+            {
+                return Ok(new { message = "Book removed from favourites" });
+            }
+            return NotFound(new { message = "Book not found in favourites" });
+        }
     }
 }

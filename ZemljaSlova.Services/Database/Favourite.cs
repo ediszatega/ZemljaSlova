@@ -11,8 +11,6 @@ public partial class Favourite
 
     public int BookId { get; set; }
 
-    public DateTime AddedAt { get; set; }
-
     public virtual Book Book { get; set; } = null!;
 
     public virtual Member Member { get; set; } = null!;

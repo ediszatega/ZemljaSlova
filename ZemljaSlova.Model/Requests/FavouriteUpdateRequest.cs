@@ -9,7 +9,5 @@ namespace ZemljaSlova.Model.Requests
         public int MemberId { get; set; }
 
         public int BookId { get; set; }
-
-        public DateTime AddedAt { get; set; }
     }
 }

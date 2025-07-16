@@ -30,5 +30,19 @@ namespace ZemljaSlova.API.Controllers
         {
             return await _memberService.UpdateMember(id, request);
         }
+
+        [HttpGet("GetMemberFavourites/{memberId}")]
+        public ActionResult<List<Model.Favourite>> GetMemberFavourites(int memberId)
+        {
+            try
+            {
+                var favourites = _memberService.GetMemberFavourites(memberId);
+                return Ok(favourites);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while retrieving member favourites.");
+            }
+        }
     }
 }

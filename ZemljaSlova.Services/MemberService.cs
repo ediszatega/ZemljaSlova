@@ -130,6 +130,16 @@ namespace ZemljaSlova.Services
 
             return _mapper.Map<Model.Member>(member);
         }
+
+        public List<Model.Favourite> GetMemberFavourites(int memberId)
+        {
+            var favourites = _context.Favourites
+                .Include(f => f.Book)
+                .Where(f => f.MemberId == memberId)
+                .ToList();
+
+            return _mapper.Map<List<Model.Favourite>>(favourites);
+        }
         
         public override async Task<Model.Member> Delete(int id)
         {
@@ -142,7 +152,6 @@ namespace ZemljaSlova.Services
                         .Include(m => m.User)
                         .Include(m => m.BookReservations)
                             .ThenInclude(br => br.Notifications)
-                        .Include(m => m.Favourites)
                         .Include(m => m.Orders)
                             .ThenInclude(o => o.Notifications)
                         .Include(m => m.Orders)
@@ -168,8 +177,6 @@ namespace ZemljaSlova.Services
                     }
                     
                     _context.BookReservations.RemoveRange(member.BookReservations);
-                    
-                    _context.Favourites.RemoveRange(member.Favourites);
                     
                     foreach (var order in member.Orders)
                     {

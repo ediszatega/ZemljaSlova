@@ -187,8 +187,6 @@ public partial class _200036Context : DbContext
 
         modelBuilder.Entity<Favourite>(entity =>
         {
-            entity.Property(e => e.AddedAt).HasColumnType("datetime");
-
             entity.HasOne(d => d.Book).WithMany(p => p.Favourites)
                 .HasForeignKey(d => d.BookId)
                 .OnDelete(DeleteBehavior.ClientSetNull)

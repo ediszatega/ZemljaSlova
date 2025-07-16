@@ -11,5 +11,6 @@ namespace ZemljaSlova.Services
 {
     public interface IFavouriteService : ICRUDService<Favourite, FavouriteSearchObject, FavouriteInsertRequest, FavouriteUpdateRequest>
     {
+        bool Unfavourite(int memberId, int bookId);
     }
 }
