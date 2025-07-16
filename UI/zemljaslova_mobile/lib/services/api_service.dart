@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 
 class ApiService {
   static const String baseUrl = kDebugMode 
-      ? 'http://10.0.2.2:5285'
+      ? 'http://192.168.178.36:5285'  // Use your computer's IP address for physical device testing
       : 'http://localhost:5285';
 
   ApiService() {
