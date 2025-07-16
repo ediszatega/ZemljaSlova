@@ -35,6 +35,33 @@ class MobileNavigationProvider with ChangeNotifier {
     }
   }
 
+  void navigateToBottomNavItem(MobileNavigationItem item, BuildContext context) {
+    // Don't navigate if already on the same screen and not in a detail screen
+    if (_currentItem == item && !Navigator.canPop(context)) {
+      return;
+    }
+    
+    // If we're in a detail screen, pop back to main layout first
+    if (Navigator.canPop(context)) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+    
+    // Check if this item is already in the stack
+    final existingIndex = _navigationStack.indexOf(item);
+    
+    if (existingIndex != -1) {
+      // Item exists in stack - remove all items after it and navigate to it
+      _navigationStack.removeRange(existingIndex + 1, _navigationStack.length);
+      _currentItem = item;
+    } else {
+      // Item doesn't exist in stack - add it normally
+      _navigationStack.add(item);
+      _currentItem = item;
+    }
+    
+    notifyListeners();
+  }
+
   void goBack() {
     if (_navigationStack.length > 1) {
       _navigationStack.removeLast();

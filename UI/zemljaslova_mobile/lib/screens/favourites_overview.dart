@@ -138,7 +138,7 @@ class _FavouritesOverviewScreenState extends State<FavouritesOverviewScreen> {
               onPressed: () {
                 // Navigate to books overview
                 final navigationProvider = Provider.of<MobileNavigationProvider>(context, listen: false);
-                navigationProvider.setCurrentItem(MobileNavigationItem.booksSellOverview);
+                navigationProvider.navigateToBottomNavItem(MobileNavigationItem.booksSellOverview, context);
               },
               icon: const Icon(Icons.book),
               label: const Text('Pregled knjiga'),

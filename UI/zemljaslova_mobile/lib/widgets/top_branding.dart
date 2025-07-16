@@ -44,13 +44,11 @@ class TopBranding extends StatelessWidget {
                       size: 24,
                     ),
                     onPressed: () {
-                      // If we have navigation provider history, use it
-                      if (canGoBackProvider) {
-                        navigationProvider.goBack();
-                      } 
-                      // Otherwise use Navigator (for screens opened with push)
-                      else if (canGoBackNavigator) {
+                      if (canGoBackNavigator) {
                         Navigator.of(context).pop();
+                      } 
+                      else if (canGoBackProvider) {
+                        navigationProvider.goBack();
                       }
                     },
                   ),
