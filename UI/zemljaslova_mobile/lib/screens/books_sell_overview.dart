@@ -6,6 +6,7 @@ import '../widgets/zs_card.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
+import '../widgets/paginated_data_widget.dart';
 import '../providers/book_provider.dart';
 import 'book_detail_overview.dart';
 
@@ -24,7 +25,7 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<BookProvider>().fetchBooks();
+      context.read<BookProvider>().fetchBooks(refresh: true);
     });
   }
 
@@ -36,11 +37,15 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return RefreshIndicator(
+      onRefresh: () async {
+        await context.read<BookProvider>().refresh();
+      },
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // Header
           const Text(
             'Pregled knjiga na prodaju',
@@ -110,125 +115,76 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> {
           _buildBooksGrid(),
         ],
       ),
+      ),
     );
   }
   
   Widget _buildBooksGrid() {
     return Consumer<BookProvider>(
       builder: (context, bookProvider, child) {
-        if (bookProvider.isLoading) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-
-        if (bookProvider.error != null) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: Colors.red,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Greška pri učitavanju knjiga',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    bookProvider.fetchBooks();
-                  },
-                  child: const Text('Pokušaj ponovo'),
-                ),
-              ],
-            ),
-          );
-        }
-
-        if (bookProvider.books.isEmpty) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.book_outlined,
-                  size: 64,
-                  color: Colors.grey,
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Nema dostupnih knjiga',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        // Sort the books list based on the selected option
-        final sortedBooks = List<Book>.from(bookProvider.books);
-        switch (_sortOption) {
-          case 'Naslov (A-Z)':
-            sortedBooks.sort((a, b) => a.title.compareTo(b.title));
-            break;
-          case 'Naslov (Z-A)':
-            sortedBooks.sort((a, b) => b.title.compareTo(a.title));
-            break;
-          case 'Autor (A-Z)':
-            sortedBooks.sort((a, b) => a.authorNames.compareTo(b.authorNames));
-            break;
-          case 'Cijena (veća)':
-            sortedBooks.sort((a, b) => b.price.compareTo(a.price));
-            break;
-          case 'Cijena (manja)':
-            sortedBooks.sort((a, b) => a.price.compareTo(b.price));
-            break;
-        }
-
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            // Calculate number of columns based on screen width
-            int crossAxisCount = 2;
-            if (constraints.maxWidth > 600) {
-              crossAxisCount = 3;
+        return PaginatedDataWidget<Book>(
+          provider: bookProvider,
+          itemName: 'knjiga',
+          loadMoreText: 'Učitaj više knjiga',
+          emptyStateIcon: Icons.book_outlined,
+          emptyStateMessage: 'Nema dostupnih knjiga',
+          gridBuilder: (context, books) {
+            // Sort the books list based on the selected option
+            final sortedBooks = List<Book>.from(books);
+            switch (_sortOption) {
+              case 'Naslov (A-Z)':
+                sortedBooks.sort((a, b) => a.title.compareTo(b.title));
+                break;
+              case 'Naslov (Z-A)':
+                sortedBooks.sort((a, b) => b.title.compareTo(a.title));
+                break;
+              case 'Autor (A-Z)':
+                sortedBooks.sort((a, b) => a.authorNames.compareTo(b.authorNames));
+                break;
+              case 'Cijena (veća)':
+                sortedBooks.sort((a, b) => b.price.compareTo(a.price));
+                break;
+              case 'Cijena (manja)':
+                sortedBooks.sort((a, b) => a.price.compareTo(b.price));
+                break;
             }
-            if (constraints.maxWidth > 900) {
-              crossAxisCount = 4;
-            }
-            
-            return GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.5,
-              ),
-              itemCount: sortedBooks.length,
-              itemBuilder: (context, index) {
-                final book = sortedBooks[index];
-                return ZSCard.fromBook(
-                  context,
-                  book,
-                  onTap: () {
-                    Navigator.push(
+
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                // Calculate number of columns based on screen width
+                int crossAxisCount = 2;
+                if (constraints.maxWidth > 600) {
+                  crossAxisCount = 3;
+                }
+                if (constraints.maxWidth > 900) {
+                  crossAxisCount = 4;
+                }
+                
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 0.5,
+                  ),
+                  itemCount: sortedBooks.length,
+                  itemBuilder: (context, index) {
+                    final book = sortedBooks[index];
+                    return ZSCard.fromBook(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => BookDetailOverviewScreen(
-                          book: book,
-                        ),
-                      ),
+                      book,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BookDetailOverviewScreen(
+                              book: book,
+                            ),
+                          ),
+                        );
+                      },
                     );
                   },
                 );
