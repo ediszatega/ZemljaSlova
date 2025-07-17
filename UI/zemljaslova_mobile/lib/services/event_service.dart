@@ -9,24 +9,51 @@ class EventService {
   
   EventService(this._apiService);
   
-  Future<List<Event>> fetchEvents() async {
+  Future<Map<String, dynamic>> fetchEvents({
+    bool isTicketTypeIncluded = true,
+    int? page,
+    int? pageSize,
+  }) async {
     try {
-      final response = await _apiService.get('Event?isTicketTypeIncluded=true');
+      List<String> queryParams = ['isTicketTypeIncluded=$isTicketTypeIncluded'];
+      
+      if (page != null) {
+        queryParams.add('Page=$page');
+      }
+      
+      if (pageSize != null) {
+        queryParams.add('PageSize=$pageSize');
+      }
+      
+      final queryString = queryParams.join('&');
+      final response = await _apiService.get('Event?$queryString');
       
       debugPrint('API response: $response');
       
       if (response != null) {
         final eventsList = response['resultList'] as List;
+        final totalCount = response['count'] as int;
         
-        return eventsList
+        final events = eventsList
             .map((eventJson) => _mapEventFromBackend(eventJson))
             .toList();
+            
+        return {
+          'events': events,
+          'totalCount': totalCount,
+        };
       }
       
-      return [];
+      return {
+        'events': <Event>[],
+        'totalCount': 0,
+      };
     } catch (e) {
       debugPrint('Failed to fetch events: $e');
-      return [];
+      return {
+        'events': <Event>[],
+        'totalCount': 0,
+      };
     }
   }
   
