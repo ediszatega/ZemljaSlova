@@ -1,33 +1,100 @@
 import 'package:flutter/material.dart';
 import '../models/author.dart';
 import '../services/author_service.dart';
+import '../widgets/paginated_data_widget.dart';
 
-class AuthorProvider with ChangeNotifier {
+class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author> {
   final AuthorService _authorService;
   List<Author> _authors = [];
   bool _isLoading = false;
   String? _error;
+  
+  // Pagination state
+  int _currentPage = 0;
+  int _pageSize = 4;
+  int _totalCount = 0;
+  bool _hasMoreData = true;
 
   AuthorProvider(this._authorService);
 
   List<Author> get authors => [..._authors];
+  
+  // PaginatedDataProvider interface implementation
+  @override
+  List<Author> get items => authors;
+  
   bool get isLoading => _isLoading;
+  @override
+  bool get isInitialLoading => _isLoading && _authors.isEmpty;
+  @override
+  bool get isLoadingMore => _isLoading && _authors.isNotEmpty;
+  @override
   String? get error => _error;
+  int get currentPage => _currentPage;
+  @override
+  int get pageSize => _pageSize;
+  @override
+  int get totalCount => _totalCount;
+  @override
+  bool get hasMoreData => _hasMoreData;
+  int get totalPages => (_totalCount / _pageSize).ceil();
 
-  Future<void> fetchAuthors() async {
+  Future<void> fetchAuthors({bool refresh = false}) async {
+    if (refresh) {
+      _currentPage = 0;
+      _authors.clear();
+      _hasMoreData = true;
+      _error = null;
+    }
+    
     _isLoading = true;
-    _error = null;
     notifyListeners();
 
     try {
-      final fetchedAuthors = await _authorService.fetchAuthors();
-      _authors = fetchedAuthors;
+      final result = await _authorService.fetchAuthors(
+        page: _currentPage,
+        pageSize: _pageSize,
+      );
+      
+      final List<Author> newAuthors = result['authors'] as List<Author>;
+      _totalCount = result['totalCount'] as int;
+      
+      if (refresh || _authors.isEmpty) {
+        _authors = newAuthors;
+      } else {
+        _authors.addAll(newAuthors);
+      }
+      
+      _hasMoreData = _authors.length < _totalCount;
+      
       _isLoading = false;
+      _error = null;
       notifyListeners();
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
       notifyListeners();
+    }
+  }
+  
+  @override
+  Future<void> loadMore() async {
+    if (_isLoading || !_hasMoreData) return;
+    
+    _currentPage++;
+    await fetchAuthors(refresh: false);
+  }
+  
+  @override
+  Future<void> refresh() async {
+    await fetchAuthors(refresh: true);
+  }
+  
+  @override
+  void setPageSize(int newPageSize) {
+    if (newPageSize != _pageSize) {
+      _pageSize = newPageSize;
+      refresh();
     }
   }
 
@@ -62,7 +129,8 @@ class AuthorProvider with ChangeNotifier {
       );
       
       if (newAuthor != null) {
-        _authors.add(newAuthor);
+        // Refresh to get updated pagination
+        await refresh();
         _isLoading = false;
         notifyListeners();
         return true;
@@ -133,7 +201,8 @@ class AuthorProvider with ChangeNotifier {
       final success = await _authorService.deleteAuthor(id);
       
       if (success) {
-        _authors.removeWhere((author) => author.id == id);
+        // Refresh to get updated pagination
+        await refresh();
         _isLoading = false;
         notifyListeners();
         return true;

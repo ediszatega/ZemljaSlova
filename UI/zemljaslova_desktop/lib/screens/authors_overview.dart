@@ -8,6 +8,7 @@ import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/pagination_controls_widget.dart';
 import 'author_detail_overview.dart';
 import 'author_add.dart';
 
@@ -41,15 +42,37 @@ class AuthorsContent extends StatefulWidget {
   State<AuthorsContent> createState() => _AuthorsContentState();
 }
 
-class _AuthorsContentState extends State<AuthorsContent> {
+class _AuthorsContentState extends State<AuthorsContent> with WidgetsBindingObserver {
   String _sortOption = 'Ime (A-Z)';
+  final ScrollController _scrollController = ScrollController();
   
   @override
   void initState() {
     super.initState();
-    // Load authors data
+    // Register as an observer to detect when the app regains focus
+    WidgetsBinding.instance.addObserver(this);
+    _loadAuthors();
+  }
+  
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _scrollController.dispose();
+    super.dispose();
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh data when app comes back to foreground
+      _loadAuthors();
+    }
+  }
+  
+  void _loadAuthors() {
+    // Load authors data using pagination
     Future.microtask(() {
-      Provider.of<AuthorProvider>(context, listen: false).fetchAuthors();
+      Provider.of<AuthorProvider>(context, listen: false).refresh();
     });
   }
 
@@ -143,7 +166,10 @@ class _AuthorsContentState extends State<AuthorsContent> {
               MaterialPageRoute(
                 builder: (context) => const AuthorAddScreen(),
               ),
-            );
+            ).then((_) {
+              // Refresh authors when returning from add screen
+              _loadAuthors();
+            });
           },
           text: 'Dodaj autora',
           backgroundColor: const Color(0xFFE5FFEE),
@@ -158,13 +184,13 @@ class _AuthorsContentState extends State<AuthorsContent> {
   Widget _buildAuthorsGrid() {
     return Consumer<AuthorProvider>(
       builder: (ctx, authorProvider, child) {
-        if (authorProvider.isLoading) {
+        if (authorProvider.isInitialLoading) {
           return const Center(
             child: CircularProgressIndicator(),
           );
         }
         
-        if (authorProvider.error != null) {
+        if (authorProvider.error != null && authorProvider.authors.isEmpty) {
           return Center(
             child: Text(
               'Greška: ${authorProvider.error}',
@@ -211,32 +237,63 @@ class _AuthorsContentState extends State<AuthorsContent> {
             break;
         }
         
-        return GridView.builder(
-          padding: const EdgeInsets.only(bottom: 20),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            crossAxisSpacing: 40,
-            mainAxisSpacing: 40,
-            childAspectRatio: 0.7,
-          ),
-          itemCount: sortedAuthors.length,
-          itemBuilder: (context, index) {
-            final author = sortedAuthors[index];
-            return ZSCard.fromAuthor(
-              context,
-              author,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AuthorDetailOverview(
-                      author: author,
-                    ),
+        return CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            // Authors grid
+            SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                crossAxisSpacing: 40,
+                mainAxisSpacing: 40,
+                childAspectRatio: 0.7,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final author = sortedAuthors[index];
+                  return ZSCard.fromAuthor(
+                    context,
+                    author,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AuthorDetailOverview(
+                            author: author,
+                          ),
+                        ),
+                      ).then((_) {
+                        _loadAuthors();
+                      });
+                    },
+                  );
+                },
+                childCount: sortedAuthors.length,
+              ),
+            ),
+            
+            if (authorProvider.hasMoreData || authorProvider.isLoadingMore)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 20, bottom: 40),
+                  child: PaginationControlsWidget(
+                    currentItemCount: authorProvider.authors.length,
+                    totalCount: authorProvider.totalCount,
+                    hasMoreData: authorProvider.hasMoreData,
+                    isLoadingMore: authorProvider.isLoadingMore,
+                    onLoadMore: () => authorProvider.loadMore(),
+                    currentPageSize: authorProvider.pageSize,
+                    onPageSizeChanged: (newSize) => authorProvider.setPageSize(newSize),
+                    itemName: 'autora',
+                    loadMoreText: 'Učitaj više autora',
                   ),
-                );
-              },
-            );
-          },
+                ),
+              )
+            else
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 60),
+              ),
+          ],
         );
       },
     );

@@ -8,24 +8,48 @@ class AuthorService {
   
   AuthorService(this._apiService);
   
-  Future<List<Author>> fetchAuthors() async {
+  Future<Map<String, dynamic>> fetchAuthors({
+    int? page,
+    int? pageSize,
+  }) async {
     try {
-      final response = await _apiService.get('Author');
+      List<String> queryParams = [];
       
-      debugPrint('API response: $response');
+      if (page != null) {
+        queryParams.add('Page=$page');
+      }
+      
+      if (pageSize != null) {
+        queryParams.add('PageSize=$pageSize');
+      }
+      
+      final queryString = queryParams.isNotEmpty ? '?${queryParams.join('&')}' : '';
+      final response = await _apiService.get('Author$queryString');
       
       if (response != null) {
         final authorsList = response['resultList'] as List;
+        final totalCount = response['count'] as int;
         
-        return authorsList
+        final authors = authorsList
             .map((authorJson) => _mapAuthorFromBackend(authorJson))
             .toList();
+            
+        return {
+          'authors': authors,
+          'totalCount': totalCount,
+        };
       }
       
-      return [];
+      return {
+        'authors': <Author>[],
+        'totalCount': 0,
+      };
     } catch (e) {
       debugPrint('Failed to fetch authors: $e');
-      return [];
+      return {
+        'authors': <Author>[],
+        'totalCount': 0,
+      };
     }
   }
   
