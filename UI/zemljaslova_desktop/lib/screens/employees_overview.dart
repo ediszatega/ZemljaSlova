@@ -8,7 +8,9 @@ import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/pagination_controls_widget.dart';
 import '../screens/employee_details_overview.dart';
+import '../screens/employee_add.dart';
 
 class EmployeesOverview extends StatelessWidget {
   const EmployeesOverview({super.key});
@@ -40,14 +42,37 @@ class EmployeesContent extends StatefulWidget {
   State<EmployeesContent> createState() => _EmployeesContentState();
 }
 
-class _EmployeesContentState extends State<EmployeesContent> {
+class _EmployeesContentState extends State<EmployeesContent> with WidgetsBindingObserver {
   String _sortOption = 'Ime (A-Z)';
+  final ScrollController _scrollController = ScrollController();
   
   @override
   void initState() {
     super.initState();
+    // Register as an observer to detect when the app regains focus
+    WidgetsBinding.instance.addObserver(this);
+    _loadEmployees();
+  }
+  
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _scrollController.dispose();
+    super.dispose();
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh data when app comes back to foreground
+      _loadEmployees();
+    }
+  }
+  
+  void _loadEmployees() {
+    // Load employees data using pagination
     Future.microtask(() {
-      Provider.of<EmployeeProvider>(context, listen: false).fetchEmployees(isUserIncluded: true);
+      Provider.of<EmployeeProvider>(context, listen: false).refresh(isUserIncluded: true);
     });
   }
 
@@ -127,7 +152,15 @@ class _EmployeesContentState extends State<EmployeesContent> {
         
         ZSButton(
           onPressed: () {
-            Navigator.of(context).pushNamed('/employee-add');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const EmployeeAddScreen(),
+              ),
+            ).then((_) {
+              // Refresh employees when returning from add screen
+              _loadEmployees();
+            });
           },
           text: 'Dodaj uposlenika',
           backgroundColor: const Color(0xFFE5FFEE),
@@ -142,13 +175,13 @@ class _EmployeesContentState extends State<EmployeesContent> {
   Widget _buildEmployeesGrid() {
     return Consumer<EmployeeProvider>(
       builder: (ctx, employeeProvider, child) {
-        if (employeeProvider.isLoading) {
+        if (employeeProvider.isInitialLoading) {
           return const Center(
             child: CircularProgressIndicator(),
           );
         }
         
-        if (employeeProvider.error != null) {
+        if (employeeProvider.error != null && employeeProvider.employees.isEmpty) {
           return Center(
             child: Text(
               'Greška: ${employeeProvider.error}',
@@ -185,30 +218,61 @@ class _EmployeesContentState extends State<EmployeesContent> {
             break;
         }
         
-        return GridView.builder(
-          padding: const EdgeInsets.only(bottom: 20),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            crossAxisSpacing: 40,
-            mainAxisSpacing: 40,
-            childAspectRatio: 0.7,
-          ),
-          itemCount: sortedEmployees.length,
-          itemBuilder: (context, index) {
-            final employee = sortedEmployees[index];
-            return ZSCard.fromEmployee(
-              context,
-              employee,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EmployeeDetailsOverview(employee: employee),
+        return CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            // Employees grid
+            SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                crossAxisSpacing: 40,
+                mainAxisSpacing: 40,
+                childAspectRatio: 0.7,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final employee = sortedEmployees[index];
+                  return ZSCard.fromEmployee(
+                    context,
+                    employee,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EmployeeDetailsOverview(employee: employee),
+                        ),
+                      ).then((_) {
+                        _loadEmployees();
+                      });
+                    },
+                  );
+                },
+                childCount: sortedEmployees.length,
+              ),
+            ),
+            
+            if (employeeProvider.hasMoreData || employeeProvider.isLoadingMore)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 20, bottom: 40),
+                  child: PaginationControlsWidget(
+                    currentItemCount: employeeProvider.employees.length,
+                    totalCount: employeeProvider.totalCount,
+                    hasMoreData: employeeProvider.hasMoreData,
+                    isLoadingMore: employeeProvider.isLoadingMore,
+                    onLoadMore: () => employeeProvider.loadMore(),
+                    currentPageSize: employeeProvider.pageSize,
+                    onPageSizeChanged: (newSize) => employeeProvider.setPageSize(newSize),
+                    itemName: 'uposlenika',
+                    loadMoreText: 'Učitaj više uposlenika',
                   ),
-                );
-              },
-            );
-          },
+                ),
+              )
+            else
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 60),
+              ),
+          ],
         );
       },
     );

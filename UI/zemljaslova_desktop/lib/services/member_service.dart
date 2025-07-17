@@ -8,24 +8,49 @@ class MemberService {
   
   MemberService(this._apiService);
   
-  Future<List<Member>> fetchMembers({bool isUserIncluded = true}) async {
+  Future<Map<String, dynamic>> fetchMembers({
+    bool isUserIncluded = true,
+    int? page,
+    int? pageSize,
+  }) async {
     try {
-      final response = await _apiService.get('Member?IsUserIncluded=$isUserIncluded');
+      List<String> queryParams = ['IsUserIncluded=$isUserIncluded'];
       
-      debugPrint('API response: $response');
+      if (page != null) {
+        queryParams.add('Page=$page');
+      }
+      
+      if (pageSize != null) {
+        queryParams.add('PageSize=$pageSize');
+      }
+      
+      final queryString = queryParams.join('&');
+      final response = await _apiService.get('Member?$queryString');
       
       if (response != null) {
         final membersList = response['resultList'] as List;
+        final totalCount = response['count'] as int;
         
-        return membersList
+        final members = membersList
             .map((memberJson) => _mapMemberFromBackend(memberJson))
             .toList();
+            
+        return {
+          'members': members,
+          'totalCount': totalCount,
+        };
       }
       
-      return [];
+      return {
+        'members': <Member>[],
+        'totalCount': 0,
+      };
     } catch (e) {
       debugPrint('Failed to fetch members: $e');
-      return [];
+      return {
+        'members': <Member>[],
+        'totalCount': 0,
+      };
     }
   }
   

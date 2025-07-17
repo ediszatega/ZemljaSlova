@@ -9,6 +9,7 @@ import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/pagination_controls_widget.dart';
 import '../screens/members_detail_overview.dart';
 import '../screens/member_add.dart';
 
@@ -42,18 +43,40 @@ class MembersContent extends StatefulWidget {
   State<MembersContent> createState() => _MembersContentState();
 }
 
-class _MembersContentState extends State<MembersContent> {
+class _MembersContentState extends State<MembersContent> with WidgetsBindingObserver {
   String _sortOption = 'Ime (A-Z)';
   Map<int, bool> _membershipStatus = {}; // Track membership status for each member
   bool _loadingMembershipStatuses = false;
   bool _membershipStatusesLoaded = false; // Track if membership statuses have been loaded
+  final ScrollController _scrollController = ScrollController();
   
   @override
   void initState() {
     super.initState();
-    // Load members data
+    // Register as an observer to detect when the app regains focus
+    WidgetsBinding.instance.addObserver(this);
+    _loadMembers();
+  }
+  
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _scrollController.dispose();
+    super.dispose();
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh data when app comes back to foreground
+      _loadMembers();
+    }
+  }
+  
+  void _loadMembers() {
+    // Load members data using pagination
     Future.microtask(() {
-      Provider.of<MemberProvider>(context, listen: false).fetchMembers(isUserIncluded: true);
+      Provider.of<MemberProvider>(context, listen: false).refresh(isUserIncluded: true);
       _loadMembershipStatuses();
     });
   }
@@ -199,7 +222,10 @@ class _MembersContentState extends State<MembersContent> {
               MaterialPageRoute(
                 builder: (context) => const MemberAddScreen(),
               ),
-            );
+            ).then((_) {
+              // Refresh members when returning from add screen
+              _loadMembers();
+            });
           },
           text: 'Dodaj korisnika',
           backgroundColor: const Color(0xFFE5FFEE),
@@ -214,13 +240,13 @@ class _MembersContentState extends State<MembersContent> {
   Widget _buildMembersGrid() {
     return Consumer<MemberProvider>(
       builder: (ctx, memberProvider, child) {
-        if (memberProvider.isLoading) {
+        if (memberProvider.isInitialLoading) {
           return const Center(
             child: CircularProgressIndicator(),
           );
         }
         
-        if (memberProvider.error != null) {
+        if (memberProvider.error != null && memberProvider.members.isEmpty) {
           return Center(
             child: Text(
               'Greška: ${memberProvider.error}',
@@ -266,38 +292,68 @@ class _MembersContentState extends State<MembersContent> {
             break;
         }
         
-        return GridView.builder(
-          padding: const EdgeInsets.only(bottom: 20),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            crossAxisSpacing: 40,
-            mainAxisSpacing: 40,
-            childAspectRatio: 0.7,
-          ),
-          itemCount: sortedMembers.length,
-          itemBuilder: (context, index) {
-            final member = sortedMembers[index];
-            final hasActiveMembership = _membershipStatus[member.id] ?? false;
+        return CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            // Members grid
+            SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                crossAxisSpacing: 40,
+                mainAxisSpacing: 40,
+                childAspectRatio: 0.7,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final member = sortedMembers[index];
+                  final hasActiveMembership = _membershipStatus[member.id] ?? false;
+                  
+                  return ZSCard.fromMember(
+                    context,
+                    member,
+                    isActive: hasActiveMembership,
+                    hideStatus: !_membershipStatusesLoaded, // Hide status until membership data is loaded
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MembersDetailOverview(
+                            member: member,
+                          ),
+                        ),
+                      );
+                      // Refresh membership statuses when returning from details
+                      _loadMembers();
+                      _refreshMembershipStatuses();
+                    },
+                  );
+                },
+                childCount: sortedMembers.length,
+              ),
+            ),
             
-            return ZSCard.fromMember(
-              context,
-              member,
-              isActive: hasActiveMembership,
-              hideStatus: !_membershipStatusesLoaded, // Hide status until membership data is loaded
-              onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MembersDetailOverview(
-                      member: member,
-                    ),
+            if (memberProvider.hasMoreData || memberProvider.isLoadingMore)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 20, bottom: 40),
+                  child: PaginationControlsWidget(
+                    currentItemCount: memberProvider.members.length,
+                    totalCount: memberProvider.totalCount,
+                    hasMoreData: memberProvider.hasMoreData,
+                    isLoadingMore: memberProvider.isLoadingMore,
+                    onLoadMore: () => memberProvider.loadMore(),
+                    currentPageSize: memberProvider.pageSize,
+                    onPageSizeChanged: (newSize) => memberProvider.setPageSize(newSize),
+                    itemName: 'korisnika',
+                    loadMoreText: 'Učitaj više korisnika',
                   ),
-                );
-                // Refresh membership statuses when returning from details
-                _refreshMembershipStatuses();
-              },
-            );
-          },
+                ),
+              )
+            else
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 60),
+              ),
+          ],
         );
       },
     );

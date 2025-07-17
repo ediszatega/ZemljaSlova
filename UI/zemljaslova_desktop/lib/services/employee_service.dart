@@ -8,24 +8,49 @@ class EmployeeService {
   
   EmployeeService(this._apiService);
   
-  Future<List<Employee>> fetchEmployees({bool isUserIncluded = true}) async {
+  Future<Map<String, dynamic>> fetchEmployees({
+    bool isUserIncluded = true,
+    int? page,
+    int? pageSize,
+  }) async {
     try {
-      final response = await _apiService.get('Employee?IsUserIncluded=$isUserIncluded');
+      List<String> queryParams = ['IsUserIncluded=$isUserIncluded'];
       
-      debugPrint('API response: $response');
+      if (page != null) {
+        queryParams.add('Page=$page');
+      }
+      
+      if (pageSize != null) {
+        queryParams.add('PageSize=$pageSize');
+      }
+      
+      final queryString = queryParams.join('&');
+      final response = await _apiService.get('Employee?$queryString');
       
       if (response != null) {
         final employeesList = response['resultList'] as List;
+        final totalCount = response['count'] as int;
         
-        return employeesList
+        final employees = employeesList
             .map((employeeJson) => _mapEmployeeFromBackend(employeeJson))
             .toList();
+            
+        return {
+          'employees': employees,
+          'totalCount': totalCount,
+        };
       }
       
-      return [];
+      return {
+        'employees': <Employee>[],
+        'totalCount': 0,
+      };
     } catch (e) {
       debugPrint('Failed to fetch employees: $e');
-      return [];
+      return {
+        'employees': <Employee>[],
+        'totalCount': 0,
+      };
     }
   }
   

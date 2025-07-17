@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/employee.dart';
 import '../services/employee_service.dart';
+import '../widgets/paginated_data_widget.dart';
 
-class EmployeeProvider with ChangeNotifier {
+class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Employee> {
   final EmployeeService _employeeService;
   
   EmployeeProvider(this._employeeService);
@@ -10,27 +11,92 @@ class EmployeeProvider with ChangeNotifier {
   List<Employee> _employees = [];
   bool _isLoading = false;
   String? _error;
+  
+  // Pagination state
+  int _currentPage = 0;
+  int _pageSize = 10;
+  int _totalCount = 0;
+  bool _hasMoreData = true;
 
   List<Employee> get employees => [..._employees];
+  
+  // PaginatedDataProvider interface implementation
+  @override
+  List<Employee> get items => employees;
+  
   bool get isLoading => _isLoading;
+  @override
+  bool get isInitialLoading => _isLoading && _employees.isEmpty;
+  @override
+  bool get isLoadingMore => _isLoading && _employees.isNotEmpty;
+  @override
   String? get error => _error;
+  int get currentPage => _currentPage;
+  @override
+  int get pageSize => _pageSize;
+  @override
+  int get totalCount => _totalCount;
+  @override
+  bool get hasMoreData => _hasMoreData;
+  int get totalPages => (_totalCount / _pageSize).ceil();
 
-  Future<void> fetchEmployees({bool isUserIncluded = true}) async {
+  Future<void> fetchEmployees({bool isUserIncluded = true, bool refresh = false}) async {
+    if (refresh) {
+      _currentPage = 0;
+      _employees.clear();
+      _hasMoreData = true;
+      _error = null;
+    }
+    
     _isLoading = true;
-    _error = null;
     notifyListeners();
 
     try {
-      _employees = await _employeeService.fetchEmployees(isUserIncluded: isUserIncluded);
-      for (var employee in _employees) {
-        print(employee.firstName);
+      final result = await _employeeService.fetchEmployees(
+        isUserIncluded: isUserIncluded,
+        page: _currentPage,
+        pageSize: _pageSize,
+      );
+      
+      final List<Employee> newEmployees = result['employees'] as List<Employee>;
+      _totalCount = result['totalCount'] as int;
+      
+      if (refresh || _employees.isEmpty) {
+        _employees = newEmployees;
+      } else {
+        _employees.addAll(newEmployees);
       }
+      
+      _hasMoreData = _employees.length < _totalCount;
+      
       _isLoading = false;
+      _error = null;
       notifyListeners();
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
       notifyListeners();
+    }
+  }
+  
+  @override
+  Future<void> loadMore({bool isUserIncluded = true}) async {
+    if (_isLoading || !_hasMoreData) return;
+    
+    _currentPage++;
+    await fetchEmployees(isUserIncluded: isUserIncluded, refresh: false);
+  }
+  
+  @override
+  Future<void> refresh({bool isUserIncluded = true}) async {
+    await fetchEmployees(isUserIncluded: isUserIncluded, refresh: true);
+  }
+  
+  @override
+  void setPageSize(int newPageSize) {
+    if (newPageSize != _pageSize) {
+      _pageSize = newPageSize;
+      refresh();
     }
   }
 
@@ -67,7 +133,8 @@ class EmployeeProvider with ChangeNotifier {
       );
 
       if (employee != null) {
-        _employees.add(employee);
+        // Refresh to get updated pagination
+        await refresh();
         _isLoading = false;
         notifyListeners();
         return true;
