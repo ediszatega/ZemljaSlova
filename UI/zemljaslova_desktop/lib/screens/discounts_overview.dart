@@ -174,47 +174,111 @@ class _DiscountsOverviewState extends State<DiscountsOverview> {
           );
         }
 
-        return SingleChildScrollView(
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Table(
-              columnWidths: const {
-                0: FixedColumnWidth(60),   // Redni broj
-                1: FlexColumnWidth(2),     // Ime
-                2: FixedColumnWidth(90),   // Procenat
-                3: FixedColumnWidth(100),  // Tip
-                4: FixedColumnWidth(100),  // Status
-                5: FixedColumnWidth(100),  // Korištenje
-                6: FixedColumnWidth(120),  // Početak
-                7: FixedColumnWidth(110),  // Kraj
-                8: FixedColumnWidth(140),  // Akcije (wider)
-              },
-              children: [
-                // Header
-                TableRow(
+        return Column(
+          children: [
+            // Table
+            Expanded(
+              child: SingleChildScrollView(
+                child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
                   ),
+                  child: Table(
+                    columnWidths: const {
+                      0: FixedColumnWidth(60),   // Redni broj
+                      1: FlexColumnWidth(2),     // Ime
+                      2: FixedColumnWidth(90),   // Procenat
+                      3: FixedColumnWidth(100),  // Tip
+                      4: FixedColumnWidth(100),  // Status
+                      5: FixedColumnWidth(100),  // Korištenje
+                      6: FixedColumnWidth(120),  // Početak
+                      7: FixedColumnWidth(110),  // Kraj
+                      8: FixedColumnWidth(140),  // Akcije (wider)
+                    },
+                    children: [
+                      // Header
+                      TableRow(
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                        ),
+                        children: [
+                          _buildTableHeader('Br.'),
+                          _buildTableHeader('Ime'),
+                          _buildTableHeader('Procenat'),
+                          _buildTableHeader('Tip'),
+                          _buildTableHeader('Status'),
+                          _buildTableHeader('Korištenje'),
+                          _buildTableHeader('Početak'),
+                          _buildTableHeader('Kraj'),
+                          _buildTableHeader('Akcije'),
+                        ],
+                      ),
+                      
+                      ...discounts.asMap().entries.map((entry) => _buildDiscountRow(
+                        entry.value, 
+                        (discountProvider.currentPage * discountProvider.pageSize) + entry.key + 1
+                      )),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            
+            // Pagination controls
+            if (discountProvider.shouldShowPagination)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  border: Border(
+                    top: BorderSide(color: Colors.grey.shade300),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildTableHeader('Br.'),
-                    _buildTableHeader('Ime'),
-                    _buildTableHeader('Procenat'),
-                    _buildTableHeader('Tip'),
-                    _buildTableHeader('Status'),
-                    _buildTableHeader('Korištenje'),
-                    _buildTableHeader('Početak'),
-                    _buildTableHeader('Kraj'),
-                    _buildTableHeader('Akcije'),
+                    // Total count
+                    Text(
+                      'Ukupno ${discountProvider.totalCount} popusta',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    
+                    // Page info and navigation
+                    Row(
+                      children: [
+                        Text(
+                          'Stranica ${discountProvider.currentPage + 1} od ${discountProvider.totalPages}',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(width: 16),
+                        
+                        // Previous button
+                        IconButton(
+                          onPressed: discountProvider.hasPreviousPage && !discountProvider.isLoading
+                              ? discountProvider.previousPage
+                              : null,
+                          icon: const Icon(Icons.chevron_left),
+                          tooltip: 'Prethodna stranica',
+                        ),
+                        
+                        // Next button
+                        IconButton(
+                          onPressed: discountProvider.hasNextPage && !discountProvider.isLoading
+                              ? discountProvider.nextPage
+                              : null,
+                          icon: const Icon(Icons.chevron_right),
+                          tooltip: 'Sljedeća stranica',
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-                
-                ...discounts.asMap().entries.map((entry) => _buildDiscountRow(entry.value, entry.key + 1)),
-              ],
-            ),
-          ),
+              ),
+          ],
         );
       },
     );

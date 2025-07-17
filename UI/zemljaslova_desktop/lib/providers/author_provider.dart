@@ -11,7 +11,7 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
   
   // Pagination state
   int _currentPage = 0;
-  int _pageSize = 4;
+  int _pageSize = 10;
   int _totalCount = 0;
   bool _hasMoreData = true;
 

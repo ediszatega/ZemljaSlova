@@ -10,10 +10,25 @@ class DiscountProvider with ChangeNotifier {
   List<Discount> _discounts = [];
   bool _isLoading = false;
   String? _error;
+  
+  // Simple pagination state
+  int _currentPage = 0;
+  final int _pageSize = 10;
+  int _totalCount = 0;
+  
+  // Store current filters to maintain them across pagination
+  Map<String, dynamic> _currentFilters = {};
 
   List<Discount> get discounts => [..._discounts];
   bool get isLoading => _isLoading;
   String? get error => _error;
+  int get currentPage => _currentPage;
+  int get pageSize => _pageSize;
+  int get totalCount => _totalCount;
+  int get totalPages => (_totalCount / _pageSize).ceil();
+  bool get hasPreviousPage => _currentPage > 0;
+  bool get hasNextPage => (_currentPage + 1) < totalPages;
+  bool get shouldShowPagination => _totalCount > _pageSize;
 
   Future<void> fetchDiscounts({
     bool? isActive,
@@ -27,13 +42,33 @@ class DiscountProvider with ChangeNotifier {
     double? maxPercentage,
     bool? hasUsageLimit,
     int? bookId,
+    bool resetPage = true,
   }) async {
+    if (resetPage) {
+      _currentPage = 0;
+    }
+    
+    // Store current filters
+    _currentFilters = {
+      'isActive': isActive,
+      'code': code,
+      'startDateFrom': startDateFrom,
+      'startDateTo': startDateTo,
+      'endDateFrom': endDateFrom,
+      'endDateTo': endDateTo,
+      'scope': scope,
+      'minPercentage': minPercentage,
+      'maxPercentage': maxPercentage,
+      'hasUsageLimit': hasUsageLimit,
+      'bookId': bookId,
+    };
+    
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _discounts = await _discountService.fetchDiscounts(
+      final result = await _discountService.fetchDiscounts(
         isActive: isActive,
         code: code,
         startDateFrom: startDateFrom,
@@ -45,7 +80,12 @@ class DiscountProvider with ChangeNotifier {
         maxPercentage: maxPercentage,
         hasUsageLimit: hasUsageLimit,
         bookId: bookId,
+        page: _currentPage,
+        pageSize: _pageSize,
       );
+      
+      _discounts = result['discounts'] as List<Discount>;
+      _totalCount = result['totalCount'] as int;
       
       _isLoading = false;
       notifyListeners();
@@ -54,6 +94,39 @@ class DiscountProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+  
+  // Pagination methods
+  Future<void> nextPage() async {
+    if (hasNextPage && !_isLoading) {
+      _currentPage++;
+      await _fetchWithCurrentFilters();
+    }
+  }
+  
+  Future<void> previousPage() async {
+    if (hasPreviousPage && !_isLoading) {
+      _currentPage--;
+      await _fetchWithCurrentFilters();
+    }
+  }
+  
+  // Helper method to refetch with stored filters
+  Future<void> _fetchWithCurrentFilters() async {
+    await fetchDiscounts(
+      isActive: _currentFilters['isActive'],
+      code: _currentFilters['code'],
+      startDateFrom: _currentFilters['startDateFrom'],
+      startDateTo: _currentFilters['startDateTo'],
+      endDateFrom: _currentFilters['endDateFrom'],
+      endDateTo: _currentFilters['endDateTo'],
+      scope: _currentFilters['scope'],
+      minPercentage: _currentFilters['minPercentage'],
+      maxPercentage: _currentFilters['maxPercentage'],
+      hasUsageLimit: _currentFilters['hasUsageLimit'],
+      bookId: _currentFilters['bookId'],
+      resetPage: false, // Don't reset page since we're navigating
+    );
   }
 
   Future<Discount?> getDiscountById(int id) async {

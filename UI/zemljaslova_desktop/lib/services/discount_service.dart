@@ -8,7 +8,7 @@ class DiscountService {
   
   DiscountService(this._apiService);
   
-  Future<List<Discount>> fetchDiscounts({
+  Future<Map<String, dynamic>> fetchDiscounts({
     bool? isActive,
     String? code,
     DateTime? startDateFrom,
@@ -20,6 +20,8 @@ class DiscountService {
     double? maxPercentage,
     bool? hasUsageLimit,
     int? bookId,
+    int? page,
+    int? pageSize,
   }) async {
     try {
       final queryParams = <String, String>{};
@@ -57,6 +59,12 @@ class DiscountService {
       if (bookId != null) {
         queryParams['BookId'] = bookId.toString();
       }
+      if (page != null) {
+        queryParams['Page'] = page.toString();
+      }
+      if (pageSize != null) {
+        queryParams['PageSize'] = pageSize.toString();
+      }
       
       String endpoint = 'Discount';
       if (queryParams.isNotEmpty) {
@@ -70,16 +78,28 @@ class DiscountService {
       
       if (response != null) {
         final discountsList = response['resultList'] as List;
+        final totalCount = response['count'] as int;
 
-        return discountsList
+        final discounts = discountsList
             .map((discountJson) => _mapDiscountFromBackend(discountJson))
             .toList();
+            
+        return {
+          'discounts': discounts,
+          'totalCount': totalCount,
+        };
       }
       
-      return [];
+      return {
+        'discounts': <Discount>[],
+        'totalCount': 0,
+      };
     } catch (e) {
       debugPrint('Failed to fetch discounts: $e');
-      return [];
+      return {
+        'discounts': <Discount>[],
+        'totalCount': 0,
+      };
     }
   }
   
