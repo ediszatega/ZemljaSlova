@@ -19,13 +19,10 @@ class ApiService {
   Future<dynamic> get(String endpoint) async {
     try {
       final url = Uri.parse('$baseUrl/$endpoint');
-      
-      debugPrint('Making GET request to: $url');
       final response = await http.get(url, headers: headers);
       
       return _handleResponse(response);
     } catch (e) {
-      debugPrint('Error in GET request: $e');
       throw Exception('Failed to perform GET request: $e');
     }
   }
@@ -42,7 +39,6 @@ class ApiService {
       
       return _handleResponse(response);
     } catch (e) {
-      debugPrint('Error in POST request: $e');
       throw Exception('Failed to perform POST request: $e');
     }
   }
@@ -59,7 +55,6 @@ class ApiService {
       
       return _handleResponse(response);
     } catch (e) {
-      debugPrint('Error in PUT request: $e');
       throw Exception('Failed to perform PUT request: $e');
     }
   }
@@ -72,28 +67,21 @@ class ApiService {
       
       return _handleResponse(response);
     } catch (e) {
-      debugPrint('Error in DELETE request: $e');
       throw Exception('Failed to perform DELETE request: $e');
     }
   }
   
   dynamic _handleResponse(http.Response response) {
-    debugPrint('Response status code: ${response.statusCode}');
-    debugPrint('Response body: ${response.body}');
-    
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (response.body.isNotEmpty) {
         try {
           return json.decode(response.body);
         } catch (e) {
-          debugPrint('Failed to decode JSON response: $e');
-          debugPrint('Raw response body: ${response.body}');
           throw Exception('Invalid JSON response from server');
         }
       }
       return null;
     } else {
-      debugPrint('API Error: [${response.statusCode}] ${response.body}');
       throw Exception('API Error: [${response.statusCode}] ${response.reasonPhrase}');
     }
   }

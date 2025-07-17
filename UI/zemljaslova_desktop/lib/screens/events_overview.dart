@@ -8,6 +8,7 @@ import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../widgets/zs_card_vertical.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/pagination_controls_widget.dart';
 import 'event_add.dart';
 import 'event_detail_overview.dart';
 
@@ -43,13 +44,24 @@ class EventsContent extends StatefulWidget {
 
 class _EventsContentState extends State<EventsContent> {
   String _sortOption = 'Najnoviji';
+  final ScrollController _scrollController = ScrollController();
   
   @override
   void initState() {
     super.initState();
-    // Load events data
+    _loadEvents();
+  }
+  
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+  
+  void _loadEvents() {
+    // Load events data using pagination
     Future.microtask(() {
-      Provider.of<EventProvider>(context, listen: false).fetchEvents();
+      Provider.of<EventProvider>(context, listen: false).refresh(isTicketTypeIncluded: true);
     });
   }
 
@@ -75,7 +87,7 @@ class _EventsContentState extends State<EventsContent> {
           
           const SizedBox(height: 24),
           
-          // Events list
+          // Events grid
           Expanded(
             child: _buildEventsList(),
           ),
@@ -140,7 +152,7 @@ class _EventsContentState extends State<EventsContent> {
               ),
             ).then((_) {
               // Refresh events when returning from add screen
-              Provider.of<EventProvider>(context, listen: false).fetchEvents();
+              _loadEvents();
             });
           },
           text: 'Dodaj događaj',
@@ -156,13 +168,13 @@ class _EventsContentState extends State<EventsContent> {
   Widget _buildEventsList() {
     return Consumer<EventProvider>(
       builder: (ctx, eventProvider, child) {
-        if (eventProvider.isLoading) {
+        if (eventProvider.isInitialLoading) {
           return const Center(
             child: CircularProgressIndicator(),
           );
         }
         
-        if (eventProvider.error != null) {
+        if (eventProvider.error != null && eventProvider.events.isEmpty) {
           return Center(
             child: Text(
               'Greška: ${eventProvider.error}',
@@ -233,33 +245,61 @@ class _EventsContentState extends State<EventsContent> {
             break;
         }
         
-        return GridView.builder(
-          padding: const EdgeInsets.only(bottom: 20),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 3.0,
-          ),
-          itemCount: sortedEvents.length,
-          itemBuilder: (context, index) {
-            final event = sortedEvents[index];
-            return ZSCardVertical.fromEvent(
-              context,
-              event,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EventDetailOverview(eventId: event.id),
+        return CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            // Events grid
+            SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 3.0,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final event = sortedEvents[index];
+                  return ZSCardVertical.fromEvent(
+                    context,
+                    event,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EventDetailOverview(eventId: event.id),
+                        ),
+                      ).then((_) {
+                        _loadEvents();
+                      });
+                    },
+                  );
+                },
+                childCount: sortedEvents.length,
+              ),
+            ),
+            
+            if (eventProvider.hasMoreData || eventProvider.isLoadingMore)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 20, bottom: 40),
+                  child: PaginationControlsWidget(
+                    currentItemCount: eventProvider.events.length,
+                    totalCount: eventProvider.totalCount,
+                    hasMoreData: eventProvider.hasMoreData,
+                    isLoadingMore: eventProvider.isLoadingMore,
+                    onLoadMore: () => eventProvider.loadMore(),
+                    currentPageSize: eventProvider.pageSize,
+                    onPageSizeChanged: (newSize) => eventProvider.setPageSize(newSize),
+                    itemName: 'događaja',
+                    loadMoreText: 'Učitaj više događaja',
                   ),
-                ).then((_) {
-                  // Refresh events when returning from detail screen
-                  Provider.of<EventProvider>(context, listen: false).fetchEvents();
-                });
-              },
-            );
-          },
+                ),
+              )
+            else
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 60),
+              ),
+          ],
         );
       },
     );
