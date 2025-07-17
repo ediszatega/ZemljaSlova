@@ -8,6 +8,7 @@ import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/pagination_controls_widget.dart';
 import 'book_detail_overview.dart';
 import 'book_add.dart';
 
@@ -43,6 +44,7 @@ class BooksContent extends StatefulWidget {
 
 class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver {
   String _sortOption = 'Naslov (A-Z)';
+  final ScrollController _scrollController = ScrollController();
   
   @override
   void initState() {
@@ -55,6 +57,7 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _scrollController.dispose();
     super.dispose();
   }
   
@@ -67,9 +70,9 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
   }
   
   void _loadBooks() {
-    // Load books data
+    // Load books data using pagination
     Future.microtask(() {
-      Provider.of<BookProvider>(context, listen: false).fetchBooks(isAuthorIncluded: true);
+      Provider.of<BookProvider>(context, listen: false).refresh(isAuthorIncluded: true);
     });
   }
 
@@ -177,13 +180,13 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
   Widget _buildBooksGrid() {
     return Consumer<BookProvider>(
       builder: (ctx, bookProvider, child) {
-        if (bookProvider.isLoading) {
+        if (bookProvider.isInitialLoading) {
           return const Center(
             child: CircularProgressIndicator(),
           );
         }
         
-        if (bookProvider.error != null) {
+        if (bookProvider.error != null && bookProvider.books.isEmpty) {
           return Center(
             child: Text(
               'Greška: ${bookProvider.error}',
@@ -222,35 +225,63 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
             break;
         }
         
-        return GridView.builder(
-          padding: const EdgeInsets.only(bottom: 20),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            crossAxisSpacing: 40,
-            mainAxisSpacing: 40,
-            childAspectRatio: 0.65,
-          ),
-          itemCount: sortedBooks.length,
-          itemBuilder: (context, index) {
-            final book = sortedBooks[index];
-            return ZSCard.fromBook(
-              context,
-              book,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => BookDetailOverview(
-                      book: book,
-                    ),
+        return CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            // Books grid
+            SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                crossAxisSpacing: 40,
+                mainAxisSpacing: 40,
+                childAspectRatio: 0.65,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final book = sortedBooks[index];
+                  return ZSCard.fromBook(
+                    context,
+                    book,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BookDetailOverview(
+                            book: book,
+                          ),
+                        ),
+                      ).then((_) {
+                        _loadBooks();
+                      });
+                    },
+                  );
+                },
+                childCount: sortedBooks.length,
+              ),
+            ),
+            
+            if (bookProvider.hasMoreData || bookProvider.isLoadingMore)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 20, bottom: 40),
+                  child: PaginationControlsWidget(
+                    currentItemCount: bookProvider.books.length,
+                    totalCount: bookProvider.totalCount,
+                    hasMoreData: bookProvider.hasMoreData,
+                    isLoadingMore: bookProvider.isLoadingMore,
+                    onLoadMore: () => bookProvider.loadMore(),
+                    currentPageSize: bookProvider.pageSize,
+                    onPageSizeChanged: (newSize) => bookProvider.setPageSize(newSize),
+                    itemName: 'knjiga',
+                    loadMoreText: 'Učitaj više knjiga',
                   ),
-                ).then((_) {
-                  // Refresh books when returning from detail screen
-                  _loadBooks();
-                });
-              },
-            );
-          },
+                ),
+              )
+            else
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 60),
+              ),
+          ],
         );
       },
     );

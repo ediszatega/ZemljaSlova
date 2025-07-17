@@ -9,24 +9,51 @@ class BookService {
   
   BookService(this._apiService);
   
-  Future<List<Book>> fetchBooks({bool isAuthorIncluded = true}) async {
+  Future<Map<String, dynamic>> fetchBooks({
+    bool isAuthorIncluded = true,
+    int? page,
+    int? pageSize,
+  }) async {
     try {
-      final response = await _apiService.get('Book?IsAuthorIncluded=$isAuthorIncluded');
+      List<String> queryParams = ['IsAuthorIncluded=$isAuthorIncluded'];
+      
+      if (page != null) {
+        queryParams.add('Page=$page');
+      }
+      
+      if (pageSize != null) {
+        queryParams.add('PageSize=$pageSize');
+      }
+      
+      final queryString = queryParams.join('&');
+      final response = await _apiService.get('Book?$queryString');
       
       debugPrint('API response: $response');
       
       if (response != null) {
         final booksList = response['resultList'] as List;
+        final totalCount = response['count'] as int;
         
-        return booksList
+        final books = booksList
             .map((bookJson) => _mapBookFromBackend(bookJson))
             .toList();
+            
+        return {
+          'books': books,
+          'totalCount': totalCount,
+        };
       }
       
-      return [];
+      return {
+        'books': <Book>[],
+        'totalCount': 0,
+      };
     } catch (e) {
       debugPrint('Failed to fetch books: $e');
-      return [];
+      return {
+        'books': <Book>[],
+        'totalCount': 0,
+      };
     }
   }
   
