@@ -41,7 +41,7 @@ class _MembershipAddScreenState extends State<MembershipAddScreen> {
     // Fetch members when screen loads (only if no member is preselected)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.preselectedMember == null) {
-        Provider.of<MemberProvider>(context, listen: false).fetchMembers();
+        Provider.of<MemberProvider>(context, listen: false).fetchMembers(refresh: true);
       }
     });
   }

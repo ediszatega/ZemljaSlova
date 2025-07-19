@@ -79,7 +79,7 @@ class _BookEditScreenState extends State<BookEditScreen> {
     
     try {
       final authorProvider = Provider.of<AuthorProvider>(context, listen: false);
-      await authorProvider.fetchAuthors();
+      await authorProvider.fetchAuthors(refresh: true);
       
       setState(() {
         _authors = authorProvider.authors;

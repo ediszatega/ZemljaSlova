@@ -871,7 +871,7 @@ class _DiscountsOverviewState extends State<DiscountsOverview> {
     );
     
     // Load books when dialog opens
-    bookProvider.fetchBooks();
+    bookProvider.fetchBooks(refresh: true);
   }
 
   void _showDeleteDialog(Discount discount) {

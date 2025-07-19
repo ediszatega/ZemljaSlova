@@ -47,7 +47,7 @@ class _DiscountAddScreenState extends State<DiscountAddScreen> {
     
     try {
       final bookProvider = Provider.of<BookProvider>(context, listen: false);
-      await bookProvider.fetchBooks();
+      await bookProvider.fetchBooks(refresh: true);
       
       setState(() {
         _isLoading = false;
