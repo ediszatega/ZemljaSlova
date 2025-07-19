@@ -168,47 +168,111 @@ class _VouchersOverviewState extends State<VouchersOverview> {
           );
         }
 
-        return SingleChildScrollView(
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Table(
-              columnWidths: const {
-                0: FixedColumnWidth(80),   // Redni broj
-                1: FixedColumnWidth(120),  // Kod
-                2: FixedColumnWidth(100),  // Vrijednost
-                3: FixedColumnWidth(100),  // Status
-                4: FixedColumnWidth(120),  // Tip
-                5: FlexColumnWidth(2),     // Kupac
-                6: FixedColumnWidth(120),  // Datum kreiranja
-                7: FixedColumnWidth(120),  // Datum isteka
-                8: FixedColumnWidth(100),  // Akcije
-              },
-              children: [
-                // Header
-                TableRow(
+        return Column(
+          children: [
+            // Table
+            Expanded(
+              child: SingleChildScrollView(
+                child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
                   ),
+                  child: Table(
+                    columnWidths: const {
+                      0: FixedColumnWidth(80),   // Redni broj
+                      1: FixedColumnWidth(120),  // Kod
+                      2: FixedColumnWidth(100),  // Vrijednost
+                      3: FixedColumnWidth(100),  // Status
+                      4: FixedColumnWidth(120),  // Tip
+                      5: FlexColumnWidth(2),     // Kupac
+                      6: FixedColumnWidth(120),  // Datum kreiranja
+                      7: FixedColumnWidth(120),  // Datum isteka
+                      8: FixedColumnWidth(100),  // Akcije
+                    },
+                    children: [
+                      // Header
+                      TableRow(
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                        ),
+                        children: [
+                          _buildTableHeader('Br.'),
+                          _buildTableHeader('Kod'),
+                          _buildTableHeader('Vrijednost'),
+                          _buildTableHeader('Status'),
+                          _buildTableHeader('Tip'),
+                          _buildTableHeader('Kupac'),
+                          _buildTableHeader('Kreiran'),
+                          _buildTableHeader('Ističe'),
+                          _buildTableHeader('Akcije'),
+                        ],
+                      ),
+                      
+                      ...vouchers.asMap().entries.map((entry) => _buildVoucherRow(
+                        entry.value, 
+                        (voucherProvider.currentPage * voucherProvider.pageSize) + entry.key + 1
+                      )),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            
+            // Pagination controls
+            if (voucherProvider.shouldShowPagination)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  border: Border(
+                    top: BorderSide(color: Colors.grey.shade300),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildTableHeader('Br.'),
-                    _buildTableHeader('Kod'),
-                    _buildTableHeader('Vrijednost'),
-                    _buildTableHeader('Status'),
-                    _buildTableHeader('Tip'),
-                    _buildTableHeader('Kupac'),
-                    _buildTableHeader('Kreiran'),
-                    _buildTableHeader('Ističe'),
-                    _buildTableHeader('Akcije'),
+                    // Total count
+                    Text(
+                      'Ukupno ${voucherProvider.totalCount} vaučera',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    
+                    // Page info and navigation
+                    Row(
+                      children: [
+                        Text(
+                          'Stranica ${voucherProvider.currentPage + 1} od ${voucherProvider.totalPages}',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(width: 16),
+                        
+                        // Previous button
+                        IconButton(
+                          onPressed: voucherProvider.hasPreviousPage && !voucherProvider.isLoading
+                              ? voucherProvider.previousPage
+                              : null,
+                          icon: const Icon(Icons.chevron_left),
+                          tooltip: 'Prethodna stranica',
+                        ),
+                        
+                        // Next button
+                        IconButton(
+                          onPressed: voucherProvider.hasNextPage && !voucherProvider.isLoading
+                              ? voucherProvider.nextPage
+                              : null,
+                          icon: const Icon(Icons.chevron_right),
+                          tooltip: 'Sljedeća stranica',
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-                
-                ...vouchers.asMap().entries.map((entry) => _buildVoucherRow(entry.value, entry.key + 1)),
-              ],
-            ),
-          ),
+              ),
+          ],
         );
       },
     );

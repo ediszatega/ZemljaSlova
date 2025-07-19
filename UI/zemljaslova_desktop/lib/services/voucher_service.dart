@@ -9,12 +9,14 @@ class VoucherService {
   
   VoucherService(this._apiService);
   
-  Future<List<Voucher>> fetchVouchers({
+  Future<Map<String, dynamic>> fetchVouchers({
     int? memberId,
     bool? isUsed,
     String? code,
     DateTime? expirationDateFrom,
     DateTime? expirationDateTo,
+    int? page,
+    int? pageSize,
   }) async {
     try {
       final queryParams = <String, String>{};
@@ -34,6 +36,12 @@ class VoucherService {
       if (expirationDateTo != null) {
         queryParams['ExpirationDateTo'] = expirationDateTo.toIso8601String();
       }
+      if (page != null) {
+        queryParams['Page'] = page.toString();
+      }
+      if (pageSize != null) {
+        queryParams['PageSize'] = pageSize.toString();
+      }
       
       String endpoint = 'Voucher';
       if (queryParams.isNotEmpty) {
@@ -47,16 +55,28 @@ class VoucherService {
       
       if (response != null) {
         final vouchersList = response['resultList'] as List;
+        final totalCount = response['count'] as int;
 
-        return vouchersList
+        final vouchers = vouchersList
             .map((voucherJson) => _mapVoucherFromBackend(voucherJson))
             .toList();
+            
+        return {
+          'vouchers': vouchers,
+          'totalCount': totalCount,
+        };
       }
       
-      return [];
+      return {
+        'vouchers': <Voucher>[],
+        'totalCount': 0,
+      };
     } catch (e) {
       debugPrint('Failed to fetch vouchers: $e');
-      return [];
+      return {
+        'vouchers': <Voucher>[],
+        'totalCount': 0,
+      };
     }
   }
   
