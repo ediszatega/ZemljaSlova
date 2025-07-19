@@ -9,7 +9,7 @@ class MembershipService {
   
   MembershipService(this._apiService);
   
-  Future<List<Membership>> fetchMemberships({
+  Future<Map<String, dynamic>> fetchMemberships({
     bool? isActive,
     bool? isExpired,
     DateTime? startDateFrom,
@@ -17,6 +17,8 @@ class MembershipService {
     DateTime? endDateFrom,
     DateTime? endDateTo,
     bool includeMember = true,
+    int? page,
+    int? pageSize,
   }) async {
     try {
       final queryParams = <String, String>{};
@@ -42,6 +44,12 @@ class MembershipService {
       if (includeMember) {
         queryParams['IncludeMember'] = 'true';
       }
+      if (page != null) {
+        queryParams['Page'] = page.toString();
+      }
+      if (pageSize != null) {
+        queryParams['PageSize'] = pageSize.toString();
+      }
       
       String endpoint = 'Membership';
       if (queryParams.isNotEmpty) {
@@ -55,16 +63,28 @@ class MembershipService {
       
       if (response != null) {
         final membershipsList = response['resultList'] as List;
+        final totalCount = response['count'] as int;
 
-        return membershipsList
+        final memberships = membershipsList
             .map((membershipJson) => _mapMembershipFromBackend(membershipJson))
             .toList();
+            
+        return {
+          'memberships': memberships,
+          'totalCount': totalCount,
+        };
       }
       
-      return [];
+      return {
+        'memberships': <Membership>[],
+        'totalCount': 0,
+      };
     } catch (e) {
       debugPrint('Failed to fetch memberships: $e');
-      return [];
+      return {
+        'memberships': <Membership>[],
+        'totalCount': 0,
+      };
     }
   }
   

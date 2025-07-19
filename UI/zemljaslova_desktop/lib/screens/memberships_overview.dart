@@ -165,45 +165,109 @@ class _MembershipsOverviewState extends State<MembershipsOverview> {
           );
         }
 
-        return SingleChildScrollView(
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Table(
-              columnWidths: const {
-                0: FixedColumnWidth(50),   // Redni broj
-                1: FlexColumnWidth(2),     // Član
-                2: FixedColumnWidth(100),  // Datum početka
-                3: FixedColumnWidth(100),  // Datum kraja
-                4: FixedColumnWidth(90),   // Status
-                5: FixedColumnWidth(90),   // Trajanje
-                6: FixedColumnWidth(90),   // Preostalo dana
-                7: FixedColumnWidth(140),  // Akcije
-              },
-              children: [
-                // Header
-                TableRow(
+        return Column(
+          children: [
+            // Table
+            Expanded(
+              child: SingleChildScrollView(
+                child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
                   ),
+                  child: Table(
+                    columnWidths: const {
+                      0: FixedColumnWidth(50),   // Redni broj
+                      1: FlexColumnWidth(2),     // Član
+                      2: FixedColumnWidth(100),  // Datum početka
+                      3: FixedColumnWidth(100),  // Datum kraja
+                      4: FixedColumnWidth(90),   // Status
+                      5: FixedColumnWidth(90),   // Trajanje
+                      6: FixedColumnWidth(90),   // Preostalo dana
+                      7: FixedColumnWidth(140),  // Akcije
+                    },
+                    children: [
+                      // Header
+                      TableRow(
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                        ),
+                        children: [
+                          _buildTableHeader('Br.'),
+                          _buildTableHeader('Član'),
+                          _buildTableHeader('Početak'),
+                          _buildTableHeader('Kraj'),
+                          _buildTableHeader('Status'),
+                          _buildTableHeader('Trajanje'),
+                          _buildTableHeader('Preostalo'),
+                          _buildTableHeader('Akcije'),
+                        ],
+                      ),
+                      
+                      ...memberships.asMap().entries.map((entry) => _buildMembershipRow(
+                        entry.value, 
+                        (membershipProvider.currentPage * membershipProvider.pageSize) + entry.key + 1
+                      )),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            
+            // Pagination controls
+            if (membershipProvider.shouldShowPagination)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  border: Border(
+                    top: BorderSide(color: Colors.grey.shade300),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildTableHeader('Br.'),
-                    _buildTableHeader('Član'),
-                    _buildTableHeader('Početak'),
-                    _buildTableHeader('Kraj'),
-                    _buildTableHeader('Status'),
-                    _buildTableHeader('Trajanje'),
-                    _buildTableHeader('Preostalo'),
-                    _buildTableHeader('Akcije'),
+                    // Total count
+                    Text(
+                      'Ukupno ${membershipProvider.totalCount} članarina',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    
+                    // Page info and navigation
+                    Row(
+                      children: [
+                        Text(
+                          'Stranica ${membershipProvider.currentPage + 1} od ${membershipProvider.totalPages}',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(width: 16),
+                        
+                        // Previous button
+                        IconButton(
+                          onPressed: membershipProvider.hasPreviousPage && !membershipProvider.isLoading
+                              ? membershipProvider.previousPage
+                              : null,
+                          icon: const Icon(Icons.chevron_left),
+                          tooltip: 'Prethodna stranica',
+                        ),
+                        
+                        // Next button
+                        IconButton(
+                          onPressed: membershipProvider.hasNextPage && !membershipProvider.isLoading
+                              ? membershipProvider.nextPage
+                              : null,
+                          icon: const Icon(Icons.chevron_right),
+                          tooltip: 'Sljedeća stranica',
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-                
-                ...memberships.asMap().entries.map((entry) => _buildMembershipRow(entry.value, entry.key + 1)),
-              ],
-            ),
-          ),
+              ),
+          ],
         );
       },
     );

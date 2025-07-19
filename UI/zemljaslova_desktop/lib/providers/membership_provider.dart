@@ -11,9 +11,24 @@ class MembershipProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  // Simple pagination state
+  int _currentPage = 0;
+  final int _pageSize = 10;
+  int _totalCount = 0;
+  
+  // Store current filters to maintain them across pagination
+  Map<String, dynamic> _currentFilters = {};
+
   List<Membership> get memberships => [..._memberships];
   bool get isLoading => _isLoading;
   String? get error => _error;
+  int get currentPage => _currentPage;
+  int get pageSize => _pageSize;
+  int get totalCount => _totalCount;
+  int get totalPages => (_totalCount / _pageSize).ceil();
+  bool get hasPreviousPage => _currentPage > 0;
+  bool get hasNextPage => (_currentPage + 1) < totalPages;
+  bool get shouldShowPagination => _totalCount > _pageSize;
 
   Future<void> fetchMemberships({
     bool? isActive,
@@ -23,13 +38,29 @@ class MembershipProvider with ChangeNotifier {
     DateTime? endDateFrom,
     DateTime? endDateTo,
     bool includeMember = true,
+    bool resetPage = true,
   }) async {
+    if (resetPage) {
+      _currentPage = 0;
+    }
+    
+    // Store current filters
+    _currentFilters = {
+      'isActive': isActive,
+      'isExpired': isExpired,
+      'startDateFrom': startDateFrom,
+      'startDateTo': startDateTo,
+      'endDateFrom': endDateFrom,
+      'endDateTo': endDateTo,
+      'includeMember': includeMember,
+    };
+    
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _memberships = await _membershipService.fetchMemberships(
+      final result = await _membershipService.fetchMemberships(
         isActive: isActive,
         isExpired: isExpired,
         startDateFrom: startDateFrom,
@@ -37,7 +68,12 @@ class MembershipProvider with ChangeNotifier {
         endDateFrom: endDateFrom,
         endDateTo: endDateTo,
         includeMember: includeMember,
+        page: _currentPage,
+        pageSize: _pageSize,
       );
+      
+      _memberships = result['memberships'] as List<Membership>;
+      _totalCount = result['totalCount'] as int;
       
       _isLoading = false;
       notifyListeners();
@@ -46,6 +82,35 @@ class MembershipProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+  
+  // Pagination methods
+  Future<void> nextPage() async {
+    if (hasNextPage && !_isLoading) {
+      _currentPage++;
+      await _fetchWithCurrentFilters();
+    }
+  }
+  
+  Future<void> previousPage() async {
+    if (hasPreviousPage && !_isLoading) {
+      _currentPage--;
+      await _fetchWithCurrentFilters();
+    }
+  }
+  
+  // Helper method to refetch with stored filters
+  Future<void> _fetchWithCurrentFilters() async {
+    await fetchMemberships(
+      isActive: _currentFilters['isActive'],
+      isExpired: _currentFilters['isExpired'],
+      startDateFrom: _currentFilters['startDateFrom'],
+      startDateTo: _currentFilters['startDateTo'],
+      endDateFrom: _currentFilters['endDateFrom'],
+      endDateTo: _currentFilters['endDateTo'],
+      includeMember: _currentFilters['includeMember'],
+      resetPage: false, // Don't reset page since we're navigating
+    );
   }
 
   Future<Membership?> getMembershipById(int id) async {
