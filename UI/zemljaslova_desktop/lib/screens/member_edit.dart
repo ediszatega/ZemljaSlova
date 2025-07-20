@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../providers/member_provider.dart';
 import '../models/member.dart';
@@ -60,7 +61,17 @@ class _MemberEditScreenState extends State<MemberEditScreen> {
           _emailController.text = member.email;
           _dateOfBirth = member.dateOfBirth;
           _dateOfBirthController.text = '${member.dateOfBirth.day}.${member.dateOfBirth.month}.${member.dateOfBirth.year}';
-          _selectedGender = member.gender;
+          
+          switch (member.gender?.toLowerCase()) {
+            case 'male':
+              _selectedGender = 'Muški';
+              break;
+            case 'female':
+              _selectedGender = 'Ženski';
+              break;
+            default:
+              _selectedGender = member.gender;
+          }
           
           _isLoading = false;
         });
@@ -292,13 +303,24 @@ class _MemberEditScreenState extends State<MemberEditScreen> {
         _isLoading = true;
       });
       
+      String? backendGender;
+      switch (_selectedGender) {
+        case 'Muški':
+          backendGender = 'male';
+          break;
+        case 'Ženski':
+          backendGender = 'female';
+          break;
+        default:
+          backendGender = _selectedGender;
+      
       memberProvider.updateMember(
         widget.memberId,
         _firstNameController.text,
         _lastNameController.text,
         _emailController.text,
         _dateOfBirth!,
-        _selectedGender,
+        backendGender,
       ).then((member) {
         setState(() {
           _isLoading = false;

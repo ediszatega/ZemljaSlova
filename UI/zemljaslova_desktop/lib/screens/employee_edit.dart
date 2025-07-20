@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../providers/employee_provider.dart';
 import '../models/employee.dart';
@@ -38,6 +39,7 @@ class _EmployeeEditScreenState extends State<EmployeeEditScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedAccessLevel = 'Uposlenik';
     _loadEmployeeData();
   }
   
@@ -52,16 +54,27 @@ class _EmployeeEditScreenState extends State<EmployeeEditScreen> {
       final employee = await employeeProvider.getEmployeeById(widget.employeeId);
       
       if (employee != null) {
+        
         setState(() {
           _employee = employee;
           
           _firstNameController.text = employee.firstName;
           _lastNameController.text = employee.lastName;
           _emailController.text = employee.email;
-          _selectedGender = employee.gender;
           
-          // Map English backend values to Croatian display names
-          switch (employee.accessLevel.toLowerCase()) {
+          switch (employee.gender?.toLowerCase()) {
+            case 'male':
+              _selectedGender = 'Muški';
+              break;
+            case 'female':
+              _selectedGender = 'Ženski';
+              break;
+            default:
+              _selectedGender = employee.gender;
+          }
+          
+          String originalAccessLevel = employee.accessLevel;
+          switch (originalAccessLevel.toLowerCase()) {
             case 'admin':
               _selectedAccessLevel = 'Admin';
               break;
@@ -313,13 +326,25 @@ class _EmployeeEditScreenState extends State<EmployeeEditScreen> {
           accessLevel = 'employee';
       }
       
+      String? backendGender;
+      switch (_selectedGender) {
+        case 'Muški':
+          backendGender = 'male';
+          break;
+        case 'Ženski':
+          backendGender = 'female';
+          break;
+        default:
+          backendGender = _selectedGender;
+      }
+      
       employeeProvider.updateEmployee(
         widget.employeeId,
         _firstNameController.text,
         _lastNameController.text,
         _emailController.text,
         accessLevel,
-        _selectedGender,
+        backendGender,
       ).then((employee) {
         setState(() {
           _isLoading = false;

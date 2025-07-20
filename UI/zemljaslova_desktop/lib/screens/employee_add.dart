@@ -287,13 +287,25 @@ class _EmployeeAddScreenState extends State<EmployeeAddScreen> {
           accessLevel = 'employee';
       }
       
+      String? backendGender;
+      switch (_selectedGender) {
+        case 'Muški':
+          backendGender = 'male';
+          break;
+        case 'Ženski':
+          backendGender = 'female';
+          break;
+        default:
+          backendGender = _selectedGender;
+      }
+      
       employeeProvider.addEmployee(
         _firstNameController.text,
         _lastNameController.text,
         _emailController.text,
         _passwordController.text,
         accessLevel,
-        _selectedGender,
+        backendGender,
       ).then((success) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
