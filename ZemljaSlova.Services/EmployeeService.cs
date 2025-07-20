@@ -134,6 +134,17 @@ namespace ZemljaSlova.Services
             return _mapper.Map<Model.Employee>(entity);
         }
         
+        public Model.Employee GetByUserId(int userId)
+        {
+            var entity = _context.Employees
+                .Include(e => e.User)
+                .FirstOrDefault(e => e.UserId == userId);
+
+            if (entity == null) return null;
+
+            return _mapper.Map<Model.Employee>(entity);
+        }
+        
 
     }
 }

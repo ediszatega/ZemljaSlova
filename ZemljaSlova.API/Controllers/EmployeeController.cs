@@ -45,5 +45,23 @@ namespace ZemljaSlova.API.Controllers
                 return StatusCode(500, "An error occurred while updating the employee.");
             }
         }
+        
+        [HttpGet("by-user/{userId}")]
+        public ActionResult<Model.Employee> GetByUserId(int userId)
+        {
+            try
+            {
+                var employee = _employeeService.GetByUserId(userId);
+                if (employee == null)
+                {
+                    return NotFound("Employee not found for the given user ID.");
+                }
+                return Ok(employee);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while retrieving the employee.");
+            }
+        }
     }
 }

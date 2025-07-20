@@ -14,5 +14,7 @@ namespace ZemljaSlova.Services
         public Task<Model.Employee> CreateEmployee(EmployeeInsertRequest request);
         
         public Task<Model.Employee> UpdateEmployee(int id, EmployeeUpdateRequest request);
+        
+        public Model.Employee GetByUserId(int userId);
     }
 }

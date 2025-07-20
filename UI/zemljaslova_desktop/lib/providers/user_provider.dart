@@ -7,6 +7,7 @@ class UserProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   String? _successMessage;
+  Map<String, dynamic>? _currentUserProfile;
   
   UserProvider(this._userService);
   
@@ -15,6 +16,38 @@ class UserProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   String? get successMessage => _successMessage;
+  Map<String, dynamic>? get currentUserProfile => _currentUserProfile;
+  
+  Future<bool> loadCurrentUserProfile() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    
+    try {
+      final profile = await _userService.getCurrentUserProfile();
+      
+      _isLoading = false;
+      
+      if (profile != null) {
+        _currentUserProfile = profile;
+        notifyListeners();
+        return true;
+      } else {
+        _error = 'Nije moguće učitati podatke o korisniku. Provjerite da li ste zaposlenik.';
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _isLoading = false;
+      _error = 'Greška pri učitavanju profila: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> refreshUserProfile() async {
+    return await loadCurrentUserProfile();
+  }
   
   Future<bool> changePassword(
     int userId,
