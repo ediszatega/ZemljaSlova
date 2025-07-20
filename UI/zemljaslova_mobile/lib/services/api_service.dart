@@ -5,10 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // Update URLs to match your backend
-  static const String baseUrl = kDebugMode 
-      ? 'http://localhost:5285'  // Desktop
-      : 'http://192.168.178.36:5285'; // Mobile - use your actual IP
+  static const String baseUrl = 'http://192.168.178.36:5285';
       
   String? authToken;
   final _storage = const FlutterSecureStorage();
