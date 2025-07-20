@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/user_provider.dart';
 import '../models/member.dart';
 import '../utils/authorization.dart';
 import '../screens/login_screen.dart';
+import '../screens/change_password_screen.dart';
 import '../widgets/zs_button.dart';
+import '../services/user_service.dart';
 
 class ProfileOverview extends StatelessWidget {
   const ProfileOverview({super.key});
@@ -216,8 +219,17 @@ class ProfileOverview extends StatelessWidget {
         // Change Password Button
         ZSButton(
           text: 'Promijeni lozinku',
-          onPressed: () {
-            // TODO: Navigate to change password screen
+          onPressed: () async {
+            final userService = UserService(Provider.of<AuthProvider>(context, listen: false).apiService);
+            
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => ChangeNotifierProvider(
+                  create: (_) => UserProvider(userService),
+                  child: const ChangePasswordScreen(),
+                ),
+              ),
+            );
           },
           backgroundColor: Colors.blue.shade50,
           foregroundColor: Colors.blue,

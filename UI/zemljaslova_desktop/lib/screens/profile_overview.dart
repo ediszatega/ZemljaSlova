@@ -3,7 +3,11 @@ import 'package:provider/provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../providers/auth_provider.dart';
+import '../providers/user_provider.dart';
 import '../screens/login_screen.dart';
+import '../screens/change_password_screen.dart';
+import '../services/user_service.dart';
+import '../utils/authorization.dart';
 
 class ProfileOverview extends StatelessWidget {
   const ProfileOverview({super.key});
@@ -148,7 +152,29 @@ class ProfileOverview extends StatelessWidget {
                         borderColor: Colors.grey.shade300,
                         width: 410,
                         topPadding: 5,
-                        onPressed: () {},
+                        onPressed: () async {
+                          // Check if userId is available
+                          if (Authorization.userId == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Greška: Korisnički ID nije dostupan. Molimo se ponovno prijavite.'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                            return;
+                          }
+                          
+                          final userService = UserService(Provider.of<AuthProvider>(context, listen: false).apiService);
+                          
+                          await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => ChangeNotifierProvider(
+                                create: (_) => UserProvider(userService),
+                                child: ChangePasswordScreen(userId: Authorization.userId!),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                       
                       ZSButton(

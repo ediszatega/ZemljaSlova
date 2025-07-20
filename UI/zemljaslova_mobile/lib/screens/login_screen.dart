@@ -94,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           validator: FormBuilderValidators.compose([
                             FormBuilderValidators.required(),
-                            FormBuilderValidators.minLength(6),
+                            FormBuilderValidators.minLength(8),
                           ]),
                         ),
                         const SizedBox(height: 24),

@@ -9,6 +9,7 @@ using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services.Database;
 using Microsoft.EntityFrameworkCore;
+using ZemljaSlova.Services.Utils;
 
 namespace ZemljaSlova.Services
 {
@@ -50,6 +51,12 @@ namespace ZemljaSlova.Services
                         Gender = request.Gender,
                     };
 
+                    // Validate password requirements
+                    if (!PasswordValidator.IsValidPassword(request.Password))
+                    {
+                        throw new Exception(PasswordValidator.GetPasswordRequirementsMessage());
+                    }
+                    
                     string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
                     user.Password = hashedPassword;
                     Model.User createdUser = _userService.Insert(user);
@@ -126,5 +133,7 @@ namespace ZemljaSlova.Services
 
             return _mapper.Map<Model.Employee>(entity);
         }
+        
+
     }
 }

@@ -17,6 +17,7 @@ class AuthProvider with ChangeNotifier {
 
   bool get isLoggedIn => _isLoggedIn;
   bool get isAdmin => _isAdmin;
+  ApiService get apiService => _apiService;
 
   Future<LoginResponse> login() async {
     try {
@@ -31,6 +32,8 @@ class AuthProvider with ChangeNotifier {
         var data = LoginResponse.fromJson(response);
         if (data.isSuccess) {
           await _storage.write(key: "jwt", value: data.token);
+          await _storage.write(key: "userId", value: data.userId?.toString());
+          await _storage.write(key: "role", value: data.role);
           _apiService.authToken = data.token;
           _isLoggedIn = true;
           Authorization.userId = data.userId;
@@ -49,6 +52,8 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> logout() async {
     await _storage.delete(key: "jwt");
+    await _storage.delete(key: "userId");
+    await _storage.delete(key: "role");
     _apiService.authToken = null;
     _isLoggedIn = false;
     Authorization.clear();
@@ -57,10 +62,15 @@ class AuthProvider with ChangeNotifier {
 
   Future<bool> checkAuthStatus() async {
     String? token = await _storage.read(key: "jwt");
+    String? userIdStr = await _storage.read(key: "userId");
+    String? role = await _storage.read(key: "role");
+    
     _isLoggedIn = token != null && token.isNotEmpty;
     if (_isLoggedIn) {
       _apiService.authToken = token;
       Authorization.token = token;
+      Authorization.userId = userIdStr != null ? int.tryParse(userIdStr) : null;
+      Authorization.role = role;
     }
     return _isLoggedIn;
   }

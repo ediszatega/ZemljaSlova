@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
+import '../utils/password_validator.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_input.dart';
 import '../widgets/sidebar.dart';
@@ -131,13 +132,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                   label: 'Nova lozinka*',
                                   obscureText: _obscureNewPassword,
                                   validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Molimo unesite novu lozinku';
-                                    }
-                                    if (value.length < 6) {
-                                      return 'Lozinka mora sadržavati najmanje 6 znakova';
-                                    }
-                                    return null;
+                                    return PasswordValidator.validatePassword(value ?? '');
                                   },
                                 ),
                                 Positioned(
@@ -233,6 +228,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                             // Success message
                             if (userProvider.successMessage != null)
                               Container(
+                                width: 600,
                                 padding: const EdgeInsets.all(12.0),
                                 margin: const EdgeInsets.only(bottom: 20),
                                 decoration: BoxDecoration(

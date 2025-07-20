@@ -12,6 +12,7 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Configuration;
 using ZemljaSlova.Model.Helpers;
+using ZemljaSlova.Services.Utils;
 namespace ZemljaSlova.Services
 {
     public class UserService : BaseCRUDService<Model.User, UserSearchObject, Database.User, UserInsertRequest, UserUpdateRequest>, IUserService
@@ -115,6 +116,12 @@ namespace ZemljaSlova.Services
                 throw new Exception("New password and confirmation password do not match");
             }
             
+            // Validate new password requirements
+            if (!PasswordValidator.IsValidPassword(request.NewPassword))
+            {
+                throw new Exception(PasswordValidator.GetPasswordRequirementsMessage());
+            }
+            
             // Hash and set new password
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
             user.Password = hashedPassword;
@@ -122,5 +129,7 @@ namespace ZemljaSlova.Services
             await Context.SaveChangesAsync();
             return true;
         }
+        
+
     }
 }

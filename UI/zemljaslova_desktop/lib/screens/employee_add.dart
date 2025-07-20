@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/employee_provider.dart';
+import '../utils/password_validator.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_input.dart';
@@ -159,13 +160,7 @@ class _EmployeeAddScreenState extends State<EmployeeAddScreen> {
                                     controller: _passwordController,
                                     obscureText: true,
                                     validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Unesite lozinku';
-                                      }
-                                      if (value.length < 6) {
-                                        return 'Lozinka mora sadržavati najmanje 6 karaktera';
-                                      }
-                                      return null;
+                                      return PasswordValidator.validatePassword(value ?? '');
                                     },
                                     decoration: const InputDecoration(
                                       contentPadding: EdgeInsets.symmetric(
