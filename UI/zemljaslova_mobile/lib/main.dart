@@ -5,11 +5,13 @@ import 'providers/cart_provider.dart';
 import 'providers/book_provider.dart';
 import 'providers/event_provider.dart';
 import 'providers/favourite_provider.dart';
+import 'providers/auth_provider.dart';
 import 'services/api_service.dart';
 import 'services/book_service.dart';
 import 'services/event_service.dart';
 import 'services/favourite_service.dart';
 import 'widgets/mobile_layout.dart';
+import 'screens/login_screen.dart';
 
 void main() {
   runApp(const ZemljaSlova());
@@ -20,23 +22,29 @@ class ZemljaSlova extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final apiService = ApiService();
+    
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider(
+          apiService: apiService, 
+          isAdmin: false, // Mobile app is for members
+        )),
         ChangeNotifierProvider(create: (context) => MobileNavigationProvider()),
         ChangeNotifierProvider(create: (context) => CartProvider()),
         ChangeNotifierProvider(
           create: (context) => BookProvider(
-            BookService(ApiService()),
+            BookService(apiService),
           ),
         ),
         ChangeNotifierProvider(
           create: (context) => EventProvider(
-            EventService(ApiService()),
+            EventService(apiService),
           ),
         ),
         ChangeNotifierProvider(
           create: (context) => FavouriteProvider(
-            FavouriteService(ApiService()),
+            FavouriteService(apiService),
           ),
         ),
       ],
@@ -61,9 +69,33 @@ class ZemljaSlova extends StatelessWidget {
             ),
           ),
           fontFamily: 'Roboto',
+          useMaterial3: true,
         ),
-        home: const MobileLayout(),
+        home: const AuthenticationWrapper(),
       ),
+    );
+  }
+}
+
+class AuthenticationWrapper extends StatelessWidget {
+  const AuthenticationWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: context.read<AuthProvider>().checkAuthStatus(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        
+        bool isLoggedIn = snapshot.data ?? false;
+        return isLoggedIn 
+            ? const MobileLayout() 
+            : const LoginScreen();
+      },
     );
   }
 }

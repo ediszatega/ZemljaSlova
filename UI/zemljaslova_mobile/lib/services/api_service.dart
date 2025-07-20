@@ -1,42 +1,59 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 
 class ApiService {
+  // Update URLs to match your backend
   static const String baseUrl = kDebugMode 
-      ? 'http://192.168.178.36:5285'  // Use your computer's IP address for physical device testing
-      : 'http://localhost:5285';
+      ? 'http://localhost:5285'  // Desktop
+      : 'http://192.168.178.36:5285'; // Mobile - use your actual IP
+      
+  String? authToken;
+  final _storage = const FlutterSecureStorage();
 
   ApiService() {
     HttpOverrides.global = MyHttpOverrides();
+    _loadToken();
   }
-  
-  Map<String, String> get headers {
-    return {
+
+  Future<void> _loadToken() async {
+    authToken = await _storage.read(key: 'jwt');
+  }
+
+  Future<Map<String, String>> get headers async {
+    final token = authToken ?? await _storage.read(key: 'jwt');
+    var headers = {
       'Content-Type': 'application/json',
     };
+
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+
+    return headers;
   }
-  
+
   Future<dynamic> get(String endpoint) async {
     try {
       final url = Uri.parse('$baseUrl/$endpoint');
-      final response = await http.get(url, headers: headers);
+      final response = await http.get(url, headers: await headers);
       
       return _handleResponse(response);
     } catch (e) {
       throw Exception('Failed to perform GET request: $e');
     }
   }
-  
-  Future<dynamic> post(String endpoint, Map<String, dynamic> body) async {
+
+  Future<dynamic> post(String endpoint, dynamic data) async {
     try {
       final url = Uri.parse('$baseUrl/$endpoint');
       
       final response = await http.post(
-        url, 
-        headers: headers,
-        body: json.encode(body),
+        url,
+        headers: await headers,
+        body: json.encode(data),
       );
       
       return _handleResponse(response);
@@ -44,18 +61,34 @@ class ApiService {
       throw Exception('Failed to perform POST request: $e');
     }
   }
-  
+
+  Future<dynamic> put(String endpoint, dynamic data) async {
+    try {
+      final url = Uri.parse('$baseUrl/$endpoint');
+      
+      final response = await http.put(
+        url,
+        headers: await headers,
+        body: json.encode(data),
+      );
+      
+      return _handleResponse(response);
+    } catch (e) {
+      throw Exception('Failed to perform PUT request: $e');
+    }
+  }
+
   Future<dynamic> delete(String endpoint) async {
     try {
       final url = Uri.parse('$baseUrl/$endpoint');
-      final response = await http.delete(url, headers: headers);
+      final response = await http.delete(url, headers: await headers);
       
       return _handleResponse(response);
     } catch (e) {
       throw Exception('Failed to perform DELETE request: $e');
     }
   }
-  
+
   dynamic _handleResponse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (response.body.isNotEmpty) {
@@ -66,13 +99,14 @@ class ApiService {
         }
       }
       return null;
+    } else if (response.statusCode == 401) {
+      throw Exception("Unauthorized");
     } else {
       throw Exception('API Error: [${response.statusCode}] ${response.reasonPhrase}');
     }
   }
 }
 
-// Custom HttpOverrides to bypass certificate validation
 class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {

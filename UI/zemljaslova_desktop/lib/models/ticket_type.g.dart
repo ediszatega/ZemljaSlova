@@ -7,17 +7,18 @@ part of 'ticket_type.dart';
 // **************************************************************************
 
 TicketType _$TicketTypeFromJson(Map<String, dynamic> json) => TicketType(
-      id: json['id'] as int?,
-      eventId: json['eventId'] as int,
-      price: (json['price'] as num).toDouble(),
-      name: json['name'] as String,
-      description: json['description'] as String?,
-    );
+  id: (json['id'] as num?)?.toInt(),
+  eventId: (json['eventId'] as num).toInt(),
+  price: (json['price'] as num).toDouble(),
+  name: json['name'] as String,
+  description: json['description'] as String?,
+);
 
-Map<String, dynamic> _$TicketTypeToJson(TicketType instance) => <String, dynamic>{
+Map<String, dynamic> _$TicketTypeToJson(TicketType instance) =>
+    <String, dynamic>{
       'id': instance.id,
       'eventId': instance.eventId,
       'price': instance.price,
       'name': instance.name,
       'description': instance.description,
-    }; 
+    };

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
+import '../providers/auth_provider.dart';
+import '../screens/login_screen.dart';
 
 class ProfileOverview extends StatelessWidget {
   const ProfileOverview({super.key});
@@ -165,9 +168,7 @@ class ProfileOverview extends StatelessWidget {
                         borderColor: Colors.grey.shade300,
                         width: 410,
                         topPadding: 5,
-                        onPressed: () {
-                          // TODO: Implement logout functionality
-                        },
+                        onPressed: () => _handleLogout(context),
                       ),
                     ],
                   ),
@@ -178,6 +179,18 @@ class ProfileOverview extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _handleLogout(BuildContext context) async {
+    final authProvider = context.read<AuthProvider>();
+    await authProvider.logout();
+    
+    if (context.mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (route) => false,
+      );
+    }
   }
 }
 

@@ -25,12 +25,15 @@ Book _$BookFromJson(Map<String, dynamic> json) => Book(
   genre: json['genre'] as String?,
   binding: json['binding'] as String?,
   language: json['language'] as String?,
-  authorIds: (json['authorIds'] as List<dynamic>?)
-      ?.map((e) => (e as num).toInt())
-      .toList() ?? const [],
-  authors: (json['authors'] as List<dynamic>?)
-      ?.map((e) => Author.fromJson(e as Map<String, dynamic>))
-      .toList(),
+  authorIds:
+      (json['authorIds'] as List<dynamic>?)
+          ?.map((e) => (e as num).toInt())
+          .toList() ??
+      const [],
+  authors:
+      (json['authors'] as List<dynamic>?)
+          ?.map((e) => Author.fromJson(e as Map<String, dynamic>))
+          .toList(),
 );
 
 Map<String, dynamic> _$BookToJson(Book instance) => <String, dynamic>{

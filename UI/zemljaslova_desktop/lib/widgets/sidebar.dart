@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/navigation_provider.dart';
+import '../providers/auth_provider.dart';
 import '../screens/books_sell_overview.dart';
 import '../screens/book_rent_overview.dart';
 import '../screens/events_overview.dart';
@@ -9,6 +10,7 @@ import '../screens/reports_overview.dart';
 import '../screens/profile_overview.dart';
 import '../screens/authors_overview.dart';
 import '../screens/employees_overview.dart';
+import '../screens/login_screen.dart';
 
 class SidebarWidget extends StatelessWidget {
   const SidebarWidget({super.key});
@@ -38,72 +40,96 @@ class SidebarWidget extends StatelessWidget {
           const SizedBox(height: 20),
           
           // Menu items
-          SidebarMenuItemWidget(
-            title: 'Knjige prodaja',
-            icon: Icons.shopping_cart,
-            isSelected: navigationProvider.currentItem == NavigationItem.booksSell,
-            onTap: () => _navigateToScreen(context, NavigationItem.booksSell),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  SidebarMenuItemWidget(
+                    title: 'Knjige prodaja',
+                    icon: Icons.shopping_cart,
+                    isSelected: navigationProvider.currentItem == NavigationItem.booksSell,
+                    onTap: () => _navigateToScreen(context, NavigationItem.booksSell),
+                  ),
+                  SidebarMenuItemWidget(
+                    title: 'Knjige izdavanje',
+                    icon: Icons.book,
+                    isSelected: navigationProvider.currentItem == NavigationItem.bookRent,
+                    onTap: () => _navigateToScreen(context, NavigationItem.bookRent),
+                  ),
+                  SidebarMenuItemWidget(
+                    title: 'Događaji',
+                    icon: Icons.event,
+                    isSelected: navigationProvider.currentItem == NavigationItem.events,
+                    onTap: () => _navigateToScreen(context, NavigationItem.events),
+                  ),
+                  SidebarMenuItemWidget(
+                    title: 'Autori',
+                    icon: Icons.person_outline,
+                    isSelected: navigationProvider.currentItem == NavigationItem.authors,
+                    onTap: () => _navigateToScreen(context, NavigationItem.authors),
+                  ),
+                  SidebarMenuItemWidget(
+                    title: 'Korisnici',
+                    icon: Icons.people,
+                    isSelected: navigationProvider.currentItem == NavigationItem.members,
+                    onTap: () => _navigateToScreen(context, NavigationItem.members),
+                  ),
+                  SidebarMenuItemWidget(
+                    title: 'Članarine',
+                    icon: Icons.card_membership,
+                    isSelected: navigationProvider.currentItem == NavigationItem.memberships,
+                    onTap: () => _navigateToScreen(context, NavigationItem.memberships),
+                  ),
+                  SidebarMenuItemWidget(
+                    title: 'Uposlenici',
+                    icon: Icons.badge,
+                    isSelected: navigationProvider.currentItem == NavigationItem.employees,
+                    onTap: () => _navigateToScreen(context, NavigationItem.employees),
+                  ),
+                  SidebarMenuItemWidget(
+                    title: 'Vaučeri',
+                    icon: Icons.card_giftcard,
+                    isSelected: navigationProvider.currentItem == NavigationItem.vouchers,
+                    onTap: () => _navigateToScreen(context, NavigationItem.vouchers),
+                  ),
+                  SidebarMenuItemWidget(
+                    title: 'Popusti',
+                    icon: Icons.local_offer,
+                    isSelected: navigationProvider.currentItem == NavigationItem.discounts,
+                    onTap: () => _navigateToScreen(context, NavigationItem.discounts),
+                  ),
+                  SidebarMenuItemWidget(
+                    title: 'Izvještaji',
+                    icon: Icons.bar_chart,
+                    isSelected: navigationProvider.currentItem == NavigationItem.reports,
+                    onTap: () => _navigateToScreen(context, NavigationItem.reports),
+                  ),
+                  SidebarMenuItemWidget(
+                    title: 'Profil',
+                    icon: Icons.person,
+                    isSelected: navigationProvider.currentItem == NavigationItem.profile,
+                    onTap: () => _navigateToScreen(context, NavigationItem.profile),
+                  ),
+                ],
+              ),
+            ),
           ),
-          SidebarMenuItemWidget(
-            title: 'Knjige izdavanje',
-            icon: Icons.book,
-            isSelected: navigationProvider.currentItem == NavigationItem.bookRent,
-            onTap: () => _navigateToScreen(context, NavigationItem.bookRent),
+          
+          // Logout button at the bottom
+          Container(
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: Colors.grey.shade300, width: 1),
+              ),
+            ),
+            child: SidebarMenuItemWidget(
+              title: 'Odjavi se',
+              icon: Icons.logout,
+              isSelected: false,
+              onTap: () => _handleLogout(context),
+            ),
           ),
-          SidebarMenuItemWidget(
-            title: 'Događaji',
-            icon: Icons.event,
-            isSelected: navigationProvider.currentItem == NavigationItem.events,
-            onTap: () => _navigateToScreen(context, NavigationItem.events),
-          ),
-          SidebarMenuItemWidget(
-            title: 'Autori',
-            icon: Icons.person_outline,
-            isSelected: navigationProvider.currentItem == NavigationItem.authors,
-            onTap: () => _navigateToScreen(context, NavigationItem.authors),
-          ),
-          SidebarMenuItemWidget(
-            title: 'Korisnici',
-            icon: Icons.people,
-            isSelected: navigationProvider.currentItem == NavigationItem.members,
-            onTap: () => _navigateToScreen(context, NavigationItem.members),
-          ),
-          SidebarMenuItemWidget(
-            title: 'Članarine',
-            icon: Icons.card_membership,
-            isSelected: navigationProvider.currentItem == NavigationItem.memberships,
-            onTap: () => _navigateToScreen(context, NavigationItem.memberships),
-          ),
-          SidebarMenuItemWidget(
-            title: 'Uposlenici',
-            icon: Icons.badge,
-            isSelected: navigationProvider.currentItem == NavigationItem.employees,
-            onTap: () => _navigateToScreen(context, NavigationItem.employees),
-          ),
-          SidebarMenuItemWidget(
-            title: 'Vaučeri',
-            icon: Icons.card_giftcard,
-            isSelected: navigationProvider.currentItem == NavigationItem.vouchers,
-            onTap: () => _navigateToScreen(context, NavigationItem.vouchers),
-          ),
-          SidebarMenuItemWidget(
-            title: 'Popusti',
-            icon: Icons.local_offer,
-            isSelected: navigationProvider.currentItem == NavigationItem.discounts,
-            onTap: () => _navigateToScreen(context, NavigationItem.discounts),
-          ),
-          SidebarMenuItemWidget(
-            title: 'Izvještaji',
-            icon: Icons.bar_chart,
-            isSelected: navigationProvider.currentItem == NavigationItem.reports,
-            onTap: () => _navigateToScreen(context, NavigationItem.reports),
-          ),
-          SidebarMenuItemWidget(
-            title: 'Profil',
-            icon: Icons.person,
-            isSelected: navigationProvider.currentItem == NavigationItem.profile,
-            onTap: () => _navigateToScreen(context, NavigationItem.profile),
-          ),
+          const SizedBox(height: 16),
         ],
       ),
     );
@@ -157,6 +183,18 @@ class SidebarWidget extends StatelessWidget {
       routeName,
       (route) => false, // Remove all previous routes
     );
+  }
+  
+  void _handleLogout(BuildContext context) async {
+    final authProvider = context.read<AuthProvider>();
+    await authProvider.logout();
+    
+    if (context.mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (route) => false,
+      );
+    }
   }
 }
 

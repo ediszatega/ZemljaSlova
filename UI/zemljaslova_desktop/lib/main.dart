@@ -10,6 +10,7 @@ import 'providers/user_provider.dart';
 import 'providers/voucher_provider.dart';
 import 'providers/discount_provider.dart';
 import 'providers/membership_provider.dart';
+import 'providers/auth_provider.dart';
 import 'screens/members_overview.dart';
 import 'screens/books_sell_overview.dart';
 import 'screens/book_rent_overview.dart';
@@ -30,6 +31,7 @@ import 'screens/vouchers_overview.dart';
 import 'screens/discounts_overview.dart';
 import 'screens/memberships_overview.dart';
 import 'screens/discount_add.dart';
+import 'screens/login_screen.dart';
 import 'services/api_service.dart';
 import 'services/book_service.dart';
 import 'services/author_service.dart';
@@ -100,6 +102,10 @@ class ZemljaSlova extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider(
+          apiService: apiService, 
+          isAdmin: true, // Desktop app is for employees/admins
+        )),
         ChangeNotifierProvider(create: (_) => MemberProvider(memberService)),
         ChangeNotifierProvider(create: (_) => BookProvider(bookService)),
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
@@ -144,7 +150,7 @@ class ZemljaSlova extends StatelessWidget {
           '/discounts': (context) => const DiscountsOverview(),
           '/discount-add': (context) => const DiscountAddScreen(),
         },
-        home: const NavigationScreen(),
+        home: const AuthenticationWrapper(),
       ),
     );
   }
@@ -187,5 +193,28 @@ class NavigationScreen extends StatelessWidget {
       default:
         return const MembersOverview();
     }
+  }
+}
+
+class AuthenticationWrapper extends StatelessWidget {
+  const AuthenticationWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: context.read<AuthProvider>().checkAuthStatus(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        
+        bool isLoggedIn = snapshot.data ?? false;
+        return isLoggedIn 
+            ? const NavigationScreen() 
+            : const LoginScreen();
+      },
+    );
   }
 }
