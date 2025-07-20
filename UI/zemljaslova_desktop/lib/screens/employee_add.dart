@@ -274,12 +274,25 @@ class _EmployeeAddScreenState extends State<EmployeeAddScreen> {
       
       final employeeProvider = Provider.of<EmployeeProvider>(context, listen: false);
       
+      // Map Croatian display names to English backend values
+      String accessLevel;
+      switch (_selectedAccessLevel) {
+        case 'Admin':
+          accessLevel = 'admin';
+          break;
+        case 'Uposlenik':
+          accessLevel = 'employee';
+          break;
+        default:
+          accessLevel = 'employee';
+      }
+      
       employeeProvider.addEmployee(
         _firstNameController.text,
         _lastNameController.text,
         _emailController.text,
         _passwordController.text,
-        _selectedAccessLevel!,
+        accessLevel,
         _selectedGender,
       ).then((success) {
         if (success) {

@@ -123,4 +123,24 @@ class CanDeleteVouchers extends StatelessWidget {
   }
 }
 
+class CanChangeUserPasswords extends StatelessWidget {
+  final Widget child;
+  final Widget? fallback;
+
+  const CanChangeUserPasswords({
+    Key? key,
+    required this.child,
+    this.fallback,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return PermissionGuard(
+      permissionCheck: () => Authorization.canChangeUserPasswords(),
+      child: child,
+      fallback: fallback,
+    );
+  }
+}
+
  

@@ -171,29 +171,31 @@ class _EmployeeDetailsOverviewState extends State<EmployeeDetailsOverview> {
                           },
                         ),
 
-                        ZSButton(
-                          text: 'Promijeni lozinku',
-                          backgroundColor: Colors.orange.shade50,
-                          foregroundColor: Colors.orange,
-                          borderColor: Colors.grey.shade300,
-                          width: 410,
-                          topPadding: 5,
-                          onPressed: () async {
-                            // Get the UserService from the provider
-                            final userService = Provider.of<UserProvider>(context, listen: false).userService;
-                            
-                            await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => ChangeNotifierProvider(
-                                  create: (_) => UserProvider(userService),
-                                  child: ChangePasswordScreen(
-                                    userId: _employee.userId,
-                                    userName: _employee.fullName,
+                        CanChangeUserPasswords(
+                          child: ZSButton(
+                            text: 'Promijeni lozinku',
+                            backgroundColor: Colors.orange.shade50,
+                            foregroundColor: Colors.orange,
+                            borderColor: Colors.grey.shade300,
+                            width: 410,
+                            topPadding: 5,
+                            onPressed: () async {
+                              // Get the UserService from the provider
+                              final userService = Provider.of<UserProvider>(context, listen: false).userService;
+                              
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => ChangeNotifierProvider(
+                                    create: (_) => UserProvider(userService),
+                                    child: ChangePasswordScreen(
+                                      userId: _employee.userId,
+                                      userName: _employee.fullName,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
 
                         ZSButton(

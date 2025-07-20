@@ -59,7 +59,18 @@ class _EmployeeEditScreenState extends State<EmployeeEditScreen> {
           _lastNameController.text = employee.lastName;
           _emailController.text = employee.email;
           _selectedGender = employee.gender;
-          _selectedAccessLevel = employee.accessLevel;
+          
+          // Map English backend values to Croatian display names
+          switch (employee.accessLevel.toLowerCase()) {
+            case 'admin':
+              _selectedAccessLevel = 'Admin';
+              break;
+            case 'employee':
+              _selectedAccessLevel = 'Uposlenik';
+              break;
+            default:
+              _selectedAccessLevel = 'Uposlenik';
+          }
           
           _isLoading = false;
         });
@@ -289,12 +300,25 @@ class _EmployeeEditScreenState extends State<EmployeeEditScreen> {
         _isLoading = true;
       });
       
+      // Map Croatian display names to English backend values
+      String accessLevel;
+      switch (_selectedAccessLevel) {
+        case 'Admin':
+          accessLevel = 'admin';
+          break;
+        case 'Uposlenik':
+          accessLevel = 'employee';
+          break;
+        default:
+          accessLevel = 'employee';
+      }
+      
       employeeProvider.updateEmployee(
         widget.employeeId,
         _firstNameController.text,
         _lastNameController.text,
         _emailController.text,
-        _selectedAccessLevel!,
+        accessLevel,
         _selectedGender,
       ).then((employee) {
         setState(() {

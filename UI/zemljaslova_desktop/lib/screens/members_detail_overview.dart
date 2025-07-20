@@ -12,6 +12,7 @@ import 'members_overview.dart';
 import 'member_edit.dart';
 import 'change_password_screen.dart';
 import 'membership_add.dart';
+import '../widgets/permission_guard.dart';
 
 class MembersDetailOverview extends StatefulWidget {
   final Member member;
@@ -335,28 +336,30 @@ class _MembersDetailOverviewState extends State<MembersDetailOverview> {
                           },
                         ),
 
-                        ZSButton(
-                          text: 'Promijeni lozinku',
-                          backgroundColor: Colors.orange.shade50,
-                          foregroundColor: Colors.orange,
-                          borderColor: Colors.grey.shade300,
-                          width: 410,
-                          topPadding: 5,
-                          onPressed: () async {
-                            final userService = Provider.of<UserProvider>(context, listen: false).userService;
-                            
-                            await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => ChangeNotifierProvider(
-                                  create: (_) => UserProvider(userService),
-                                  child: ChangePasswordScreen(
-                                    userId: _member.userId,
-                                    userName: _member.fullName,
+                        CanChangeUserPasswords(
+                          child: ZSButton(
+                            text: 'Promijeni lozinku',
+                            backgroundColor: Colors.orange.shade50,
+                            foregroundColor: Colors.orange,
+                            borderColor: Colors.grey.shade300,
+                            width: 410,
+                            topPadding: 5,
+                            onPressed: () async {
+                              final userService = Provider.of<UserProvider>(context, listen: false).userService;
+                              
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => ChangeNotifierProvider(
+                                    create: (_) => UserProvider(userService),
+                                    child: ChangePasswordScreen(
+                                      userId: _member.userId,
+                                      userName: _member.fullName,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
 
                         CanDeleteUsers(
