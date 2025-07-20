@@ -34,19 +34,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 margin: const EdgeInsets.only(bottom: 48),
                 child: Column(
                   children: [
-                    Icon(
-                      Icons.book,
-                      size: 80,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Zemlja Slova',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).primaryColor,
-                      ),
+                    Image.asset(
+                      'assets/images/zs_logo_name.png',
+                      height: 120,
+                      fit: BoxFit.contain,
                     ),
                   ],
                 ),

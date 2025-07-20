@@ -160,16 +160,6 @@ class ProfileOverview extends StatelessWidget {
                         topPadding: 5,
                         onPressed: () {},
                       ),
-
-                      ZSButton(
-                        text: 'Odjavi se',
-                        backgroundColor: Colors.red.shade50,
-                        foregroundColor: Colors.red,
-                        borderColor: Colors.grey.shade300,
-                        width: 410,
-                        topPadding: 5,
-                        onPressed: () => _handleLogout(context),
-                      ),
                     ],
                   ),
                 ],
@@ -179,18 +169,6 @@ class ProfileOverview extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  void _handleLogout(BuildContext context) async {
-    final authProvider = context.read<AuthProvider>();
-    await authProvider.logout();
-    
-    if (context.mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (route) => false,
-      );
-    }
   }
 }
 

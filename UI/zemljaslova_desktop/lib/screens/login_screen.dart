@@ -4,6 +4,7 @@ import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/authorization.dart';
+import '../widgets/zs_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   Widget build(BuildContext context) {
@@ -30,30 +32,13 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               // App Logo
               Container(
-                margin: const EdgeInsets.only(bottom: 48),
+                margin: const EdgeInsets.only(bottom: 28),
                 child: Column(
                   children: [
-                    Icon(
-                      Icons.book,
-                      size: 80,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Zemlja Slova',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).primaryColor,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Admin Panel',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade600,
-                      ),
+                    Image.asset(
+                      'assets/images/zs_logo_name.png',
+                      height: 200,
+                      fit: BoxFit.contain,
                     ),
                   ],
                 ),
@@ -70,57 +55,85 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Admin Prijava',
+                          'Prijava',
                           style: Theme.of(context).textTheme.headlineSmall,
                         ),
                         const SizedBox(height: 24),
-                        
+
                         // Email Field
-                        FormBuilderTextField(
-                          name: "email",
-                          controller: _emailController,
-                          decoration: const InputDecoration(
-                            labelText: "Email",
-                            prefixIcon: Icon(Icons.email),
-                            border: OutlineInputBorder(),
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.5,
+                          child: FormBuilderTextField(
+                            name: "email",
+                            controller: _emailController,
+                            decoration: const InputDecoration(
+                              labelText: "Email",
+                              prefixIcon: Icon(Icons.email),
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: FormBuilderValidators.compose([
+                              FormBuilderValidators.required(),
+                              FormBuilderValidators.email(),
+                            ]),
                           ),
-                          validator: FormBuilderValidators.compose([
-                            FormBuilderValidators.required(),
-                            FormBuilderValidators.email(),
-                          ]),
                         ),
                         const SizedBox(height: 16),
                         
                         // Password Field
-                        FormBuilderTextField(
-                          name: "password",
-                          controller: _passwordController,
-                          obscureText: true,
-                          decoration: const InputDecoration(
-                            labelText: "Lozinka",
-                            prefixIcon: Icon(Icons.lock),
-                            border: OutlineInputBorder(),
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.5,
+                          child: FormBuilderTextField(
+                            name: "password",
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            decoration: InputDecoration(
+                              labelText: "Lozinka",
+                              prefixIcon: const Icon(Icons.lock),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                                  color: Colors.grey.shade600,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                              ),
+                              border: const OutlineInputBorder(),
+                            ),
+                            validator: FormBuilderValidators.compose([
+                              FormBuilderValidators.required(),
+                              FormBuilderValidators.minLength(6),
+                            ]),
                           ),
-                          validator: FormBuilderValidators.compose([
-                            FormBuilderValidators.required(),
-                            FormBuilderValidators.minLength(6),
-                          ]),
                         ),
                         const SizedBox(height: 24),
                         
                         // Login Button
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _handleLogin,
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                        _isLoading 
+                          ? SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.5,
+                              child: ElevatedButton(
+                                onPressed: null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Theme.of(context).primaryColor,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                ),
+                                child: const Text("Učitavanje...", style: TextStyle(fontSize: 16, color: Colors.white)),
+                              ),
+                            )
+                          : ZSButton(
+                              text: "Prijavi se",
+                              onPressed: () => _handleLogin(),
+                              width: MediaQuery.of(context).size.width * 0.5,
+                              backgroundColor: Theme.of(context).primaryColor,
+                              foregroundColor: Colors.white,
+                              elevation: 2,
+                              paddingVertical: 16,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
                             ),
-                            child: _isLoading
-                                ? const CircularProgressIndicator()
-                                : const Text("Prijaviť se", style: TextStyle(fontSize: 16)),
-                          ),
-                        ),
                       ],
                     ),
                   ),
