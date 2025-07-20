@@ -9,6 +9,7 @@ import '../screens/favourites_overview.dart';
 import '../screens/voucher_purchase.dart';
 import '../screens/books_sell_overview.dart';
 import '../screens/events_overview.dart';
+import '../screens/profile_overview.dart';
 
 class MobileLayout extends StatelessWidget {
   const MobileLayout({super.key});
@@ -39,6 +40,8 @@ class MobileLayout extends StatelessWidget {
         return const CartScreen();
       case MobileNavigationItem.favourites:
         return const FavouritesOverviewScreen();
+      case MobileNavigationItem.profile:
+        return const ProfileOverview();
       case MobileNavigationItem.voucherPurchase:
         return const VoucherPurchaseScreen();
       case MobileNavigationItem.booksSellOverview:

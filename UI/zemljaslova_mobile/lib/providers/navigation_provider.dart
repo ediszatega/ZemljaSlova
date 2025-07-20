@@ -4,6 +4,7 @@ enum MobileNavigationItem {
   home,
   cart,
   favourites,
+  profile,
   voucherPurchase,
   booksSellOverview,
   eventsOverview,

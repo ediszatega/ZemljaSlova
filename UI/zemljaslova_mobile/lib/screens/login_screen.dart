@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/authorization.dart';
 import '../widgets/mobile_layout.dart';
+import '../widgets/zs_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   Widget build(BuildContext context) {
@@ -31,12 +33,12 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               // App Logo
               Container(
-                margin: const EdgeInsets.only(bottom: 48),
+                margin: const EdgeInsets.only(bottom: 18),
                 child: Column(
                   children: [
                     Image.asset(
-                      'assets/images/zs_logo_name.png',
-                      height: 120,
+                      'assets/zs_logo_name.png',
+                      height: 200,
                       fit: BoxFit.contain,
                     ),
                   ],
@@ -73,11 +75,22 @@ class _LoginScreenState extends State<LoginScreen> {
                         FormBuilderTextField(
                           name: "password",
                           controller: _passwordController,
-                          obscureText: true,
-                          decoration: const InputDecoration(
+                          obscureText: _obscurePassword,
+                          decoration: InputDecoration(
                             labelText: "Lozinka",
-                            prefixIcon: Icon(Icons.lock),
-                            border: OutlineInputBorder(),
+                            prefixIcon: const Icon(Icons.lock),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                                color: Colors.grey.shade600,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                            ),
+                            border: const OutlineInputBorder(),
                           ),
                           validator: FormBuilderValidators.compose([
                             FormBuilderValidators.required(),
@@ -87,18 +100,29 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 24),
                         
                         // Login Button
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _handleLogin,
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                        _isLoading 
+                          ? SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Theme.of(context).primaryColor,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                ),
+                                child: const Text("Učitavanje...", style: TextStyle(fontSize: 16, color: Colors.white)),
+                              ),
+                            )
+                          : ZSButton(
+                              text: "Prijavi se",
+                              onPressed: () => _handleLogin(),
+                              backgroundColor: Theme.of(context).primaryColor,
+                              foregroundColor: Colors.white,
+                              elevation: 2,
+                              paddingVertical: 16,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              borderRadius: 8,
                             ),
-                            child: _isLoading
-                                ? const CircularProgressIndicator()
-                                : const Text("Prijaviť se", style: TextStyle(fontSize: 16)),
-                          ),
-                        ),
                         
                         // Register Link
                         const SizedBox(height: 16),
