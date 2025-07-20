@@ -7,6 +7,7 @@ import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/permission_guard.dart';
 import 'voucher_add.dart';
 
 class VouchersOverview extends StatefulWidget {
@@ -344,11 +345,13 @@ class _VouchersOverviewState extends State<VouchersOverview> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (voucher.isPromotional && !voucher.isUsed)
-            IconButton(
-              onPressed: () => _showDeleteDialog(voucher),
-              icon: const Icon(Icons.delete, size: 18),
-              tooltip: 'Obriši',
-              color: Colors.red,
+            CanDeleteVouchers(
+              child: IconButton(
+                onPressed: () => _showDeleteDialog(voucher),
+                icon: const Icon(Icons.delete, size: 18),
+                tooltip: 'Obriši',
+                color: Colors.red,
+              ),
             ),
           
           IconButton(

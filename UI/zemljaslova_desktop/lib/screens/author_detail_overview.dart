@@ -4,6 +4,7 @@ import '../widgets/zs_button.dart';
 import '../models/author.dart';
 import '../providers/author_provider.dart';
 import '../widgets/sidebar.dart';
+import '../widgets/permission_guard.dart';
 import 'authors_overview.dart';
 import 'author_edit.dart';
 
@@ -197,14 +198,16 @@ class AuthorDetailOverview extends StatelessWidget {
                         },
                       ),
 
-                      ZSButton(
-                        text: 'Obriši autora',
-                        backgroundColor: Colors.red.shade50,
-                        foregroundColor: Colors.red,
-                        borderColor: Colors.grey.shade300,
-                        width: 410,
-                        topPadding: 5,
-                        onPressed: () => _showDeleteDialog(context),
+                      CanDeleteAuthors(
+                        child: ZSButton(
+                          text: 'Obriši autora',
+                          backgroundColor: Colors.red.shade50,
+                          foregroundColor: Colors.red,
+                          borderColor: Colors.grey.shade300,
+                          width: 410,
+                          topPadding: 5,
+                          onPressed: () => _showDeleteDialog(context),
+                        ),
                       ),
                     ],
                   ),

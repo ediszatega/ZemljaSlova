@@ -13,6 +13,7 @@ class Authorization {
     token = null;
   }
 
-  static bool get isEmployee => role == "employee";
   static bool get isMember => role == "member";
+  
+  static bool canAccessMobileApp() => isMember;
 } 

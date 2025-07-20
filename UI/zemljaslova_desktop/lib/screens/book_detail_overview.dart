@@ -4,6 +4,7 @@ import '../models/book.dart';
 import '../providers/book_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
+import '../widgets/permission_guard.dart';
 import 'book_edit.dart';
 
 class BookDetailOverview extends StatefulWidget {
@@ -358,14 +359,16 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
                               onPressed: () {},
                             ),
                             
-                            ZSButton(
-                              text: 'Obriši knjigu',
-                              backgroundColor: Colors.red.shade50,
-                              foregroundColor: Colors.red,
-                              borderColor: Colors.grey.shade300,
-                              width: 410,
-                              topPadding: 5,
-                              onPressed: () => _showDeleteDialog(),
+                            CanDeleteBooks(
+                              child: ZSButton(
+                                text: 'Obriši knjigu',
+                                backgroundColor: Colors.red.shade50,
+                                foregroundColor: Colors.red,
+                                borderColor: Colors.grey.shade300,
+                                width: 410,
+                                topPadding: 5,
+                                onPressed: () => _showDeleteDialog(),
+                              ),
                             ),
                           ],
                         ),

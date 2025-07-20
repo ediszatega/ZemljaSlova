@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:zemljaslova_desktop/widgets/zs_button.dart';
 import '../models/member.dart';
 import '../widgets/sidebar.dart';
+import '../widgets/permission_guard.dart';
 import '../providers/user_provider.dart';
 import '../providers/member_provider.dart';
 import '../providers/membership_provider.dart';
@@ -355,14 +356,16 @@ class _MembersDetailOverviewState extends State<MembersDetailOverview> {
                           },
                         ),
 
-                        ZSButton(
-                          text: 'Izbriši korisnika',
-                          backgroundColor: Colors.red.shade50,
-                          foregroundColor: Colors.red,
-                          borderColor: Colors.grey.shade300,
-                          width: 410,
-                          topPadding: 5,
-                          onPressed: handleMemberDeleted,
+                        CanDeleteUsers(
+                          child: ZSButton(
+                            text: 'Izbriši korisnika',
+                            backgroundColor: Colors.red.shade50,
+                            foregroundColor: Colors.red,
+                            borderColor: Colors.grey.shade300,
+                            width: 410,
+                            topPadding: 5,
+                            onPressed: handleMemberDeleted,
+                          ),
                         ),
                       ],
                     ),

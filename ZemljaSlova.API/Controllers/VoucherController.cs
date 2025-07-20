@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace ZemljaSlova.API.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class VoucherController : BaseController<Model.Voucher, VoucherSearchObject>
@@ -27,14 +27,14 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpPost("CreateAdminVoucher")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "admin")]
         public virtual Model.Voucher CreateAdminVoucher(VoucherAdminInsertRequest request)
         {
             return _voucherService.InsertAdminVoucher(request);
         }
 
         [HttpDelete("{id}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "admin")]
         public virtual async Task<Model.Voucher> Delete(int id)
         {
             return await _voucherService.Delete(id);

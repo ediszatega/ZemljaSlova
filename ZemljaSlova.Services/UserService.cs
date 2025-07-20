@@ -37,18 +37,25 @@ namespace ZemljaSlova.Services
                 return new AuthResponse { Result = AuthResult.InvalidPassword };
             }
 
-            var token = CreateToken(user, role);
-            if (token == null)
-			{
-				return new AuthResponse { Result = AuthResult.UserNotFound };
-			}
-
-            if (role == "employee") 
+            // For employee login, determine the actual role based on access level
+            if (role == "employee")
             {
-                return new AuthResponse { Result = AuthResult.Success, UserId = user.Id, Token = token, Role = "employee" };
+                var employee = Context.Employees.FirstOrDefault(e => e.UserId == user.Id);
+                if (employee == null)
+                {
+                    return new AuthResponse { Result = AuthResult.UserNotFound };
+                }
+
+                // Use the actual access level from the database
+                var actualRole = employee.AccessLevel;
+                var token = CreateToken(user, actualRole);
+                
+                return new AuthResponse { Result = AuthResult.Success, UserId = user.Id, Token = token, Role = actualRole };
             }
 
-            return new AuthResponse { Result = AuthResult.Success, UserId = user.Id, Token = token, Role = "member" };
+            // For member login
+            var memberToken = CreateToken(user, role);
+            return new AuthResponse { Result = AuthResult.Success, UserId = user.Id, Token = memberToken, Role = "member" };
         }
 
         // JWT creation method
