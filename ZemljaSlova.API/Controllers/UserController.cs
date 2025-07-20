@@ -46,5 +46,19 @@ namespace ZemljaSlova.API.Controllers
             
             return BadRequest(new { message = "Failed to change password. Please verify your current password is correct." });
         }
+        
+        [HttpPost("admin_change_password")]
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult> AdminChangePassword([FromBody] AdminChangePasswordRequest request)
+        {
+            var result = await _userService.AdminChangePassword(request);
+            
+            if (result)
+            {
+                return Ok(new { message = "Password changed successfully by admin." });
+            }
+            
+            return BadRequest(new { message = "Failed to change password. User not found." });
+        }
     }
 }

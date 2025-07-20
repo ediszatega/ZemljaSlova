@@ -36,6 +36,32 @@ class UserService {
     }
   }
 
+  Future<bool> adminChangePassword(
+    int userId,
+    String newPassword,
+    String newPasswordConfirmation,
+  ) async {
+    try {
+      final data = {
+        'userId': userId,
+        'newPassword': newPassword,
+        'newPasswordConfirmation': newPasswordConfirmation,
+      };
+      
+      final response = await _apiService.post('User/admin_change_password', data);
+      
+      if (response != null) {
+        debugPrint('Password changed successfully by admin');
+        return true;
+      }
+      
+      return false;
+    } catch (e) {
+      debugPrint('Failed to change password as admin: $e');
+      return false;
+    }
+  }
+
   Future<Map<String, dynamic>?> getCurrentUserProfile() async {
     try {
       if (Authorization.userId == null) {

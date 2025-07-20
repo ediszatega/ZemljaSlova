@@ -27,4 +27,5 @@ class Authorization {
   static bool canViewAdminFeatures() => isAdmin;
   static bool canCreateAdminVouchers() => isAdmin;
   static bool canCleanupExpiredDiscounts() => isAdmin;
+  static bool canChangeUserPasswords() => isAdmin;
 }

@@ -86,6 +86,42 @@ class UserProvider with ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> adminChangePassword(
+    int userId,
+    String newPassword,
+    String newPasswordConfirmation,
+  ) async {
+    _isLoading = true;
+    _error = null;
+    _successMessage = null;
+    notifyListeners();
+    
+    try {
+      final result = await _userService.adminChangePassword(
+        userId,
+        newPassword,
+        newPasswordConfirmation,
+      );
+      
+      _isLoading = false;
+      
+      if (result) {
+        _successMessage = 'Lozinka je uspješno promijenjena od strane administratora.';
+        notifyListeners();
+        return true;
+      } else {
+        _error = 'Neuspješna promjena lozinke. Korisnik nije pronađen.';
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _isLoading = false;
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
   
   void resetMessages() {
     _error = null;

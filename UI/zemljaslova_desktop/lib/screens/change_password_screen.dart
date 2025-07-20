@@ -5,13 +5,16 @@ import '../utils/password_validator.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_input.dart';
 import '../widgets/sidebar.dart';
+import '../utils/authorization.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   final int userId;
+  final String? userName; // Optional: for admin changing other user's password
   
   const ChangePasswordScreen({
     super.key,
     required this.userId,
+    this.userName,
   });
 
   @override
@@ -41,6 +44,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
     
+    // Check if this is an admin changing someone else's password
+    final isAdminChangingOtherPassword = widget.userName != null && Authorization.canChangeUserPasswords();
+    
     return Scaffold(
       backgroundColor: Colors.white,
       body: Row(
@@ -68,13 +74,26 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   const SizedBox(height: 24),
                   
                   // Header
-                  const Text(
-                    'Promjena lozinke',
-                    style: TextStyle(
+                  Text(
+                    isAdminChangingOtherPassword 
+                        ? 'Promjena lozinke za ${widget.userName}'
+                        : 'Promjena lozinke',
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  
+                  if (isAdminChangingOtherPassword) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Administratorska promjena lozinke',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
                   
                   const SizedBox(height: 40),
                   
@@ -86,43 +105,45 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Current password field
-                            Stack(
-                              children: [
-                                ZSInput(
-                                  controller: _currentPasswordController,
-                                  label: 'Trenutna lozinka*',
-                                  obscureText: _obscureCurrentPassword,
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Molimo unesite trenutnu lozinku';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                Positioned(
-                                  right: 16,
-                                  top: 42,
-                                  child: IconButton(
-                                    icon: Icon(
-                                      _obscureCurrentPassword ? Icons.visibility : Icons.visibility_off,
-                                      color: Colors.grey,
-                                      size: 20,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        _obscureCurrentPassword = !_obscureCurrentPassword;
-                                      });
+                            // Current password field (only show for regular password changes)
+                            if (!isAdminChangingOtherPassword) ...[
+                              Stack(
+                                children: [
+                                  ZSInput(
+                                    controller: _currentPasswordController,
+                                    label: 'Trenutna lozinka*',
+                                    obscureText: _obscureCurrentPassword,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Molimo unesite trenutnu lozinku';
+                                      }
+                                      return null;
                                     },
-                                    splashRadius: 20,
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
                                   ),
-                                ),
-                              ],
-                            ),
-                            
-                            const SizedBox(height: 20),
+                                  Positioned(
+                                    right: 16,
+                                    top: 42,
+                                    child: IconButton(
+                                      icon: Icon(
+                                        _obscureCurrentPassword ? Icons.visibility : Icons.visibility_off,
+                                        color: Colors.grey,
+                                        size: 20,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          _obscureCurrentPassword = !_obscureCurrentPassword;
+                                        });
+                                      },
+                                      splashRadius: 20,
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              
+                              const SizedBox(height: 20),
+                            ],
                             
                             // New password field
                             Stack(
@@ -269,12 +290,24 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                   width: 250,
                                   onPressed: () async {
                                     if (_formKey.currentState!.validate()) {
-                                      final success = await userProvider.changePassword(
-                                        widget.userId,
-                                        _currentPasswordController.text,
-                                        _newPasswordController.text,
-                                        _confirmPasswordController.text,
-                                      );
+                                      bool success;
+                                      
+                                      if (isAdminChangingOtherPassword) {
+                                        // Admin changing someone else's password
+                                        success = await userProvider.adminChangePassword(
+                                          widget.userId,
+                                          _newPasswordController.text,
+                                          _confirmPasswordController.text,
+                                        );
+                                      } else {
+                                        // Regular password change
+                                        success = await userProvider.changePassword(
+                                          widget.userId,
+                                          _currentPasswordController.text,
+                                          _newPasswordController.text,
+                                          _confirmPasswordController.text,
+                                        );
+                                      }
                                       
                                       if (success && mounted) {
                                         _currentPasswordController.clear();

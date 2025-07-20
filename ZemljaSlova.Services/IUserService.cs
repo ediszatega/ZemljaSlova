@@ -17,5 +17,6 @@ namespace ZemljaSlova.Services
         public bool IsUserAdmin(int userId);
         public bool IsUserMember(int userId);
         public Task<bool> ChangePassword(ChangePasswordRequest request);
+        public Task<bool> AdminChangePassword(AdminChangePasswordRequest request);
     }
 }

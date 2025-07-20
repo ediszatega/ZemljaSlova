@@ -7,6 +7,7 @@ import '../providers/user_provider.dart';
 import 'employees_overview.dart';
 import 'employee_edit.dart';
 import 'change_password_screen.dart';
+import '../widgets/permission_guard.dart';
 
 class EmployeeDetailsOverview extends StatefulWidget {
   final Employee employee;
@@ -185,7 +186,10 @@ class _EmployeeDetailsOverviewState extends State<EmployeeDetailsOverview> {
                               MaterialPageRoute(
                                 builder: (context) => ChangeNotifierProvider(
                                   create: (_) => UserProvider(userService),
-                                  child: ChangePasswordScreen(userId: _employee.userId),
+                                  child: ChangePasswordScreen(
+                                    userId: _employee.userId,
+                                    userName: _employee.fullName,
+                                  ),
                                 ),
                               ),
                             );

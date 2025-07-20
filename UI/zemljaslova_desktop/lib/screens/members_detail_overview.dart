@@ -349,7 +349,10 @@ class _MembersDetailOverviewState extends State<MembersDetailOverview> {
                               MaterialPageRoute(
                                 builder: (context) => ChangeNotifierProvider(
                                   create: (_) => UserProvider(userService),
-                                  child: ChangePasswordScreen(userId: _member.userId),
+                                  child: ChangePasswordScreen(
+                                    userId: _member.userId,
+                                    userName: _member.fullName,
+                                  ),
                                 ),
                               ),
                             );
