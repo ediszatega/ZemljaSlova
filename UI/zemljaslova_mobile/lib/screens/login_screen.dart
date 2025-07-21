@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../utils/authorization.dart';
 import '../widgets/mobile_layout.dart';
 import '../widgets/zs_button.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -128,7 +129,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 16),
                         TextButton(
                           onPressed: () {
-                            // Navigate to register screen when implemented
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const RegisterScreen(),
+                              ),
+                            );
                           },
                           child: const Text("Nemaš račun? Registruj se"),
                         ),

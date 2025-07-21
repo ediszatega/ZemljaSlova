@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace ZemljaSlova.API.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class MemberController : BaseCRUDController<Model.Member, MemberSearchObject, MemberInsertRequest, MemberUpdateRequest>
@@ -20,6 +19,7 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpPost("CreateMember")]
+        [AllowAnonymous]
         public async Task<Model.Member> CreateMember([FromBody] MemberInsertRequest request)
         {
             return await _memberService.CreateMember(request);

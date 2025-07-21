@@ -64,11 +64,6 @@ class UserService {
 
   Future<Map<String, dynamic>?> getCurrentUserProfile() async {
     try {
-      debugPrint('=== User Service Debug ===');
-      debugPrint('Authorization.userId: ${Authorization.userId}');
-      debugPrint('Authorization.role: ${Authorization.role}');
-      debugPrint('Authorization.isEmployee: ${Authorization.isEmployee}');
-      
       if (Authorization.userId == null) {
         debugPrint('User ID is null');
         return null;

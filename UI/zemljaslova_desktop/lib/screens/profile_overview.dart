@@ -23,12 +23,6 @@ class _ProfileOverviewState extends State<ProfileOverview> {
     super.initState();
     // Load user profile data when the screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      debugPrint('=== Profile Overview Debug ===');
-      debugPrint('Authorization.role: ${Authorization.role}');
-      debugPrint('Authorization.isEmployee: ${Authorization.isEmployee}');
-      debugPrint('Authorization.isAdmin: ${Authorization.isAdmin}');
-      debugPrint('Authorization.userId: ${Authorization.userId}');
-      
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       userProvider.loadCurrentUserProfile();
     });
