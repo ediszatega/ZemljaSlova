@@ -292,7 +292,7 @@ class ZSCard extends StatelessWidget {
     
     return ZSCard(
       title: employee.fullName,
-      subtitle: employee.accessLevel,
+      subtitle: employee.displayAccessLevel,
       image: imageWidget,
       onTap: onTap,
     );

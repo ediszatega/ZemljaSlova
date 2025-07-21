@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/auth/login_response.dart';
 import '../services/api_service.dart';
 import '../utils/authorization.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthProvider with ChangeNotifier {
   bool _isLoggedIn = false;
@@ -39,6 +40,13 @@ class AuthProvider with ChangeNotifier {
           Authorization.userId = data.userId;
           Authorization.role = data.role;
           Authorization.token = data.token;
+          
+          debugPrint('=== Auth Provider Debug ===');
+          debugPrint('Login successful');
+          debugPrint('Role from backend: ${data.role}');
+          debugPrint('Authorization.role set to: ${Authorization.role}');
+          debugPrint('Authorization.isEmployee: ${Authorization.isEmployee}');
+          debugPrint('Authorization.isAdmin: ${Authorization.isAdmin}');
           notifyListeners();
         }
         return data;

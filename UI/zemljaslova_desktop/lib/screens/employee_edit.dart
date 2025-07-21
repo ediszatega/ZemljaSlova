@@ -313,7 +313,6 @@ class _EmployeeEditScreenState extends State<EmployeeEditScreen> {
         _isLoading = true;
       });
       
-      // Map Croatian display names to English backend values
       String accessLevel;
       switch (_selectedAccessLevel) {
         case 'Admin':

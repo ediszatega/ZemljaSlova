@@ -274,7 +274,6 @@ class _EmployeeAddScreenState extends State<EmployeeAddScreen> {
       
       final employeeProvider = Provider.of<EmployeeProvider>(context, listen: false);
       
-      // Map Croatian display names to English backend values
       String accessLevel;
       switch (_selectedAccessLevel) {
         case 'Admin':

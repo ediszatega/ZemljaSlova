@@ -130,6 +130,17 @@ class EmployeeService {
     }
   }
   
+  Future<bool> deleteEmployee(int id) async {
+    try {
+      final response = await _apiService.delete('Employee/$id');
+      
+      return response != null;
+    } catch (e) {
+      debugPrint('Failed to delete employee: $e');
+      throw Exception('Failed to delete employee: $e');
+    }
+  }
+  
   Employee _mapEmployeeFromBackend(dynamic employeeData) {
     String? profileImageUrl;
     if (employeeData['profileImage'] != null) {

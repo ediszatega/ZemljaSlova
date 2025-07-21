@@ -8,6 +8,7 @@ import '../screens/login_screen.dart';
 import '../screens/change_password_screen.dart';
 import '../services/user_service.dart';
 import '../utils/authorization.dart';
+import 'package:flutter/foundation.dart';
 
 class ProfileOverview extends StatefulWidget {
   const ProfileOverview({super.key});
@@ -22,6 +23,12 @@ class _ProfileOverviewState extends State<ProfileOverview> {
     super.initState();
     // Load user profile data when the screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint('=== Profile Overview Debug ===');
+      debugPrint('Authorization.role: ${Authorization.role}');
+      debugPrint('Authorization.isEmployee: ${Authorization.isEmployee}');
+      debugPrint('Authorization.isAdmin: ${Authorization.isAdmin}');
+      debugPrint('Authorization.userId: ${Authorization.userId}');
+      
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       userProvider.loadCurrentUserProfile();
     });

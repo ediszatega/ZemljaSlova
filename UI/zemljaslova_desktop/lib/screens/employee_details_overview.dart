@@ -4,6 +4,7 @@ import 'package:zemljaslova_desktop/widgets/zs_button.dart';
 import '../models/employee.dart';
 import '../widgets/sidebar.dart';
 import '../providers/user_provider.dart';
+import '../providers/employee_provider.dart';
 import 'employees_overview.dart';
 import 'employee_edit.dart';
 import 'change_password_screen.dart';
@@ -28,6 +29,67 @@ class _EmployeeDetailsOverviewState extends State<EmployeeDetailsOverview> {
   void initState() {
     super.initState();
     _employee = widget.employee;
+  }
+
+  Future<void> _handleEmployeeDeleted() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Izbriši uposlenika'),
+        content: Text(
+          'Da li ste sigurni da želite izbrisati uposlenika ${_employee.fullName}?\n\n'
+          'Ova akcija će trajno obrisati uposlenika i sve povezane podatke.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Odustani'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Izbriši'),
+          ),
+        ],
+      ),
+    );
+    
+    if (confirmed == true) {
+      try {
+        final success = await Provider.of<EmployeeProvider>(context, listen: false)
+            .deleteEmployee(_employee.id);
+        
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Uposlenik je uspješno izbrisan'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/employees',
+            (route) => false,
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Greška prilikom brisanja uposlenika'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Greška: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -135,7 +197,7 @@ class _EmployeeDetailsOverviewState extends State<EmployeeDetailsOverview> {
                               
                               // Detail rows
                               DetailRow(label: 'Email', value: _employee.email),
-                              DetailRow(label: 'Pristupni nivo', value: _employee.accessLevel),
+                              DetailRow(label: 'Pristupni nivo', value: _employee.displayAccessLevel),
                               DetailRow(label: 'Broj obrađenih narudžbi', value: '15'),
                               DetailRow(label: 'Broj riješenih tiketa', value: '8'),
                             ],
@@ -198,14 +260,16 @@ class _EmployeeDetailsOverviewState extends State<EmployeeDetailsOverview> {
                           ),
                         ),
 
-                        ZSButton(
-                          text: 'Obriši uposlenika',
-                          backgroundColor: Colors.red.shade50,
-                          foregroundColor: Colors.red,
-                          borderColor: Colors.grey.shade300,
-                          width: 410,
-                          topPadding: 5,
-                          onPressed: () {},
+                        CanDeleteEmployees(
+                          child: ZSButton(
+                            text: 'Obriši uposlenika',
+                            backgroundColor: Colors.red.shade50,
+                            foregroundColor: Colors.red,
+                            borderColor: Colors.grey.shade300,
+                            width: 410,
+                            topPadding: 5,
+                            onPressed: () => _handleEmployeeDeleted(),
+                          ),
                         ),
                       ],
                     ),

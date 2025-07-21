@@ -63,5 +63,12 @@ namespace ZemljaSlova.API.Controllers
                 return StatusCode(500, "An error occurred while retrieving the employee.");
             }
         }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "admin")]
+        public override async Task<Model.Employee> Delete(int id)
+        {
+            return await _employeeService.Delete(id);
+        }
     }
 }

@@ -13,7 +13,7 @@ class Authorization {
     token = null;
   }
 
-  static bool get isEmployee => role == "employee";
+  static bool get isEmployee => role == "employee" || role == "admin";
   static bool get isMember => role == "member";
   static bool get isAdmin => role == "admin";
   

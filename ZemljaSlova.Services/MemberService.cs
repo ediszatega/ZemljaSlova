@@ -157,6 +157,12 @@ namespace ZemljaSlova.Services
                     // Get the member with all related data
                     var member = await _context.Members
                         .Include(m => m.User)
+                            .ThenInclude(u => u.Notifications)
+                        .Include(m => m.User)
+                            .ThenInclude(u => u.BookTransactions)
+                                .ThenInclude(bt => bt.UserBookClubTransactions)
+                        .Include(m => m.User)
+                            .ThenInclude(u => u.TicketTypeTransactions)
                         .Include(m => m.BookReservations)
                             .ThenInclude(br => br.Notifications)
                         .Include(m => m.Orders)
@@ -167,6 +173,12 @@ namespace ZemljaSlova.Services
                         .Include(m => m.Tickets)
                         .Include(m => m.UserBookClubs)
                             .ThenInclude(ubc => ubc.UserBookClubTransactions)
+                        .Include(m => m.Favourites)
+                        .Include(m => m.Memberships)
+                            .ThenInclude(ms => ms.Notifications)
+                        .Include(m => m.Memberships)
+                            .ThenInclude(ms => ms.OrderItems)
+                        .Include(m => m.Vouchers)
                         .FirstOrDefaultAsync(m => m.Id == id);
 
                     if (member == null)
@@ -178,13 +190,14 @@ namespace ZemljaSlova.Services
 
                     // Remove all related entities
                     
+                    // Remove book reservations and their notifications
                     foreach (var reservation in member.BookReservations)
                     {
                         _context.Notifications.RemoveRange(reservation.Notifications);
                     }
-                    
                     _context.BookReservations.RemoveRange(member.BookReservations);
                     
+                    // Remove orders, their notifications, order items and tickets
                     foreach (var order in member.Orders)
                     {
                         _context.Notifications.RemoveRange(order.Notifications);
@@ -196,20 +209,47 @@ namespace ZemljaSlova.Services
                         
                         _context.OrderItems.RemoveRange(order.OrderItems);
                     }
-                    
                     _context.Orders.RemoveRange(member.Orders);
                     
+                    // Remove tickets
                     _context.Tickets.RemoveRange(member.Tickets);
                     
+                    // Remove user book clubs and their transactions
                     foreach (var userBookClub in member.UserBookClubs)
                     {
                         _context.UserBookClubTransactions.RemoveRange(userBookClub.UserBookClubTransactions);
                     }
-                    
                     _context.UserBookClubs.RemoveRange(member.UserBookClubs);
                     
-                    _context.Members.Remove(member);
+                    // Remove favourites
+                    _context.Favourites.RemoveRange(member.Favourites);
                     
+                    // Remove memberships, their notifications and order items
+                    foreach (var membership in member.Memberships)
+                    {
+                        _context.Notifications.RemoveRange(membership.Notifications);
+                        _context.OrderItems.RemoveRange(membership.OrderItems);
+                    }
+                    _context.Memberships.RemoveRange(member.Memberships);
+                    
+                    // Remove vouchers
+                    _context.Vouchers.RemoveRange(member.Vouchers);
+                    
+                    // Remove user notifications
+                    _context.Notifications.RemoveRange(member.User.Notifications);
+                    
+                    // Remove user book transactions and their related user book club transactions
+                    foreach (var bookTransaction in member.User.BookTransactions)
+                    {
+                        _context.UserBookClubTransactions.RemoveRange(bookTransaction.UserBookClubTransactions);
+                    }
+                    _context.BookTransactions.RemoveRange(member.User.BookTransactions);
+                    
+                    // Remove user ticket type transactions
+                    _context.TicketTypeTransactions.RemoveRange(member.User.TicketTypeTransactions);
+                    
+                    // Remove the member and user
+                    _context.Members.Remove(member);
                     _context.Users.Remove(member.User);
                     
                     await _context.SaveChangesAsync();                
@@ -217,10 +257,13 @@ namespace ZemljaSlova.Services
     
                     return memberModel;
                 }
-                catch
+                catch (Exception ex)
                 {
                     transaction.Rollback();
-                    throw;
+                    // Log the specific error for debugging
+                    Console.WriteLine($"Error deleting member {id}: {ex.Message}");
+                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                    throw new Exception($"Failed to delete member: {ex.Message}", ex);
                 }
             }
         }

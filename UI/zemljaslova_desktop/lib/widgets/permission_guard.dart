@@ -143,4 +143,24 @@ class CanChangeUserPasswords extends StatelessWidget {
   }
 }
 
+class CanDeleteEmployees extends StatelessWidget {
+  final Widget child;
+  final Widget? fallback;
+
+  const CanDeleteEmployees({
+    Key? key,
+    required this.child,
+    this.fallback,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return PermissionGuard(
+      permissionCheck: () => Authorization.canManageEmployees(),
+      child: child,
+      fallback: fallback,
+    );
+  }
+}
+
  

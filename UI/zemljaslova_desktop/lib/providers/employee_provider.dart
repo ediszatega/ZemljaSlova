@@ -196,4 +196,32 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
       return null;
     }
   }
+  
+  Future<bool> deleteEmployee(int id) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final success = await _employeeService.deleteEmployee(id);
+
+      if (success) {
+        // Refresh to get updated pagination
+        await refresh();
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+
+      _error = 'Failed to delete employee';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }

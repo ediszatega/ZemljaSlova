@@ -44,5 +44,12 @@ namespace ZemljaSlova.API.Controllers
                 return StatusCode(500, "An error occurred while retrieving member favourites.");
             }
         }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "admin")]
+        public override async Task<Model.Member> Delete(int id)
+        {
+            return await _memberService.Delete(id);
+        }
     }
 }

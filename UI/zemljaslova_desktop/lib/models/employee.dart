@@ -27,6 +27,17 @@ class Employee {
   });
 
   String get fullName => '$firstName $lastName';
+  
+  String get displayAccessLevel {
+    switch (accessLevel.toLowerCase()) {
+      case 'admin':
+        return 'Admin';
+      case 'employee':
+        return 'Uposlenik';
+      default:
+        return accessLevel;
+    }
+  }
 
   factory Employee.fromJson(Map<String, dynamic> json) => _$EmployeeFromJson(json);
 

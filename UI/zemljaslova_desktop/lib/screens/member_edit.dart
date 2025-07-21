@@ -313,6 +313,7 @@ class _MemberEditScreenState extends State<MemberEditScreen> {
           break;
         default:
           backendGender = _selectedGender;
+      }
       
       memberProvider.updateMember(
         widget.memberId,

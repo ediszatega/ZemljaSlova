@@ -145,6 +145,65 @@ namespace ZemljaSlova.Services
             return _mapper.Map<Model.Employee>(entity);
         }
         
+        public override async Task<Model.Employee> Delete(int id)
+        {
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    // Get the employee with all related data
+                    var employee = await _context.Employees
+                        .Include(e => e.User)
+                            .ThenInclude(u => u.Notifications)
+                        .Include(e => e.User)
+                            .ThenInclude(u => u.BookTransactions)
+                                .ThenInclude(bt => bt.UserBookClubTransactions)
+                        .Include(e => e.User)
+                            .ThenInclude(u => u.TicketTypeTransactions)
+                        .FirstOrDefaultAsync(e => e.Id == id);
+
+                    if (employee == null)
+                    {
+                        return null;
+                    }
+
+                    var employeeModel = _mapper.Map<Model.Employee>(employee);
+
+                    // Remove all related entities
+                    
+                    // Remove user notifications
+                    _context.Notifications.RemoveRange(employee.User.Notifications);
+                    
+                    // Remove user book transactions and their related user book club transactions
+                    foreach (var bookTransaction in employee.User.BookTransactions)
+                    {
+                        _context.UserBookClubTransactions.RemoveRange(bookTransaction.UserBookClubTransactions);
+                    }
+                    _context.BookTransactions.RemoveRange(employee.User.BookTransactions);
+                    
+                    // Remove user ticket type transactions
+                    _context.TicketTypeTransactions.RemoveRange(employee.User.TicketTypeTransactions);
+                    
+                    // Remove the employee and user
+                    _context.Employees.Remove(employee);
+                    _context.Users.Remove(employee.User);
+                    
+                    await _context.SaveChangesAsync();                
+                    transaction.Commit();
+    
+                    return employeeModel;
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    // Log the specific error for debugging
+                    Console.WriteLine($"Error deleting employee {id}: {ex.Message}");
+                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                    throw new Exception($"Failed to delete employee: {ex.Message}", ex);
+                }
+            }
+        }
+        
 
     }
 }
