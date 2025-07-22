@@ -13,5 +13,6 @@ namespace ZemljaSlova.Model.SearchObjects
         public DateTime? EndDateFrom { get; set; }
         public DateTime? EndDateTo { get; set; }
         public bool? IncludeMember { get; set; }
+        public string? Name { get; set; }
     }
 }

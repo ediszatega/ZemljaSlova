@@ -9,6 +9,7 @@ import '../widgets/search_input.dart';
 import '../widgets/zs_card_vertical.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/pagination_controls_widget.dart';
+import '../widgets/search_loading_indicator.dart';
 import 'event_add.dart';
 import 'event_detail_overview.dart';
 
@@ -45,6 +46,7 @@ class EventsContent extends StatefulWidget {
 class _EventsContentState extends State<EventsContent> {
   String _sortOption = 'Najnoviji';
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
   
   @override
   void initState() {
@@ -55,6 +57,7 @@ class _EventsContentState extends State<EventsContent> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
   
@@ -105,7 +108,11 @@ class _EventsContentState extends State<EventsContent> {
           child: SearchInput(
             label: 'Pretraži',
             hintText: 'Pretraži događaje',
+            controller: _searchController,
             borderColor: Colors.grey.shade300,
+            onChanged: (value) {
+              context.read<EventProvider>().setSearchQuery(value);
+            },
           ),
         ),
         const SizedBox(width: 16),
@@ -168,7 +175,7 @@ class _EventsContentState extends State<EventsContent> {
   Widget _buildEventsList() {
     return Consumer<EventProvider>(
       builder: (ctx, eventProvider, child) {
-        if (eventProvider.isInitialLoading) {
+        if (eventProvider.isLoading) {
           return const Center(
             child: CircularProgressIndicator(),
           );
@@ -193,21 +200,16 @@ class _EventsContentState extends State<EventsContent> {
           );
         }
         
-        // Sort the events list based on the selected option
         final sortedEvents = List<Event>.from(events);
         switch (_sortOption) {
           case 'Najnoviji':
-            // Sort by startDate - newest first
             sortedEvents.sort((a, b) => b.startAt.compareTo(a.startAt));
             break;
           case 'Najstariji':
-            // Sort by startDate - oldest first
             sortedEvents.sort((a, b) => a.startAt.compareTo(b.startAt));
             break;
           case 'Cijena (veća)':
-            // Sort by highest ticket price, if available
             sortedEvents.sort((a, b) {
-              // Get max prices from ticket types
               double getMaxPrice(Event event) {
                 if (event.ticketTypes == null || event.ticketTypes!.isEmpty) {
                   return 0.0;
@@ -218,9 +220,7 @@ class _EventsContentState extends State<EventsContent> {
             });
             break;
           case 'Cijena (manja)':
-            // Sort by lowest ticket price, if available
             sortedEvents.sort((a, b) {
-              // Get min prices from ticket types
               double getMinPrice(Event event) {
                 if (event.ticketTypes == null || event.ticketTypes!.isEmpty) {
                   return double.infinity;
@@ -231,13 +231,12 @@ class _EventsContentState extends State<EventsContent> {
               double minPriceA = getMinPrice(a);
               double minPriceB = getMinPrice(b);
               
-              // Handle the case where there are no ticket types
               if (minPriceA == double.infinity && minPriceB == double.infinity) {
-                return 0; // Both are equal
+                return 0;
               } else if (minPriceA == double.infinity) {
-                return 1; // b comes first
+                return 1;
               } else if (minPriceB == double.infinity) {
-                return -1; // a comes first
+                return -1;
               }
               
               return minPriceA.compareTo(minPriceB);
@@ -245,60 +244,73 @@ class _EventsContentState extends State<EventsContent> {
             break;
         }
         
-        return CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            // Events grid
-            SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 3.0,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final event = sortedEvents[index];
-                  return ZSCardVertical.fromEvent(
-                    context,
-                    event,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EventDetailOverview(eventId: event.id),
+        return Stack(
+          children: [
+            AnimatedOpacity(
+              opacity: 1.0,
+              duration: const Duration(milliseconds: 100),
+              child: CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 3.0,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final event = sortedEvents[index];
+                        return ZSCardVertical.fromEvent(
+                          context,
+                          event,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EventDetailOverview(eventId: event.id),
+                              ),
+                            ).then((_) {
+                              _loadEvents();
+                            });
+                          },
+                        );
+                      },
+                      childCount: sortedEvents.length,
+                    ),
+                  ),
+                  
+                  if (eventProvider.hasMoreData || eventProvider.isLoadingMore)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 20, bottom: 40),
+                        child: PaginationControlsWidget(
+                          currentItemCount: eventProvider.events.length,
+                          totalCount: eventProvider.totalCount,
+                          hasMoreData: eventProvider.hasMoreData,
+                          isLoadingMore: eventProvider.isLoadingMore,
+                          onLoadMore: () => eventProvider.loadMore(),
+                          currentPageSize: eventProvider.pageSize,
+                          onPageSizeChanged: (newSize) => eventProvider.setPageSize(newSize),
+                          itemName: 'događaja',
+                          loadMoreText: 'Učitaj više događaja',
                         ),
-                      ).then((_) {
-                        _loadEvents();
-                      });
-                    },
-                  );
-                },
-                childCount: sortedEvents.length,
+                      ),
+                    )
+                  else
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 60),
+                    ),
+                ],
               ),
             ),
             
-            if (eventProvider.hasMoreData || eventProvider.isLoadingMore)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 20, bottom: 40),
-                  child: PaginationControlsWidget(
-                    currentItemCount: eventProvider.events.length,
-                    totalCount: eventProvider.totalCount,
-                    hasMoreData: eventProvider.hasMoreData,
-                    isLoadingMore: eventProvider.isLoadingMore,
-                    onLoadMore: () => eventProvider.loadMore(),
-                    currentPageSize: eventProvider.pageSize,
-                    onPageSizeChanged: (newSize) => eventProvider.setPageSize(newSize),
-                    itemName: 'događaja',
-                    loadMoreText: 'Učitaj više događaja',
-                  ),
-                ),
-              )
-            else
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 60),
-              ),
+            SearchLoadingIndicator(
+              isVisible: eventProvider.isUpdating,
+              text: 'Pretražujem događaje...',
+              top: 20,
+            ),
           ],
         );
       },

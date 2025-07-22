@@ -37,6 +37,11 @@ namespace ZemljaSlova.Services
                 query = query.Include("TicketTypes");
             }
 
+            if (!string.IsNullOrEmpty(search.Name))
+            {
+                query = query.Where(e => e.Title.ToLower().Contains(search.Name.ToLower()));
+            }
+
             return base.AddFilter(search, query);
         }
     }

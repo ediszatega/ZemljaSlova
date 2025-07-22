@@ -17,5 +17,6 @@ namespace ZemljaSlova.Model.SearchObjects
         public string? Code { get; set; }
         public bool? HasUsageLimit { get; set; }
         public int? BookId { get; set; } // Find discounts applicable to specific book
+        public string? Name { get; set; }
     }
 }

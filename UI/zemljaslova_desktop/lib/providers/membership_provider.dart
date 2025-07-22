@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/membership.dart';
 import '../services/membership_service.dart';
@@ -9,18 +10,21 @@ class MembershipProvider with ChangeNotifier {
   
   List<Membership> _memberships = [];
   bool _isLoading = false;
+  bool _isUpdating = false;
   String? _error;
 
-  // Simple pagination state
   int _currentPage = 0;
   final int _pageSize = 10;
   int _totalCount = 0;
   
-  // Store current filters to maintain them across pagination
   Map<String, dynamic> _currentFilters = {};
+  
+  String _searchQuery = '';
+  Timer? _searchDebounceTimer;
 
   List<Membership> get memberships => [..._memberships];
   bool get isLoading => _isLoading;
+  bool get isUpdating => _isUpdating;
   String? get error => _error;
   int get currentPage => _currentPage;
   int get pageSize => _pageSize;
@@ -44,7 +48,6 @@ class MembershipProvider with ChangeNotifier {
       _currentPage = 0;
     }
     
-    // Store current filters
     _currentFilters = {
       'isActive': isActive,
       'isExpired': isExpired,
@@ -55,10 +58,14 @@ class MembershipProvider with ChangeNotifier {
       'includeMember': includeMember,
     };
     
-    _isLoading = true;
+    if (_memberships.isNotEmpty && resetPage) {
+      _isUpdating = true;
+    } else {
+      _isLoading = true;
+    }
     _error = null;
     notifyListeners();
-
+    
     try {
       final result = await _membershipService.fetchMemberships(
         isActive: isActive,
@@ -70,19 +77,52 @@ class MembershipProvider with ChangeNotifier {
         includeMember: includeMember,
         page: _currentPage,
         pageSize: _pageSize,
+        name: _searchQuery.isNotEmpty ? _searchQuery : null,
       );
       
-      _memberships = result['memberships'] as List<Membership>;
-      _totalCount = result['totalCount'] as int;
+      if (result != null) {
+        final membershipsList = result['memberships'] as List;
+        final totalCount = result['totalCount'] as int;
+        
+        if (resetPage) {
+          _memberships = membershipsList.cast<Membership>();
+        } else {
+          _memberships.addAll(membershipsList.cast<Membership>());
+        }
+        
+        _totalCount = totalCount;
+      }
       
       _isLoading = false;
+      _isUpdating = false;
+      _error = null;
       notifyListeners();
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
+      _isUpdating = false;
       notifyListeners();
     }
   }
+  
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    
+    _searchDebounceTimer?.cancel();
+    
+    _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
+      fetchMemberships(resetPage: true);
+    });
+  }
+  
+  void clearSearch() {
+    _searchQuery = '';
+    _searchDebounceTimer?.cancel();
+    _memberships.clear();
+    fetchMemberships(resetPage: true);
+  }
+  
+  String get searchQuery => _searchQuery;
   
   // Pagination methods
   Future<void> nextPage() async {

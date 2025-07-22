@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/discount.dart';
 import '../services/discount_service.dart';
@@ -9,18 +10,21 @@ class DiscountProvider with ChangeNotifier {
   
   List<Discount> _discounts = [];
   bool _isLoading = false;
+  bool _isUpdating = false;
   String? _error;
   
-  // Simple pagination state
   int _currentPage = 0;
   final int _pageSize = 10;
   int _totalCount = 0;
   
-  // Store current filters to maintain them across pagination
   Map<String, dynamic> _currentFilters = {};
+  
+  String _searchQuery = '';
+  Timer? _searchDebounceTimer;
 
   List<Discount> get discounts => [..._discounts];
   bool get isLoading => _isLoading;
+  bool get isUpdating => _isUpdating;
   String? get error => _error;
   int get currentPage => _currentPage;
   int get pageSize => _pageSize;
@@ -48,7 +52,6 @@ class DiscountProvider with ChangeNotifier {
       _currentPage = 0;
     }
     
-    // Store current filters
     _currentFilters = {
       'isActive': isActive,
       'code': code,
@@ -63,10 +66,14 @@ class DiscountProvider with ChangeNotifier {
       'bookId': bookId,
     };
     
-    _isLoading = true;
+    if (_discounts.isNotEmpty && resetPage) {
+      _isUpdating = true;
+    } else {
+      _isLoading = true;
+    }
     _error = null;
     notifyListeners();
-
+    
     try {
       final result = await _discountService.fetchDiscounts(
         isActive: isActive,
@@ -82,19 +89,52 @@ class DiscountProvider with ChangeNotifier {
         bookId: bookId,
         page: _currentPage,
         pageSize: _pageSize,
+        name: _searchQuery.isNotEmpty ? _searchQuery : null,
       );
       
-      _discounts = result['discounts'] as List<Discount>;
-      _totalCount = result['totalCount'] as int;
+      if (result != null) {
+        final discountsList = result['discounts'] as List;
+        final totalCount = result['totalCount'] as int;
+        
+        if (resetPage) {
+          _discounts = discountsList.cast<Discount>();
+        } else {
+          _discounts.addAll(discountsList.cast<Discount>());
+        }
+        
+        _totalCount = totalCount;
+      }
       
       _isLoading = false;
+      _isUpdating = false;
+      _error = null;
       notifyListeners();
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
+      _isUpdating = false;
       notifyListeners();
     }
   }
+  
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    
+    _searchDebounceTimer?.cancel();
+    
+    _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
+      fetchDiscounts(resetPage: true);
+    });
+  }
+  
+  void clearSearch() {
+    _searchQuery = '';
+    _searchDebounceTimer?.cancel();
+    _discounts.clear();
+    fetchDiscounts(resetPage: true);
+  }
+  
+  String get searchQuery => _searchQuery;
   
   // Pagination methods
   Future<void> nextPage() async {

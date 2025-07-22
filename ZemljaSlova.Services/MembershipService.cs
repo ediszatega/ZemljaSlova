@@ -72,6 +72,11 @@ namespace ZemljaSlova.Services
                 query = query.Where(m => m.EndDate <= search.EndDateTo.Value);
             }
 
+            if (!string.IsNullOrEmpty(search.Name))
+            {
+                query = query.Where(m => m.Member.User.FirstName.ToLower().Contains(search.Name.ToLower()) || m.Member.User.LastName.ToLower().Contains(search.Name.ToLower()));
+            }
+
             return base.AddFilter(search, query);
         }
 

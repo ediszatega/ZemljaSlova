@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/voucher.dart';
 import '../services/voucher_service.dart';
@@ -9,18 +10,21 @@ class VoucherProvider with ChangeNotifier {
   
   List<Voucher> _vouchers = [];
   bool _isLoading = false;
+  bool _isUpdating = false;
   String? _error;
 
-  // Simple pagination state
   int _currentPage = 0;
   final int _pageSize = 10;
   int _totalCount = 0;
   
-  // Store current filters to maintain them across pagination
   Map<String, dynamic> _currentFilters = {};
+  
+  String _searchQuery = '';
+  Timer? _searchDebounceTimer;
 
   List<Voucher> get vouchers => [..._vouchers];
   bool get isLoading => _isLoading;
+  bool get isUpdating => _isUpdating;
   String? get error => _error;
   int get currentPage => _currentPage;
   int get pageSize => _pageSize;
@@ -42,7 +46,6 @@ class VoucherProvider with ChangeNotifier {
       _currentPage = 0;
     }
     
-    // Store current filters
     _currentFilters = {
       'memberId': memberId,
       'isUsed': isUsed,
@@ -51,10 +54,14 @@ class VoucherProvider with ChangeNotifier {
       'expirationDateTo': expirationDateTo,
     };
     
-    _isLoading = true;
+    if (_vouchers.isNotEmpty && resetPage) {
+      _isUpdating = true;
+    } else {
+      _isLoading = true;
+    }
     _error = null;
     notifyListeners();
-
+    
     try {
       final result = await _voucherService.fetchVouchers(
         memberId: memberId,
@@ -64,19 +71,52 @@ class VoucherProvider with ChangeNotifier {
         expirationDateTo: expirationDateTo,
         page: _currentPage,
         pageSize: _pageSize,
+        name: _searchQuery.isNotEmpty ? _searchQuery : null,
       );
       
-      _vouchers = result['vouchers'] as List<Voucher>;
-      _totalCount = result['totalCount'] as int;
+      if (result != null) {
+        final vouchersList = result['vouchers'] as List;
+        final totalCount = result['totalCount'] as int;
+        
+        if (resetPage) {
+          _vouchers = vouchersList.cast<Voucher>();
+        } else {
+          _vouchers.addAll(vouchersList.cast<Voucher>());
+        }
+        
+        _totalCount = totalCount;
+      }
       
       _isLoading = false;
+      _isUpdating = false;
+      _error = null;
       notifyListeners();
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
+      _isUpdating = false;
       notifyListeners();
     }
   }
+  
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    
+    _searchDebounceTimer?.cancel();
+    
+    _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
+      fetchVouchers(resetPage: true);
+    });
+  }
+  
+  void clearSearch() {
+    _searchQuery = '';
+    _searchDebounceTimer?.cancel();
+    _vouchers.clear();
+    fetchVouchers(resetPage: true);
+  }
+  
+  String get searchQuery => _searchQuery;
   
   // Pagination methods
   Future<void> nextPage() async {

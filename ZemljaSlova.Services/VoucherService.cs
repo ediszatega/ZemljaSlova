@@ -99,6 +99,11 @@ namespace ZemljaSlova.Services
                 query = query.Where(v => v.Code.Contains(search.Code));
             }
 
+            if (!string.IsNullOrEmpty(search.Name))
+            {
+                query = query.Where(v => v.Code.ToLower().Contains(search.Name.ToLower()));
+            }
+
             if (search.ExpirationDateFrom.HasValue)
             {
                 query = query.Where(v => v.ExpirationDate >= search.ExpirationDateFrom.Value);

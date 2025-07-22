@@ -22,6 +22,7 @@ class DiscountService {
     int? bookId,
     int? page,
     int? pageSize,
+    String? name,
   }) async {
     try {
       final queryParams = <String, String>{};
@@ -64,6 +65,9 @@ class DiscountService {
       }
       if (pageSize != null) {
         queryParams['PageSize'] = pageSize.toString();
+      }
+      if (name != null && name.isNotEmpty) {
+        queryParams['Name'] = name;
       }
       
       String endpoint = 'Discount';

@@ -7,5 +7,6 @@ namespace ZemljaSlova.Model.SearchObjects
     public class EventSearchObject : BaseSearchObject
     {
         public bool IsTicketTypeIncluded { get; set; }
+        public string? Name { get; set; }
     }
 }

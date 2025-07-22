@@ -135,6 +135,9 @@ namespace ZemljaSlova.Services
             if (!string.IsNullOrEmpty(search.Code))
                 query = query.Where(d => d.Code != null && d.Code.Contains(search.Code));
 
+            if (!string.IsNullOrEmpty(search.Name))
+                query = query.Where(d => d.Code != null && d.Code.ToLower().Contains(search.Name.ToLower()));
+
             if (search.HasUsageLimit.HasValue)
             {
                 if (search.HasUsageLimit.Value)

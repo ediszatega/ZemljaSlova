@@ -17,6 +17,7 @@ class VoucherService {
     DateTime? expirationDateTo,
     int? page,
     int? pageSize,
+    String? name,
   }) async {
     try {
       final queryParams = <String, String>{};
@@ -41,6 +42,9 @@ class VoucherService {
       }
       if (pageSize != null) {
         queryParams['PageSize'] = pageSize.toString();
+      }
+      if (name != null && name.isNotEmpty) {
+        queryParams['Name'] = name;
       }
       
       String endpoint = 'Voucher';

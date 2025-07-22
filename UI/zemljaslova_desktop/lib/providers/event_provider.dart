@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/event.dart';
 import '../models/ticket_type.dart';
@@ -11,21 +12,24 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
   
   List<Event> _events = [];
   bool _isLoading = false;
+  bool _isUpdating = false;
   String? _error;
   
-  // Pagination state
   int _currentPage = 0;
-  int _pageSize = 4;
+  int _pageSize = 10;
   int _totalCount = 0;
   bool _hasMoreData = true;
+  
+  String _searchQuery = '';
+  Timer? _searchDebounceTimer;
 
   List<Event> get events => [..._events];
   
-  // PaginatedDataProvider interface implementation
   @override
   List<Event> get items => events;
   
   bool get isLoading => _isLoading;
+  bool get isUpdating => _isUpdating;
   @override
   bool get isInitialLoading => _isLoading && _events.isEmpty;
   @override
@@ -44,12 +48,18 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
   Future<void> fetchEvents({bool isTicketTypeIncluded = true, bool refresh = false}) async {
     if (refresh) {
       _currentPage = 0;
-      _events.clear();
+      if (_events.isEmpty) {
+        _events.clear();
+      }
       _hasMoreData = true;
       _error = null;
     }
     
-    _isLoading = true;
+    if (_events.isNotEmpty && refresh) {
+      _isUpdating = true;
+    } else {
+      _isLoading = true;
+    }
     notifyListeners();
 
     try {
@@ -57,12 +67,13 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
         isTicketTypeIncluded: isTicketTypeIncluded,
         page: _currentPage,
         pageSize: _pageSize,
+        name: _searchQuery.isNotEmpty ? _searchQuery : null,
       );
       
       final List<Event> newEvents = result['events'] as List<Event>;
       _totalCount = result['totalCount'] as int;
       
-      if (refresh || _events.isEmpty) {
+      if (refresh) {
         _events = newEvents;
       } else {
         _events.addAll(newEvents);
@@ -71,11 +82,13 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
       _hasMoreData = _events.length < _totalCount;
       
       _isLoading = false;
+      _isUpdating = false;
       _error = null;
       notifyListeners();
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
+      _isUpdating = false;
       notifyListeners();
     }
   }
@@ -100,6 +113,25 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
       refresh();
     }
   }
+  
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    
+    _searchDebounceTimer?.cancel();
+    
+    _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
+      refresh();
+    });
+  }
+  
+  void clearSearch() {
+    _searchQuery = '';
+    _searchDebounceTimer?.cancel();
+    _events.clear();
+    refresh();
+  }
+  
+  String get searchQuery => _searchQuery;
   
   Future<Event?> getEventById(int id) async {
     try {

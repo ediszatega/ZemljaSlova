@@ -19,6 +19,7 @@ class MembershipService {
     bool includeMember = true,
     int? page,
     int? pageSize,
+    String? name,
   }) async {
     try {
       final queryParams = <String, String>{};
@@ -49,6 +50,9 @@ class MembershipService {
       }
       if (pageSize != null) {
         queryParams['PageSize'] = pageSize.toString();
+      }
+      if (name != null && name.isNotEmpty) {
+        queryParams['Name'] = name;
       }
       
       String endpoint = 'Membership';

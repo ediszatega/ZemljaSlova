@@ -11,5 +11,6 @@ namespace ZemljaSlova.Model.SearchObjects
         public string? Code { get; set; }
         public DateTime? ExpirationDateFrom { get; set; }
         public DateTime? ExpirationDateTo { get; set; }
+        public string? Name { get; set; }
     }
 }
