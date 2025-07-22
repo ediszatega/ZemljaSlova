@@ -2,8 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/event.dart';
 import '../services/event_service.dart';
+import '../widgets/paginated_data_widget.dart';
 
-class EventProvider with ChangeNotifier {
+class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> {
   final EventService _eventService;
   
   EventProvider(this._eventService);
@@ -23,12 +24,23 @@ class EventProvider with ChangeNotifier {
 
   List<Event> get events => [..._events];
   
+  @override
+  List<Event> get items => events;
+  
   bool get isLoading => _isLoading;
   bool get isUpdating => _isUpdating;
+  @override
+  bool get isInitialLoading => _isLoading && _events.isEmpty;
+  @override
+  bool get isLoadingMore => _isLoading && _events.isNotEmpty;
+  @override
   String? get error => _error;
   int get currentPage => _currentPage;
+  @override
   int get pageSize => _pageSize;
+  @override
   int get totalCount => _totalCount;
+  @override
   bool get hasMoreData => _hasMoreData;
   int get totalPages => (_totalCount / _pageSize).ceil();
 
@@ -80,6 +92,7 @@ class EventProvider with ChangeNotifier {
     }
   }
   
+  @override
   Future<void> loadMore({bool isTicketTypeIncluded = true}) async {
     if (_isLoading || !_hasMoreData) return;
     
@@ -87,8 +100,17 @@ class EventProvider with ChangeNotifier {
     await fetchEvents(isTicketTypeIncluded: isTicketTypeIncluded, refresh: false);
   }
   
+  @override
   Future<void> refresh({bool isTicketTypeIncluded = true}) async {
     await fetchEvents(isTicketTypeIncluded: isTicketTypeIncluded, refresh: true);
+  }
+  
+  @override
+  void setPageSize(int newPageSize) {
+    if (newPageSize != _pageSize) {
+      _pageSize = newPageSize;
+      refresh();
+    }
   }
   
   void setSearchQuery(String query) {

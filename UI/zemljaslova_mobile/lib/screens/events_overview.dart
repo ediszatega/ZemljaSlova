@@ -5,6 +5,7 @@ import '../widgets/zs_card_vertical.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
+import '../widgets/paginated_data_widget.dart';
 import '../providers/event_provider.dart';
 import 'event_detail_overview.dart';
 
@@ -122,111 +123,63 @@ class _EventsOverviewScreenState extends State<EventsOverviewScreen> {
   Widget _buildEventsGrid() {
     return Consumer<EventProvider>(
       builder: (context, eventProvider, child) {
-        if (eventProvider.isLoading) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-        
-        if (eventProvider.error != null && eventProvider.events.isEmpty) {
-          return Center(
-            child: Text(
-              'Greška: ${eventProvider.error}',
-              style: const TextStyle(color: Colors.red),
-            ),
-          );
-        }
-        
-        final events = eventProvider.events;
-        
-        if (events.isEmpty) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.event_outlined,
-                  size: 64,
-                  color: Colors.grey,
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Nema događaja za prikaz',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Trenutno nema događaja u sistemu',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-        
-        // Sort the events list based on the selected option
-        final sortedEvents = List<Event>.from(events);
-        switch (_sortOption) {
-          case 'Najnoviji':
-            sortedEvents.sort((a, b) => b.startAt.compareTo(a.startAt));
-            break;
-          case 'Najstariji':
-            sortedEvents.sort((a, b) => a.startAt.compareTo(b.startAt));
-            break;
-          case 'Cijena (veća)':
-            sortedEvents.sort((a, b) {
-              double getMaxPrice(Event event) {
-                if (event.ticketTypes == null || event.ticketTypes!.isEmpty) {
-                  return 0.0;
-                }
-                return event.ticketTypes!.map((t) => t.price).reduce((max, price) => price > max ? price : max);
-              }
-              return getMaxPrice(b).compareTo(getMaxPrice(a));
-            });
-            break;
-          case 'Cijena (manja)':
-            sortedEvents.sort((a, b) {
-              double getMinPrice(Event event) {
-                if (event.ticketTypes == null || event.ticketTypes!.isEmpty) {
-                  return double.infinity;
-                }
-                return event.ticketTypes!.map((t) => t.price).reduce((min, price) => price < min ? price : min);
-              }
-              
-              double minPriceA = getMinPrice(a);
-              double minPriceB = getMinPrice(b);
-              
-              if (minPriceA == double.infinity && minPriceB == double.infinity) {
-                return 0;
-              } else if (minPriceA == double.infinity) {
-                return 1;
-              } else if (minPriceB == double.infinity) {
-                return -1;
-              }
-              
-              return minPriceA.compareTo(minPriceB);
-            });
-            break;
-        }
-
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            // Calculate number of columns based on screen width
-            int crossAxisCount = 1;
-            if (constraints.maxWidth > 600) {
-              crossAxisCount = 2;
+        return PaginatedDataWidget<Event>(
+          provider: eventProvider,
+          itemName: 'događaja',
+          loadMoreText: 'Učitaj više događaja',
+          emptyStateIcon: Icons.event_outlined,
+          emptyStateMessage: 'Nema dostupnih događaja',
+          gridBuilder: (context, events) {
+            // Sort the events list based on the selected option
+            final sortedEvents = List<Event>.from(events);
+            switch (_sortOption) {
+              case 'Najnoviji':
+                sortedEvents.sort((a, b) => b.startAt.compareTo(a.startAt));
+                break;
+              case 'Najstariji':
+                sortedEvents.sort((a, b) => a.startAt.compareTo(b.startAt));
+                break;
+              case 'Cijena (veća)':
+                sortedEvents.sort((a, b) {
+                  double getMaxPrice(Event event) {
+                    if (event.ticketTypes == null || event.ticketTypes!.isEmpty) {
+                      return 0.0;
+                    }
+                    return event.ticketTypes!.map((t) => t.price).reduce((max, price) => price > max ? price : max);
+                  }
+                  return getMaxPrice(b).compareTo(getMaxPrice(a));
+                });
+                break;
+              case 'Cijena (manja)':
+                sortedEvents.sort((a, b) {
+                  double getMinPrice(Event event) {
+                    if (event.ticketTypes == null || event.ticketTypes!.isEmpty) {
+                      return double.infinity;
+                    }
+                    return event.ticketTypes!.map((t) => t.price).reduce((min, price) => price < min ? price : min);
+                  }
+                  
+                  double minPriceA = getMinPrice(a);
+                  double minPriceB = getMinPrice(b);
+                  
+                  if (minPriceA == double.infinity && minPriceB == double.infinity) {
+                    return 0;
+                  } else if (minPriceA == double.infinity) {
+                    return 1;
+                  } else if (minPriceB == double.infinity) {
+                    return -1;
+                  }
+                  
+                  return minPriceA.compareTo(minPriceB);
+                });
+                break;
             }
-            
-            return Column(
-              children: [
-                GridView.builder(
+
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                int crossAxisCount = 1;
+                
+                return GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -253,27 +206,8 @@ class _EventsOverviewScreenState extends State<EventsOverviewScreen> {
                       },
                     );
                   },
-                ),
-                
-                if (eventProvider.hasMoreData)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Center(
-                      child: ElevatedButton(
-                        onPressed: eventProvider.isLoading ? null : () {
-                          eventProvider.loadMore();
-                        },
-                        child: eventProvider.isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Text('Učitaj više događaja'),
-                      ),
-                    ),
-                  ),
-              ],
+                );
+              },
             );
           },
         );
