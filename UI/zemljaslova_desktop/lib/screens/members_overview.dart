@@ -10,6 +10,7 @@ import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/pagination_controls_widget.dart';
+import '../widgets/search_loading_indicator.dart';
 import '../screens/members_detail_overview.dart';
 import '../screens/member_add.dart';
 
@@ -246,7 +247,7 @@ class _MembersContentState extends State<MembersContent> with WidgetsBindingObse
   Widget _buildMembersGrid() {
     return Consumer<MemberProvider>(
       builder: (ctx, memberProvider, child) {
-        if (memberProvider.isInitialLoading) {
+        if (memberProvider.isLoading) {
           return const Center(
             child: CircularProgressIndicator(),
           );
@@ -298,67 +299,82 @@ class _MembersContentState extends State<MembersContent> with WidgetsBindingObse
             break;
         }
         
-        return CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            // Members grid
-            SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 40,
-                mainAxisSpacing: 40,
-                childAspectRatio: 0.7,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final member = sortedMembers[index];
-                  final hasActiveMembership = _membershipStatus[member.id] ?? false;
+        return Stack(
+          children: [
+            AnimatedOpacity(
+              opacity: 1.0,
+              duration: const Duration(milliseconds: 100),
+              child: CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  // Members grid
+                  SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      crossAxisSpacing: 40,
+                      mainAxisSpacing: 40,
+                      childAspectRatio: 0.7,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final member = sortedMembers[index];
+                        final hasActiveMembership = _membershipStatus[member.id] ?? false;
+                        
+                        return ZSCard.fromMember(
+                          context,
+                          member,
+                          isActive: hasActiveMembership,
+                          hideStatus: !_membershipStatusesLoaded, // Hide status until membership data is loaded
+                          onTap: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MembersDetailOverview(
+                                  member: member,
+                                ),
+                              ),
+                            );
+                            // Refresh membership statuses when returning from details
+                            _loadMembers();
+                            _refreshMembershipStatuses();
+                          },
+                        );
+                      },
+                      childCount: sortedMembers.length,
+                    ),
+                  ),
                   
-                  return ZSCard.fromMember(
-                    context,
-                    member,
-                    isActive: hasActiveMembership,
-                    hideStatus: !_membershipStatusesLoaded, // Hide status until membership data is loaded
-                    onTap: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MembersDetailOverview(
-                            member: member,
-                          ),
+                  if (memberProvider.hasMoreData || memberProvider.isLoadingMore)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 20, bottom: 40),
+                        child: PaginationControlsWidget(
+                          currentItemCount: memberProvider.members.length,
+                          totalCount: memberProvider.totalCount,
+                          hasMoreData: memberProvider.hasMoreData,
+                          isLoadingMore: memberProvider.isLoadingMore,
+                          onLoadMore: () => memberProvider.loadMore(),
+                          currentPageSize: memberProvider.pageSize,
+                          onPageSizeChanged: (newSize) => memberProvider.setPageSize(newSize),
+                          itemName: 'korisnika',
+                          loadMoreText: 'Učitaj više korisnika',
                         ),
-                      );
-                      // Refresh membership statuses when returning from details
-                      _loadMembers();
-                      _refreshMembershipStatuses();
-                    },
-                  );
-                },
-                childCount: sortedMembers.length,
+                      ),
+                    )
+                  else
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 60),
+                    ),
+                ],
               ),
             ),
             
-            if (memberProvider.hasMoreData || memberProvider.isLoadingMore)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 20, bottom: 40),
-                  child: PaginationControlsWidget(
-                    currentItemCount: memberProvider.members.length,
-                    totalCount: memberProvider.totalCount,
-                    hasMoreData: memberProvider.hasMoreData,
-                    isLoadingMore: memberProvider.isLoadingMore,
-                    onLoadMore: () => memberProvider.loadMore(),
-                    currentPageSize: memberProvider.pageSize,
-                    onPageSizeChanged: (newSize) => memberProvider.setPageSize(newSize),
-                    itemName: 'korisnika',
-                    loadMoreText: 'Učitaj više korisnika',
-                  ),
-                ),
-              )
-            else
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 60),
-              ),
+            // Search loading indicator
+            SearchLoadingIndicator(
+              isVisible: memberProvider.isUpdating,
+              text: 'Pretražujem korisnike...',
+              top: 20,
+            ),
           ],
         );
       },

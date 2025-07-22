@@ -11,6 +11,7 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
   
   List<Member> _members = [];
   bool _isLoading = false;
+  bool _isUpdating = false;
   String? _error;
   
   // Pagination state
@@ -30,6 +31,7 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
   List<Member> get items => members;
   
   bool get isLoading => _isLoading;
+  bool get isUpdating => _isUpdating;
   @override
   bool get isInitialLoading => _isLoading && _members.isEmpty;
   @override
@@ -48,12 +50,18 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
   Future<void> fetchMembers({bool isUserIncluded = true, bool refresh = false}) async {
     if (refresh) {
       _currentPage = 0;
-      _members.clear();
+      if (_members.isEmpty) {
+        _members.clear();
+      }
       _hasMoreData = true;
       _error = null;
     }
     
-    _isLoading = true;
+    if (_members.isNotEmpty && refresh) {
+      _isUpdating = true;
+    } else {
+      _isLoading = true;
+    }
     notifyListeners();
 
     try {
@@ -67,7 +75,7 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
       final List<Member> newMembers = result['members'] as List<Member>;
       _totalCount = result['totalCount'] as int;
       
-      if (refresh || _members.isEmpty) {
+      if (refresh) {
         _members = newMembers;
       } else {
         _members.addAll(newMembers);
@@ -76,11 +84,13 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
       _hasMoreData = _members.length < _totalCount;
       
       _isLoading = false;
+      _isUpdating = false;
       _error = null;
       notifyListeners();
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
+      _isUpdating = false;
       notifyListeners();
     }
   }
@@ -119,6 +129,7 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
   void clearSearch() {
     _searchQuery = '';
     _searchDebounceTimer?.cancel();
+    _members.clear();
     refresh();
   }
   

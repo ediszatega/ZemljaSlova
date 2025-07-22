@@ -8,6 +8,7 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
   final AuthorService _authorService;
   List<Author> _authors = [];
   bool _isLoading = false;
+  bool _isUpdating = false;
   String? _error;
   
   // Pagination state
@@ -29,6 +30,7 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
   List<Author> get items => authors;
   
   bool get isLoading => _isLoading;
+  bool get isUpdating => _isUpdating;
   @override
   bool get isInitialLoading => _isLoading && _authors.isEmpty;
   @override
@@ -47,12 +49,18 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
   Future<void> fetchAuthors({bool refresh = false}) async {
     if (refresh) {
       _currentPage = 0;
-      _authors.clear();
+      if (_authors.isEmpty) {
+        _authors.clear();
+      }
       _hasMoreData = true;
       _error = null;
     }
     
-    _isLoading = true;
+    if (_authors.isNotEmpty && refresh) {
+      _isUpdating = true;
+    } else {
+      _isLoading = true;
+    }
     notifyListeners();
 
     try {
@@ -65,7 +73,7 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
       final List<Author> newAuthors = result['authors'] as List<Author>;
       _totalCount = result['totalCount'] as int;
       
-      if (refresh || _authors.isEmpty) {
+      if (refresh) {
         _authors = newAuthors;
       } else {
         _authors.addAll(newAuthors);
@@ -74,11 +82,13 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
       _hasMoreData = _authors.length < _totalCount;
       
       _isLoading = false;
+      _isUpdating = false;
       _error = null;
       notifyListeners();
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
+      _isUpdating = false;
       notifyListeners();
     }
   }
@@ -117,6 +127,7 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
   void clearSearch() {
     _searchQuery = '';
     _searchDebounceTimer?.cancel();
+    _authors.clear();
     refresh();
   }
   

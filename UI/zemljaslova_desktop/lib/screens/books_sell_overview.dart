@@ -9,6 +9,7 @@ import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/pagination_controls_widget.dart';
+import '../widgets/search_loading_indicator.dart';
 import 'book_detail_overview.dart';
 import 'book_add.dart';
 
@@ -186,13 +187,11 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
   Widget _buildBooksGrid() {
     return Consumer<BookProvider>(
       builder: (ctx, bookProvider, child) {
-        if (bookProvider.isInitialLoading) {
+        if (bookProvider.isLoading) {
           return const Center(
             child: CircularProgressIndicator(),
           );
         }
-        
-
         
         if (bookProvider.error != null && bookProvider.books.isEmpty) {
           return Center(
@@ -233,62 +232,77 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
             break;
         }
         
-        return CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            // Books grid
-            SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 40,
-                mainAxisSpacing: 40,
-                childAspectRatio: 0.65,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final book = sortedBooks[index];
-                  return ZSCard.fromBook(
-                    context,
-                    book,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => BookDetailOverview(
-                            book: book,
-                          ),
+        return Stack(
+          children: [
+            AnimatedOpacity(
+              opacity: 1.0,
+              duration: const Duration(milliseconds: 100),
+              child: CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  // Books grid
+                  SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      crossAxisSpacing: 40,
+                      mainAxisSpacing: 40,
+                      childAspectRatio: 0.65,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final book = sortedBooks[index];
+                        return ZSCard.fromBook(
+                          context,
+                          book,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => BookDetailOverview(
+                                  book: book,
+                                ),
+                              ),
+                            ).then((_) {
+                              _loadBooks();
+                            });
+                          },
+                        );
+                      },
+                      childCount: sortedBooks.length,
+                    ),
+                  ),
+                  
+                  if (bookProvider.hasMoreData || bookProvider.isLoadingMore)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 20, bottom: 40),
+                        child: PaginationControlsWidget(
+                          currentItemCount: bookProvider.books.length,
+                          totalCount: bookProvider.totalCount,
+                          hasMoreData: bookProvider.hasMoreData,
+                          isLoadingMore: bookProvider.isLoadingMore,
+                          onLoadMore: () => bookProvider.loadMore(),
+                          currentPageSize: bookProvider.pageSize,
+                          onPageSizeChanged: (newSize) => bookProvider.setPageSize(newSize),
+                          itemName: 'knjiga',
+                          loadMoreText: 'Učitaj više knjiga',
                         ),
-                      ).then((_) {
-                        _loadBooks();
-                      });
-                    },
-                  );
-                },
-                childCount: sortedBooks.length,
+                      ),
+                    )
+                  else
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 60),
+                    ),
+                ],
               ),
             ),
             
-            if (bookProvider.hasMoreData || bookProvider.isLoadingMore)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 20, bottom: 40),
-                  child: PaginationControlsWidget(
-                    currentItemCount: bookProvider.books.length,
-                    totalCount: bookProvider.totalCount,
-                    hasMoreData: bookProvider.hasMoreData,
-                    isLoadingMore: bookProvider.isLoadingMore,
-                    onLoadMore: () => bookProvider.loadMore(),
-                    currentPageSize: bookProvider.pageSize,
-                    onPageSizeChanged: (newSize) => bookProvider.setPageSize(newSize),
-                    itemName: 'knjiga',
-                    loadMoreText: 'Učitaj više knjiga',
-                  ),
-                ),
-              )
-            else
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 60),
-              ),
+            // Search loading indicator
+            SearchLoadingIndicator(
+              isVisible: bookProvider.isUpdating,
+              text: 'Pretražujem knjige...',
+              top: 20,
+            ),
           ],
         );
       },

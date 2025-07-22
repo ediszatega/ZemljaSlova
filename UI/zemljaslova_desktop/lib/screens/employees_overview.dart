@@ -9,6 +9,7 @@ import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/pagination_controls_widget.dart';
+import '../widgets/search_loading_indicator.dart';
 import '../screens/employee_details_overview.dart';
 import '../screens/employee_add.dart';
 
@@ -45,6 +46,7 @@ class EmployeesContent extends StatefulWidget {
 class _EmployeesContentState extends State<EmployeesContent> with WidgetsBindingObserver {
   String _sortOption = 'Ime (A-Z)';
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
   
   @override
   void initState() {
@@ -58,6 +60,7 @@ class _EmployeesContentState extends State<EmployeesContent> with WidgetsBinding
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
   
@@ -114,8 +117,12 @@ class _EmployeesContentState extends State<EmployeesContent> with WidgetsBinding
         Expanded(
           child: SearchInput(
             label: 'Pretraži',
-            hintText: 'Pretraži uposlenike',
+            hintText: 'Pretraži uposljenike',
+            controller: _searchController,
             borderColor: Colors.grey.shade300,
+            onChanged: (value) {
+              context.read<EmployeeProvider>().setSearchQuery(value);
+            },
           ),
         ),
         const SizedBox(width: 16),
@@ -175,7 +182,7 @@ class _EmployeesContentState extends State<EmployeesContent> with WidgetsBinding
   Widget _buildEmployeesGrid() {
     return Consumer<EmployeeProvider>(
       builder: (ctx, employeeProvider, child) {
-        if (employeeProvider.isInitialLoading) {
+        if (employeeProvider.isLoading) {
           return const Center(
             child: CircularProgressIndicator(),
           );
@@ -218,60 +225,75 @@ class _EmployeesContentState extends State<EmployeesContent> with WidgetsBinding
             break;
         }
         
-        return CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            // Employees grid
-            SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 40,
-                mainAxisSpacing: 40,
-                childAspectRatio: 0.7,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final employee = sortedEmployees[index];
-                  return ZSCard.fromEmployee(
-                    context,
-                    employee,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EmployeeDetailsOverview(employee: employee),
+        return Stack(
+          children: [
+            AnimatedOpacity(
+              opacity: 1.0,
+              duration: const Duration(milliseconds: 100),
+              child: CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  // Employees grid
+                  SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      crossAxisSpacing: 40,
+                      mainAxisSpacing: 40,
+                      childAspectRatio: 0.7,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final employee = sortedEmployees[index];
+                        return ZSCard.fromEmployee(
+                          context,
+                          employee,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EmployeeDetailsOverview(employee: employee),
+                              ),
+                            ).then((_) {
+                              _loadEmployees();
+                            });
+                          },
+                        );
+                      },
+                      childCount: sortedEmployees.length,
+                    ),
+                  ),
+                  
+                  if (employeeProvider.hasMoreData || employeeProvider.isLoadingMore)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 20, bottom: 40),
+                        child: PaginationControlsWidget(
+                          currentItemCount: employeeProvider.employees.length,
+                          totalCount: employeeProvider.totalCount,
+                          hasMoreData: employeeProvider.hasMoreData,
+                          isLoadingMore: employeeProvider.isLoadingMore,
+                          onLoadMore: () => employeeProvider.loadMore(),
+                          currentPageSize: employeeProvider.pageSize,
+                          onPageSizeChanged: (newSize) => employeeProvider.setPageSize(newSize),
+                          itemName: 'uposlenika',
+                          loadMoreText: 'Učitaj više uposlenika',
                         ),
-                      ).then((_) {
-                        _loadEmployees();
-                      });
-                    },
-                  );
-                },
-                childCount: sortedEmployees.length,
+                      ),
+                    )
+                  else
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 60),
+                    ),
+                ],
               ),
             ),
             
-            if (employeeProvider.hasMoreData || employeeProvider.isLoadingMore)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 20, bottom: 40),
-                  child: PaginationControlsWidget(
-                    currentItemCount: employeeProvider.employees.length,
-                    totalCount: employeeProvider.totalCount,
-                    hasMoreData: employeeProvider.hasMoreData,
-                    isLoadingMore: employeeProvider.isLoadingMore,
-                    onLoadMore: () => employeeProvider.loadMore(),
-                    currentPageSize: employeeProvider.pageSize,
-                    onPageSizeChanged: (newSize) => employeeProvider.setPageSize(newSize),
-                    itemName: 'uposlenika',
-                    loadMoreText: 'Učitaj više uposlenika',
-                  ),
-                ),
-              )
-            else
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 60),
-              ),
+            // Search loading indicator
+            SearchLoadingIndicator(
+              isVisible: employeeProvider.isUpdating,
+              text: 'Pretražujem uposljenike...',
+              top: 20,
+            ),
           ],
         );
       },

@@ -11,6 +11,7 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
   
   List<Book> _books = [];
   bool _isLoading = false;
+  bool _isUpdating = false;
   String? _error;
   
   // Pagination state
@@ -30,6 +31,7 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
   List<Book> get items => books;
   
   bool get isLoading => _isLoading;
+  bool get isUpdating => _isUpdating;
   @override
   bool get isInitialLoading => _isLoading && _books.isEmpty;
   @override
@@ -48,12 +50,18 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
   Future<void> fetchBooks({bool isAuthorIncluded = true, bool refresh = false}) async {
     if (refresh) {
       _currentPage = 0;
-      _books.clear();
+      if (_books.isEmpty) {
+        _books.clear();
+      }
       _hasMoreData = true;
       _error = null;
     }
     
-    _isLoading = true;
+    if (_books.isNotEmpty && refresh) {
+      _isUpdating = true;
+    } else {
+      _isLoading = true;
+    }
     notifyListeners();
 
     try {
@@ -67,7 +75,7 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
       final List<Book> newBooks = result['books'] as List<Book>;
       _totalCount = result['totalCount'] as int;
       
-      if (refresh || _books.isEmpty) {
+      if (refresh) {
         _books = newBooks;
       } else {
         _books.addAll(newBooks);
@@ -76,11 +84,13 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
       _hasMoreData = _books.length < _totalCount;
       
       _isLoading = false;
+      _isUpdating = false;
       _error = null;
       notifyListeners();
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
+      _isUpdating = false;
       notifyListeners();
     }
   }
@@ -119,6 +129,7 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
   void clearSearch() {
     _searchQuery = '';
     _searchDebounceTimer?.cancel();
+    _books.clear();
     refresh();
   }
   

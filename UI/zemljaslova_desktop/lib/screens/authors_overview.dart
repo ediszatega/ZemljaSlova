@@ -9,6 +9,7 @@ import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/pagination_controls_widget.dart';
+import '../widgets/search_loading_indicator.dart';
 import 'author_detail_overview.dart';
 import 'author_add.dart';
 
@@ -183,7 +184,7 @@ class _AuthorsContentState extends State<AuthorsContent> with WidgetsBindingObse
   Widget _buildAuthorsGrid() {
     return Consumer<AuthorProvider>(
       builder: (ctx, authorProvider, child) {
-        if (authorProvider.isInitialLoading) {
+        if (authorProvider.isLoading) {
           return const Center(
             child: CircularProgressIndicator(),
           );
@@ -236,62 +237,77 @@ class _AuthorsContentState extends State<AuthorsContent> with WidgetsBindingObse
             break;
         }
         
-        return CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            // Authors grid
-            SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 40,
-                mainAxisSpacing: 40,
-                childAspectRatio: 0.7,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final author = sortedAuthors[index];
-                  return ZSCard.fromAuthor(
-                    context,
-                    author,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AuthorDetailOverview(
-                            author: author,
-                          ),
+        return Stack(
+          children: [
+            AnimatedOpacity(
+              opacity: 1.0,
+              duration: const Duration(milliseconds: 100),
+              child: CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  // Authors grid
+                  SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      crossAxisSpacing: 40,
+                      mainAxisSpacing: 40,
+                      childAspectRatio: 0.7,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final author = sortedAuthors[index];
+                        return ZSCard.fromAuthor(
+                          context,
+                          author,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AuthorDetailOverview(
+                                  author: author,
+                                ),
+                              ),
+                            ).then((_) {
+                              _loadAuthors();
+                            });
+                          },
+                        );
+                      },
+                      childCount: sortedAuthors.length,
+                    ),
+                  ),
+                  
+                  if (authorProvider.hasMoreData || authorProvider.isLoadingMore)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 20, bottom: 40),
+                        child: PaginationControlsWidget(
+                          currentItemCount: authorProvider.authors.length,
+                          totalCount: authorProvider.totalCount,
+                          hasMoreData: authorProvider.hasMoreData,
+                          isLoadingMore: authorProvider.isLoadingMore,
+                          onLoadMore: () => authorProvider.loadMore(),
+                          currentPageSize: authorProvider.pageSize,
+                          onPageSizeChanged: (newSize) => authorProvider.setPageSize(newSize),
+                          itemName: 'autora',
+                          loadMoreText: 'Učitaj više autora',
                         ),
-                      ).then((_) {
-                        _loadAuthors();
-                      });
-                    },
-                  );
-                },
-                childCount: sortedAuthors.length,
+                      ),
+                    )
+                  else
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 60),
+                    ),
+                ],
               ),
             ),
             
-            if (authorProvider.hasMoreData || authorProvider.isLoadingMore)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 20, bottom: 40),
-                  child: PaginationControlsWidget(
-                    currentItemCount: authorProvider.authors.length,
-                    totalCount: authorProvider.totalCount,
-                    hasMoreData: authorProvider.hasMoreData,
-                    isLoadingMore: authorProvider.isLoadingMore,
-                    onLoadMore: () => authorProvider.loadMore(),
-                    currentPageSize: authorProvider.pageSize,
-                    onPageSizeChanged: (newSize) => authorProvider.setPageSize(newSize),
-                    itemName: 'autora',
-                    loadMoreText: 'Učitaj više autora',
-                  ),
-                ),
-              )
-            else
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 60),
-              ),
+            // Search loading indicator
+            SearchLoadingIndicator(
+              isVisible: authorProvider.isUpdating,
+              text: 'Pretražujem autore...',
+              top: 20,
+            ),
           ],
         );
       },

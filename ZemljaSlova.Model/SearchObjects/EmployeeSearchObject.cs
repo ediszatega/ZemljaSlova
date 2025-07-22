@@ -7,5 +7,6 @@ namespace ZemljaSlova.Model.SearchObjects
     public class EmployeeSearchObject : BaseSearchObject
     {
         public bool IsUserIncluded { get; set; }
+        public string? Name { get; set; }
     }
 }

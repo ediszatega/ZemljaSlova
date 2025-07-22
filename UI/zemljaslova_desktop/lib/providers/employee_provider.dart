@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/employee.dart';
 import '../services/employee_service.dart';
@@ -10,6 +11,7 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
   
   List<Employee> _employees = [];
   bool _isLoading = false;
+  bool _isUpdating = false;
   String? _error;
   
   // Pagination state
@@ -17,6 +19,10 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
   int _pageSize = 10;
   int _totalCount = 0;
   bool _hasMoreData = true;
+  
+  // Search state
+  String _searchQuery = '';
+  Timer? _searchDebounceTimer;
 
   List<Employee> get employees => [..._employees];
   
@@ -25,6 +31,7 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
   List<Employee> get items => employees;
   
   bool get isLoading => _isLoading;
+  bool get isUpdating => _isUpdating;
   @override
   bool get isInitialLoading => _isLoading && _employees.isEmpty;
   @override
@@ -43,12 +50,18 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
   Future<void> fetchEmployees({bool isUserIncluded = true, bool refresh = false}) async {
     if (refresh) {
       _currentPage = 0;
-      _employees.clear();
+      if (_employees.isEmpty) {
+        _employees.clear();
+      }
       _hasMoreData = true;
       _error = null;
     }
     
-    _isLoading = true;
+    if (_employees.isNotEmpty && refresh) {
+      _isUpdating = true;
+    } else {
+      _isLoading = true;
+    }
     notifyListeners();
 
     try {
@@ -56,12 +69,13 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
         isUserIncluded: isUserIncluded,
         page: _currentPage,
         pageSize: _pageSize,
+        name: _searchQuery.isNotEmpty ? _searchQuery : null,
       );
       
       final List<Employee> newEmployees = result['employees'] as List<Employee>;
       _totalCount = result['totalCount'] as int;
       
-      if (refresh || _employees.isEmpty) {
+      if (refresh) {
         _employees = newEmployees;
       } else {
         _employees.addAll(newEmployees);
@@ -70,11 +84,13 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
       _hasMoreData = _employees.length < _totalCount;
       
       _isLoading = false;
+      _isUpdating = false;
       _error = null;
       notifyListeners();
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
+      _isUpdating = false;
       notifyListeners();
     }
   }
@@ -99,6 +115,26 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
       refresh();
     }
   }
+  
+  // Search methods
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    
+    _searchDebounceTimer?.cancel();
+    
+    _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
+      refresh();
+    });
+  }
+  
+  void clearSearch() {
+    _searchQuery = '';
+    _searchDebounceTimer?.cancel();
+    _employees.clear();
+    refresh();
+  }
+  
+  String get searchQuery => _searchQuery;
 
   Future<Employee?> getEmployeeById(int id) async {
     try {
