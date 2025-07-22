@@ -118,8 +118,7 @@ class _AuthorsContentState extends State<AuthorsContent> with WidgetsBindingObse
             hintText: 'Pretraži autore',
             borderColor: Colors.grey.shade300,
             onChanged: (value) {
-              // TODO: Implement search functionality
-              print('Searching for: $value');
+              context.read<AuthorProvider>().setSearchQuery(value);
             },
           ),
         ),

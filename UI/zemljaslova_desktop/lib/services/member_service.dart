@@ -12,6 +12,7 @@ class MemberService {
     bool isUserIncluded = true,
     int? page,
     int? pageSize,
+    String? name,
   }) async {
     try {
       List<String> queryParams = ['IsUserIncluded=$isUserIncluded'];
@@ -22,6 +23,10 @@ class MemberService {
       
       if (pageSize != null) {
         queryParams.add('PageSize=$pageSize');
+      }
+      
+      if (name != null && name.isNotEmpty) {
+        queryParams.add('Name=${Uri.encodeComponent(name)}');
       }
       
       final queryString = queryParams.join('&');

@@ -6,5 +6,6 @@ namespace ZemljaSlova.Model.SearchObjects
 {
     public class AuthorSearchObject : BaseSearchObject
     {
+        public string? Name { get; set; }
     }
 }

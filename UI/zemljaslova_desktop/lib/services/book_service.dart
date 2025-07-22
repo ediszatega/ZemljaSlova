@@ -13,6 +13,7 @@ class BookService {
     bool isAuthorIncluded = true,
     int? page,
     int? pageSize,
+    String? title,
   }) async {
     try {
       List<String> queryParams = ['IsAuthorIncluded=$isAuthorIncluded'];
@@ -23,6 +24,10 @@ class BookService {
       
       if (pageSize != null) {
         queryParams.add('PageSize=$pageSize');
+      }
+      
+      if (title != null && title.isNotEmpty) {
+        queryParams.add('Title=${Uri.encodeComponent(title)}');
       }
       
       final queryString = queryParams.join('&');

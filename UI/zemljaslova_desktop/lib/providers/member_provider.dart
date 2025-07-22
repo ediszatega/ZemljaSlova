@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/member.dart';
 import '../services/member_service.dart';
@@ -17,6 +18,10 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
   int _pageSize = 10;
   int _totalCount = 0;
   bool _hasMoreData = true;
+  
+  // Search state
+  String _searchQuery = '';
+  Timer? _searchDebounceTimer;
 
   List<Member> get members => [..._members];
   
@@ -56,6 +61,7 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
         isUserIncluded: isUserIncluded,
         page: _currentPage,
         pageSize: _pageSize,
+        name: _searchQuery.isNotEmpty ? _searchQuery : null,
       );
       
       final List<Member> newMembers = result['members'] as List<Member>;
@@ -99,6 +105,24 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
       refresh();
     }
   }
+  
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    
+    _searchDebounceTimer?.cancel();
+    
+    _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
+      refresh();
+    });
+  }
+  
+  void clearSearch() {
+    _searchQuery = '';
+    _searchDebounceTimer?.cancel();
+    refresh();
+  }
+  
+  String get searchQuery => _searchQuery;
 
   Future<Member?> getMemberById(int id) async {
     try {

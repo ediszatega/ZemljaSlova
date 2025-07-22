@@ -16,6 +16,17 @@ namespace ZemljaSlova.Services
         {
         }
 
+        public override IQueryable<Database.Author> AddFilter(AuthorSearchObject search, IQueryable<Database.Author> query)
+        {
+            // Filter by name (firstName or lastName)
+            if (!string.IsNullOrEmpty(search.Name))
+            {
+                query = query.Where(a => a.FirstName.ToLower().Contains(search.Name.ToLower()) || a.LastName.ToLower().Contains(search.Name.ToLower()));
+            }
+
+            return base.AddFilter(search, query);
+        }
+
         public override void BeforeDelete(Database.Author entity)
         {
             // Check if author has books associated

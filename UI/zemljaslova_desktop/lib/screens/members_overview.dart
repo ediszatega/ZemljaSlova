@@ -49,6 +49,7 @@ class _MembersContentState extends State<MembersContent> with WidgetsBindingObse
   bool _loadingMembershipStatuses = false;
   bool _membershipStatusesLoaded = false; // Track if membership statuses have been loaded
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
   
   @override
   void initState() {
@@ -62,6 +63,7 @@ class _MembersContentState extends State<MembersContent> with WidgetsBindingObse
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
   
@@ -176,7 +178,11 @@ class _MembersContentState extends State<MembersContent> with WidgetsBindingObse
           child: SearchInput(
             label: 'Pretraži',
             hintText: 'Pretraži korisnike',
+            controller: _searchController,
             borderColor: Colors.grey.shade300,
+            onChanged: (value) {
+              context.read<MemberProvider>().setSearchQuery(value);
+            },
           ),
         ),
         const SizedBox(width: 16),

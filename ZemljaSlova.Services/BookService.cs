@@ -27,6 +27,11 @@ namespace ZemljaSlova.Services
 
             query = query.Include(b => b.Discount);
 
+            if (!string.IsNullOrEmpty(search.Title))
+            {
+                query = query.Where(b => b.Title.ToLower().Contains(search.Title.ToLower()));
+            }
+
             return base.AddFilter(search, query);
         }
 

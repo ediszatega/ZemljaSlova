@@ -45,6 +45,7 @@ class BooksContent extends StatefulWidget {
 class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver {
   String _sortOption = 'Naslov (A-Z)';
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
   
   @override
   void initState() {
@@ -58,6 +59,7 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
   
@@ -116,7 +118,11 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
           child: SearchInput(
             label: 'Pretraži',
             hintText: 'Pretraži knjige',
+            controller: _searchController,
             borderColor: Colors.grey.shade300,
+            onChanged: (value) {
+              context.read<BookProvider>().setSearchQuery(value);
+            },
           ),
         ),
         const SizedBox(width: 16),
@@ -185,6 +191,8 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
             child: CircularProgressIndicator(),
           );
         }
+        
+
         
         if (bookProvider.error != null && bookProvider.books.isEmpty) {
           return Center(

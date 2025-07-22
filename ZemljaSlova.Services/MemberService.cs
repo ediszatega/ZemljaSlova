@@ -32,6 +32,12 @@ namespace ZemljaSlova.Services
                 query = query.Include("User");
             }
 
+            // Filter by name (firstName or lastName)
+            if (!string.IsNullOrEmpty(search.Name))
+            {
+                query = query.Where(m => m.User.FirstName.ToLower().Contains(search.Name.ToLower()) || m.User.LastName.ToLower().Contains(search.Name.ToLower()));
+            }
+
             return base.AddFilter(search, query);
         }
 

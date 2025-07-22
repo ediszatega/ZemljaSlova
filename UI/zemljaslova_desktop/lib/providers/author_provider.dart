@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/author.dart';
 import '../services/author_service.dart';
@@ -14,6 +15,10 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
   int _pageSize = 10;
   int _totalCount = 0;
   bool _hasMoreData = true;
+  
+  // Search state
+  String _searchQuery = '';
+  Timer? _searchDebounceTimer;
 
   AuthorProvider(this._authorService);
 
@@ -54,6 +59,7 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
       final result = await _authorService.fetchAuthors(
         page: _currentPage,
         pageSize: _pageSize,
+        name: _searchQuery.isNotEmpty ? _searchQuery : null,
       );
       
       final List<Author> newAuthors = result['authors'] as List<Author>;
@@ -97,6 +103,24 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
       refresh();
     }
   }
+
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    
+    _searchDebounceTimer?.cancel();
+    
+    _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
+      refresh();
+    });
+  }
+  
+  void clearSearch() {
+    _searchQuery = '';
+    _searchDebounceTimer?.cancel();
+    refresh();
+  }
+  
+  String get searchQuery => _searchQuery;
 
   Future<Author?> getAuthorById(int id) async {
     try {

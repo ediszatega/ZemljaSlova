@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/book.dart';
 import '../services/book_service.dart';
@@ -17,6 +18,10 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
   int _pageSize = 10;
   int _totalCount = 0;
   bool _hasMoreData = true;
+  
+  // Search state
+  String _searchQuery = '';
+  Timer? _searchDebounceTimer;
 
   List<Book> get books => [..._books];
   
@@ -56,6 +61,7 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
         isAuthorIncluded: isAuthorIncluded,
         page: _currentPage,
         pageSize: _pageSize,
+        title: _searchQuery.isNotEmpty ? _searchQuery : null,
       );
       
       final List<Book> newBooks = result['books'] as List<Book>;
@@ -99,6 +105,24 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
       refresh();
     }
   }
+  
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    
+    _searchDebounceTimer?.cancel();
+    
+    _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
+      refresh();
+    });
+  }
+  
+  void clearSearch() {
+    _searchQuery = '';
+    _searchDebounceTimer?.cancel();
+    refresh();
+  }
+  
+  String get searchQuery => _searchQuery;
   
   Future<Book?> getBookById(int id) async {
     try {

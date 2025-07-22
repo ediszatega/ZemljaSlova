@@ -11,6 +11,7 @@ class AuthorService {
   Future<Map<String, dynamic>> fetchAuthors({
     int? page,
     int? pageSize,
+    String? name,
   }) async {
     try {
       List<String> queryParams = [];
@@ -21,6 +22,10 @@ class AuthorService {
       
       if (pageSize != null) {
         queryParams.add('PageSize=$pageSize');
+      }
+      
+      if (name != null && name.isNotEmpty) {
+        queryParams.add('Name=${Uri.encodeComponent(name)}');
       }
       
       final queryString = queryParams.isNotEmpty ? '?${queryParams.join('&')}' : '';
