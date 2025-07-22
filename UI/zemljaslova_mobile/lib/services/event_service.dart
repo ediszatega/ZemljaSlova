@@ -13,9 +13,10 @@ class EventService {
     bool isTicketTypeIncluded = true,
     int? page,
     int? pageSize,
+    String? name,
   }) async {
     try {
-      List<String> queryParams = ['isTicketTypeIncluded=$isTicketTypeIncluded'];
+      List<String> queryParams = ['IsTicketTypeIncluded=$isTicketTypeIncluded'];
       
       if (page != null) {
         queryParams.add('Page=$page');
@@ -23,6 +24,10 @@ class EventService {
       
       if (pageSize != null) {
         queryParams.add('PageSize=$pageSize');
+      }
+      
+      if (name != null && name.isNotEmpty) {
+        queryParams.add('Name=${Uri.encodeComponent(name)}');
       }
       
       final queryString = queryParams.join('&');

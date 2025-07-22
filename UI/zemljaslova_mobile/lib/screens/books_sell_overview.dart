@@ -58,9 +58,13 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> {
           
           // Search bar
           SearchInput(
+            label: 'Pretraži',
+            hintText: 'Pretraži knjige po naslovu',
             controller: _searchController,
-            hintText: 'Pretraži knjige',
             borderColor: Colors.grey.shade300,
+            onChanged: (value) {
+              context.read<BookProvider>().setSearchQuery(value);
+            },
           ),
           
           const SizedBox(height: 8),
