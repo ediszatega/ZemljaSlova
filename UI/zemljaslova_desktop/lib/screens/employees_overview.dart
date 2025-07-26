@@ -51,9 +51,11 @@ class _EmployeesContentState extends State<EmployeesContent> with WidgetsBinding
   @override
   void initState() {
     super.initState();
-    // Register as an observer to detect when the app regains focus
-    WidgetsBinding.instance.addObserver(this);
     _loadEmployees();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<EmployeeProvider>().setSorting('name', 'asc');
+    });
   }
   
   @override
@@ -77,6 +79,34 @@ class _EmployeesContentState extends State<EmployeesContent> with WidgetsBinding
     Future.microtask(() {
       Provider.of<EmployeeProvider>(context, listen: false).refresh(isUserIncluded: true);
     });
+  }
+  
+  void _handleSortChange(String? value) {
+    if (value != null) {
+      setState(() {
+        _sortOption = value;
+      });
+      
+      String sortBy;
+      String sortOrder;
+      
+      switch (value) {
+        case 'Ime (A-Z)':
+          sortBy = 'name';
+          sortOrder = 'asc';
+          break;
+        case 'Ime (Z-A)':
+          sortBy = 'name';
+          sortOrder = 'desc';
+          break;
+        default:
+          sortBy = 'name';
+          sortOrder = 'asc';
+          break;
+      }
+      
+      context.read<EmployeeProvider>().setSorting(sortBy, sortOrder);
+    }
   }
 
   @override
@@ -127,6 +157,7 @@ class _EmployeesContentState extends State<EmployeesContent> with WidgetsBinding
         ),
         const SizedBox(width: 16),
         
+        // Sort dropdown
         ZSDropdown<String>(
           label: 'Sortiraj',
           value: _sortOption,
@@ -134,15 +165,9 @@ class _EmployeesContentState extends State<EmployeesContent> with WidgetsBinding
           items: const [
             DropdownMenuItem(value: 'Ime (A-Z)', child: Text('Ime (A-Z)')),
             DropdownMenuItem(value: 'Ime (Z-A)', child: Text('Ime (Z-A)')),
-            DropdownMenuItem(value: 'Status', child: Text('Status')),
-            DropdownMenuItem(value: 'Pristupni nivo', child: Text('Pristupni nivo')),
           ],
           onChanged: (value) {
-            if (value != null) {
-              setState(() {
-                _sortOption = value;
-              });
-            }
+            _handleSortChange(value);
           },
           borderColor: Colors.grey.shade300,
         ),
@@ -202,27 +227,9 @@ class _EmployeesContentState extends State<EmployeesContent> with WidgetsBinding
         if (employees.isEmpty) {
           return const EmptyState(
             icon: Icons.badge,
-            title: 'Nema uposlenika za prikaz',
-            description: 'Trenutno nema uposlenika u sistemu.\nDodajte nove uposljenike da biste proširili tim.',
+            title: 'Nema zaposlenika za prikaz',
+            description: 'Trenutno nema zaposlenih u sistemu.\nDodajte novog zaposlenog da biste počeli.',
           );
-        }
-        
-        // Sort the employees list based on the selected option
-        final sortedEmployees = List<Employee>.from(employees);
-        switch (_sortOption) {
-          case 'Ime (A-Z)':
-            sortedEmployees.sort((a, b) => a.fullName.compareTo(b.fullName));
-            break;
-          case 'Ime (Z-A)':
-            sortedEmployees.sort((a, b) => b.fullName.compareTo(a.fullName));
-            break;
-          case 'Status':
-            // Sort active users first
-            sortedEmployees.sort((a, b) => b.isActive == a.isActive ? 0 : (b.isActive ? 1 : -1));
-            break;
-          case 'Pristupni nivo':
-            sortedEmployees.sort((a, b) => a.accessLevel.compareTo(b.accessLevel));
-            break;
         }
         
         return Stack(
@@ -243,7 +250,7 @@ class _EmployeesContentState extends State<EmployeesContent> with WidgetsBinding
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        final employee = sortedEmployees[index];
+                        final employee = employees[index];
                         return ZSCard.fromEmployee(
                           context,
                           employee,
@@ -251,7 +258,9 @@ class _EmployeesContentState extends State<EmployeesContent> with WidgetsBinding
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => EmployeeDetailsOverview(employee: employee),
+                                builder: (context) => EmployeeDetailsOverview(
+                                  employee: employee,
+                                ),
                               ),
                             ).then((_) {
                               _loadEmployees();
@@ -259,7 +268,7 @@ class _EmployeesContentState extends State<EmployeesContent> with WidgetsBinding
                           },
                         );
                       },
-                      childCount: sortedEmployees.length,
+                      childCount: employees.length,
                     ),
                   ),
                   

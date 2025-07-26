@@ -8,5 +8,7 @@ namespace ZemljaSlova.Model.SearchObjects
     {
         public bool IsUserIncluded { get; set; }
         public string? Name { get; set; }
+        public string? SortBy { get; set; }
+        public string? SortOrder { get; set; }
     }
 }

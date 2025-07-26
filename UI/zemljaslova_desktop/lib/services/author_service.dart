@@ -12,6 +12,8 @@ class AuthorService {
     int? page,
     int? pageSize,
     String? name,
+    String? sortBy,
+    String? sortOrder,
   }) async {
     try {
       List<String> queryParams = [];
@@ -28,8 +30,16 @@ class AuthorService {
         queryParams.add('Name=${Uri.encodeComponent(name)}');
       }
       
-      final queryString = queryParams.isNotEmpty ? '?${queryParams.join('&')}' : '';
-      final response = await _apiService.get('Author$queryString');
+      if (sortBy != null && sortBy.isNotEmpty) {
+        queryParams.add('SortBy=${Uri.encodeComponent(sortBy)}');
+      }
+      
+      if (sortOrder != null && sortOrder.isNotEmpty) {
+        queryParams.add('SortOrder=${Uri.encodeComponent(sortOrder)}');
+      }
+      
+      final queryString = queryParams.join('&');
+      final response = await _apiService.get('Author?$queryString');
       
       if (response != null) {
         final authorsList = response['resultList'] as List;

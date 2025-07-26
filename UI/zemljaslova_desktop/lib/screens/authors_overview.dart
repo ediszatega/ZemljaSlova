@@ -50,9 +50,11 @@ class _AuthorsContentState extends State<AuthorsContent> with WidgetsBindingObse
   @override
   void initState() {
     super.initState();
-    // Register as an observer to detect when the app regains focus
-    WidgetsBinding.instance.addObserver(this);
     _loadAuthors();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthorProvider>().setSorting('name', 'asc');
+    });
   }
   
   @override
@@ -75,6 +77,34 @@ class _AuthorsContentState extends State<AuthorsContent> with WidgetsBindingObse
     Future.microtask(() {
       Provider.of<AuthorProvider>(context, listen: false).refresh();
     });
+  }
+  
+  void _handleSortChange(String? value) {
+    if (value != null) {
+      setState(() {
+        _sortOption = value;
+      });
+      
+      String sortBy;
+      String sortOrder;
+      
+      switch (value) {
+        case 'Ime (A-Z)':
+          sortBy = 'name';
+          sortOrder = 'asc';
+          break;
+        case 'Ime (Z-A)':
+          sortBy = 'name';
+          sortOrder = 'desc';
+          break;
+        default:
+          sortBy = 'name';
+          sortOrder = 'asc';
+          break;
+      }
+      
+      context.read<AuthorProvider>().setSorting(sortBy, sortOrder);
+    }
   }
 
   @override
@@ -133,16 +163,9 @@ class _AuthorsContentState extends State<AuthorsContent> with WidgetsBindingObse
           items: const [
             DropdownMenuItem(value: 'Ime (A-Z)', child: Text('Ime (A-Z)')),
             DropdownMenuItem(value: 'Ime (Z-A)', child: Text('Ime (Z-A)')),
-            DropdownMenuItem(value: 'Najnoviji', child: Text('Najnoviji')),
-            DropdownMenuItem(value: 'Najstariji', child: Text('Najstariji')),
-            DropdownMenuItem(value: 'Žanr', child: Text('Žanr')),
           ],
           onChanged: (value) {
-            if (value != null) {
-              setState(() {
-                _sortOption = value;
-              });
-            }
+            _handleSortChange(value);
           },
           borderColor: Colors.grey.shade300,
         ),
@@ -205,36 +228,8 @@ class _AuthorsContentState extends State<AuthorsContent> with WidgetsBindingObse
           return const EmptyState(
             icon: Icons.person_outline,
             title: 'Nema autora za prikaz',
-            description: 'Trenutno nema autora u sistemu.\nDodajte novi profil autora da biste počeli.',
+            description: 'Trenutno nema autora u sistemu.\nDodajte novog autora da biste počeli.',
           );
-        }
-        
-        // Sort the authors list based on the selected option
-        final sortedAuthors = List<Author>.from(authors);
-        switch (_sortOption) {
-          case 'Ime (A-Z)':
-            sortedAuthors.sort((a, b) => a.fullName.compareTo(b.fullName));
-            break;
-          case 'Ime (Z-A)':
-            sortedAuthors.sort((a, b) => b.fullName.compareTo(a.fullName));
-            break;
-          case 'Najnoviji':
-            // In a real app, this would sort by creation date
-            sortedAuthors.sort((a, b) => b.id.compareTo(a.id));
-            break;
-          case 'Najstariji':
-            // In a real app, this would sort by creation date
-            sortedAuthors.sort((a, b) => a.id.compareTo(b.id));
-            break;
-          case 'Žanr':
-            // Sort by genre, with null genres at the end
-            sortedAuthors.sort((a, b) {
-              if (a.genre == null && b.genre == null) return 0;
-              if (a.genre == null) return 1;
-              if (b.genre == null) return -1;
-              return a.genre!.compareTo(b.genre!);
-            });
-            break;
         }
         
         return Stack(
@@ -255,7 +250,7 @@ class _AuthorsContentState extends State<AuthorsContent> with WidgetsBindingObse
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        final author = sortedAuthors[index];
+                        final author = authors[index];
                         return ZSCard.fromAuthor(
                           context,
                           author,
@@ -273,7 +268,7 @@ class _AuthorsContentState extends State<AuthorsContent> with WidgetsBindingObse
                           },
                         );
                       },
-                      childCount: sortedAuthors.length,
+                      childCount: authors.length,
                     ),
                   ),
                   

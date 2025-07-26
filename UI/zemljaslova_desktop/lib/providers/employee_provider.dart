@@ -23,6 +23,10 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
   // Search state
   String _searchQuery = '';
   Timer? _searchDebounceTimer;
+  
+  // Sorting state
+  String _sortBy = 'name';
+  String _sortOrder = 'asc';
 
   List<Employee> get employees => [..._employees];
   
@@ -46,6 +50,9 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
   @override
   bool get hasMoreData => _hasMoreData;
   int get totalPages => (_totalCount / _pageSize).ceil();
+  
+  String get sortBy => _sortBy;
+  String get sortOrder => _sortOrder;
 
   Future<void> fetchEmployees({bool isUserIncluded = true, bool refresh = false}) async {
     if (refresh) {
@@ -70,6 +77,8 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
         page: _currentPage,
         pageSize: _pageSize,
         name: _searchQuery.isNotEmpty ? _searchQuery : null,
+        sortBy: _sortBy,
+        sortOrder: _sortOrder,
       );
       
       final List<Employee> newEmployees = result['employees'] as List<Employee>;
@@ -125,6 +134,14 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
     _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
       refresh();
     });
+  }
+  
+  void setSorting(String sortBy, String sortOrder) {
+    if (_sortBy != sortBy || _sortOrder != sortOrder) {
+      _sortBy = sortBy;
+      _sortOrder = sortOrder;
+      refresh();
+    }
   }
   
   void clearSearch() {

@@ -55,9 +55,11 @@ class _MembersContentState extends State<MembersContent> with WidgetsBindingObse
   @override
   void initState() {
     super.initState();
-    // Register as an observer to detect when the app regains focus
-    WidgetsBinding.instance.addObserver(this);
     _loadMembers();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<MemberProvider>().setSorting('name', 'asc');
+    });
   }
   
   @override
@@ -82,6 +84,34 @@ class _MembersContentState extends State<MembersContent> with WidgetsBindingObse
       Provider.of<MemberProvider>(context, listen: false).refresh(isUserIncluded: true);
       _loadMembershipStatuses();
     });
+  }
+  
+  void _handleSortChange(String? value) {
+    if (value != null) {
+      setState(() {
+        _sortOption = value;
+      });
+      
+      String sortBy;
+      String sortOrder;
+      
+      switch (value) {
+        case 'Ime (A-Z)':
+          sortBy = 'name';
+          sortOrder = 'asc';
+          break;
+        case 'Ime (Z-A)':
+          sortBy = 'name';
+          sortOrder = 'desc';
+          break;
+        default:
+          sortBy = 'name';
+          sortOrder = 'asc';
+          break;
+      }
+      
+      context.read<MemberProvider>().setSorting(sortBy, sortOrder);
+    }
   }
 
   Future<void> _loadMembershipStatuses() async {
@@ -196,16 +226,9 @@ class _MembersContentState extends State<MembersContent> with WidgetsBindingObse
           items: const [
             DropdownMenuItem(value: 'Ime (A-Z)', child: Text('Ime (A-Z)')),
             DropdownMenuItem(value: 'Ime (Z-A)', child: Text('Ime (Z-A)')),
-            DropdownMenuItem(value: 'Najnoviji', child: Text('Najnoviji')),
-            DropdownMenuItem(value: 'Najstariji', child: Text('Najstariji')),
-            DropdownMenuItem(value: 'Status', child: Text('Status')),
           ],
           onChanged: (value) {
-            if (value != null) {
-              setState(() {
-                _sortOption = value;
-              });
-            }
+            _handleSortChange(value);
           },
           borderColor: Colors.grey.shade300,
         ),
@@ -267,36 +290,9 @@ class _MembersContentState extends State<MembersContent> with WidgetsBindingObse
         if (members.isEmpty) {
           return const EmptyState(
             icon: Icons.people,
-            title: 'Nema korisnika za prikaz',
-            description: 'Trenutno nema registrovanih korisnika.\nKreirajte novog korisnika.',
+            title: 'Nema članova za prikaz',
+            description: 'Trenutno nema članova u sistemu.\nDodajte novog člana da biste počeli.',
           );
-        }
-        
-        // Sort the members list based on the selected option
-        final sortedMembers = List<Member>.from(members);
-        switch (_sortOption) {
-          case 'Ime (A-Z)':
-            sortedMembers.sort((a, b) => a.fullName.compareTo(b.fullName));
-            break;
-          case 'Ime (Z-A)':
-            sortedMembers.sort((a, b) => b.fullName.compareTo(a.fullName));
-            break;
-          case 'Najnoviji':
-            // In a real app, this would sort by creation date
-            sortedMembers.sort((a, b) => b.id.compareTo(a.id));
-            break;
-          case 'Najstariji':
-            // In a real app, this would sort by creation date
-            sortedMembers.sort((a, b) => a.id.compareTo(b.id));
-            break;
-          case 'Status':
-            // Sort by membership status (active memberships first)
-            sortedMembers.sort((a, b) {
-              final aHasActiveMembership = _membershipStatus[a.id] ?? false;
-              final bHasActiveMembership = _membershipStatus[b.id] ?? false;
-              return bHasActiveMembership == aHasActiveMembership ? 0 : (bHasActiveMembership ? 1 : -1);
-            });
-            break;
         }
         
         return Stack(
@@ -317,7 +313,7 @@ class _MembersContentState extends State<MembersContent> with WidgetsBindingObse
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        final member = sortedMembers[index];
+                        final member = members[index];
                         final hasActiveMembership = _membershipStatus[member.id] ?? false;
                         
                         return ZSCard.fromMember(
@@ -340,7 +336,7 @@ class _MembersContentState extends State<MembersContent> with WidgetsBindingObse
                           },
                         );
                       },
-                      childCount: sortedMembers.length,
+                      childCount: members.length,
                     ),
                   ),
                   

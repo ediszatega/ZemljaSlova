@@ -20,6 +20,10 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
   // Search state
   String _searchQuery = '';
   Timer? _searchDebounceTimer;
+  
+  // Sorting state
+  String _sortBy = 'name';
+  String _sortOrder = 'asc';
 
   AuthorProvider(this._authorService);
 
@@ -45,6 +49,9 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
   @override
   bool get hasMoreData => _hasMoreData;
   int get totalPages => (_totalCount / _pageSize).ceil();
+  
+  String get sortBy => _sortBy;
+  String get sortOrder => _sortOrder;
 
   Future<void> fetchAuthors({bool refresh = false}) async {
     if (refresh) {
@@ -68,6 +75,8 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
         page: _currentPage,
         pageSize: _pageSize,
         name: _searchQuery.isNotEmpty ? _searchQuery : null,
+        sortBy: _sortBy,
+        sortOrder: _sortOrder,
       );
       
       final List<Author> newAuthors = result['authors'] as List<Author>;
@@ -122,6 +131,14 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
     _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
       refresh();
     });
+  }
+  
+  void setSorting(String sortBy, String sortOrder) {
+    if (_sortBy != sortBy || _sortOrder != sortOrder) {
+      _sortBy = sortBy;
+      _sortOrder = sortOrder;
+      refresh();
+    }
   }
   
   void clearSearch() {

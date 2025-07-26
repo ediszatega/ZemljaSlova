@@ -24,6 +24,25 @@ namespace ZemljaSlova.Services
                 query = query.Where(a => a.FirstName.ToLower().Contains(search.Name.ToLower()) || a.LastName.ToLower().Contains(search.Name.ToLower()));
             }
 
+            if (!string.IsNullOrEmpty(search.SortBy))
+            {
+                switch (search.SortBy.ToLower())
+                {
+                    case "name":
+                        query = search.SortOrder?.ToLower() == "desc" 
+                            ? query.OrderByDescending(a => a.FirstName + " " + a.LastName)
+                            : query.OrderBy(a => a.FirstName + " " + a.LastName);
+                        break;
+                    default:
+                        query = query.OrderBy(a => a.FirstName + " " + a.LastName);
+                        break;
+                }
+            }
+            else
+            {
+                query = query.OrderBy(a => a.FirstName + " " + a.LastName);
+            }
+
             return base.AddFilter(search, query);
         }
 
