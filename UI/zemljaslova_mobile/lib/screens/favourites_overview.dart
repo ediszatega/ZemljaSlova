@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/favourite.dart';
+import '../models/book.dart';
 import '../widgets/zs_card.dart';
 import '../providers/favourite_provider.dart';
 import '../providers/navigation_provider.dart';
+import '../providers/member_provider.dart';
+import '../providers/book_provider.dart';
+import '../utils/authorization.dart';
 import 'book_detail_overview.dart';
 
 class FavouritesOverviewScreen extends StatefulWidget {
@@ -14,14 +18,71 @@ class FavouritesOverviewScreen extends StatefulWidget {
 }
 
 class _FavouritesOverviewScreenState extends State<FavouritesOverviewScreen> {
-  // Mock member ID - in a real app this would come from authentication
-  static const int mockMemberId = 3008;
+  List<Book> _favouriteBooksWithAuthors = [];
+  bool _isLoadingBooks = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<FavouriteProvider>().fetchFavourites(mockMemberId);
+      _loadFavourites();
+    });
+  }
+
+  void _loadFavourites() {
+    if (Authorization.userId != null) {
+      final memberProvider = context.read<MemberProvider>();
+      final favouriteProvider = context.read<FavouriteProvider>();
+      
+      memberProvider.getMemberByUserId(Authorization.userId!).then((success) {
+        if (success && memberProvider.currentMember != null) {
+          favouriteProvider.fetchFavourites(memberProvider.currentMember!.id).then((_) {
+            _loadFavouriteBooksWithAuthors();
+          });
+        }
+      });
+    }
+  }
+
+  void _loadFavouriteBooksWithAuthors() {
+    final favouriteProvider = context.read<FavouriteProvider>();
+    final bookProvider = context.read<BookProvider>();
+    
+    if (favouriteProvider.favourites.isEmpty) {
+      setState(() {
+        _favouriteBooksWithAuthors = [];
+      });
+      return;
+    }
+    
+    setState(() {
+      _isLoadingBooks = true;
+    });
+    
+    // Get all book IDs from favourites
+    final bookIds = favouriteProvider.favourites
+        .where((f) => f.book != null)
+        .map((f) => f.book!.id)
+        .toList();
+    
+    // Fetch all books with authors in one call (no pagination, get all)
+    bookProvider.fetchBooks(isAuthorIncluded: true, refresh: true).then((_) {
+      if (mounted) {
+        // Filter to only include favourited books
+        final allBooks = bookProvider.books;
+        final favouriteBooks = allBooks.where((book) => bookIds.contains(book.id)).toList();
+        
+        setState(() {
+          _favouriteBooksWithAuthors = favouriteBooks;
+          _isLoadingBooks = false;
+        });
+      }
+    }).catchError((error) {
+      if (mounted) {
+        setState(() {
+          _isLoadingBooks = false;
+        });
+      }
     });
   }
 
@@ -52,7 +113,7 @@ class _FavouritesOverviewScreenState extends State<FavouritesOverviewScreen> {
   Widget _buildFavouritesGrid() {
     return Consumer<FavouriteProvider>(
       builder: (context, favouriteProvider, child) {
-        if (favouriteProvider.isLoading) {
+        if (favouriteProvider.isLoading || _isLoadingBooks) {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(64.0),
@@ -84,7 +145,7 @@ class _FavouritesOverviewScreenState extends State<FavouritesOverviewScreen> {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
-                      favouriteProvider.fetchFavourites(mockMemberId);
+                      _loadFavourites();
                     },
                     child: const Text('Pokušaj ponovo'),
                   ),
@@ -175,14 +236,9 @@ class _FavouritesOverviewScreenState extends State<FavouritesOverviewScreen> {
             mainAxisSpacing: 16,
             childAspectRatio: 0.5,
           ),
-          itemCount: favourites.length,
+          itemCount: _favouriteBooksWithAuthors.length,
           itemBuilder: (context, index) {
-            final favourite = favourites[index];
-            final book = favourite.book;
-            
-            if (book == null) {
-              return _buildErrorCard();
-            }
+            final book = _favouriteBooksWithAuthors[index];
             
             return ZSCard.fromBook(
               context,

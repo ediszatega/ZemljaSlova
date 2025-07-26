@@ -5,10 +5,12 @@ import '../models/cart_item.dart';
 import '../providers/book_provider.dart';
 import '../providers/cart_provider.dart';
 import '../providers/favourite_provider.dart';
+import '../providers/member_provider.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/top_branding.dart';
 import '../widgets/bottom_navigation.dart';
 import '../utils/snackbar_util.dart';
+import '../utils/authorization.dart';
 
 class BookDetailOverviewScreen extends StatefulWidget {
   final Book book;
@@ -40,9 +42,16 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
   }
   
   void _loadFavouriteStatus() {
-    const mockMemberId = 3008; // In a real app, get from authentication
-    final favouriteProvider = Provider.of<FavouriteProvider>(context, listen: false);
-    favouriteProvider.fetchFavourites(mockMemberId);
+    if (Authorization.userId != null) {
+      final favouriteProvider = Provider.of<FavouriteProvider>(context, listen: false);
+      final memberProvider = Provider.of<MemberProvider>(context, listen: false);
+      
+      memberProvider.getMemberByUserId(Authorization.userId!).then((success) {
+        if (success && memberProvider.currentMember != null) {
+          favouriteProvider.fetchFavourites(memberProvider.currentMember!.id);
+        }
+      });
+    }
   }
 
   @override
@@ -83,7 +92,7 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
                 const SizedBox(height: 24),
                 
                 // Description section
-                _buildDescriptionSection(book.description!),
+                _buildDescriptionSection(book.description ?? ''),
 
                 const SizedBox(height: 20),
               ],
@@ -134,17 +143,19 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
                     
                     return GestureDetector(
                       onTap: () async {
-                        const mockMemberId = 3008; // In a real app, get from authentication
-                        await favouriteProvider.toggleFavourite(mockMemberId, book.id);
-                        
-                        if (mounted) {
-                          final isNowFavourite = favouriteProvider.isFavourite(book.id);
-                          SnackBarUtil.showTopSnackBar(
-                            context,
-                            isNowFavourite 
-                              ? 'Knjiga je dodana u favourite!'
-                              : 'Knjiga je uklonjena iz favorita!',
-                          );
+                        final memberProvider = Provider.of<MemberProvider>(context, listen: false);
+                        if (memberProvider.currentMember != null) {
+                          await favouriteProvider.toggleFavourite(memberProvider.currentMember!.id, book.id);
+                          
+                          if (mounted) {
+                            final isNowFavourite = favouriteProvider.isFavourite(book.id);
+                            SnackBarUtil.showTopSnackBar(
+                              context,
+                              isNowFavourite 
+                                ? 'Knjiga je dodana u favourite!'
+                                : 'Knjiga je uklonjena iz favorita!',
+                            );
+                          }
                         }
                       },
                       child: Container(
