@@ -23,6 +23,10 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
   // Search state
   String _searchQuery = '';
   Timer? _searchDebounceTimer;
+  
+  // Sorting state
+  String _sortBy = 'title';
+  String _sortOrder = 'asc';
 
   List<Book> get books => [..._books];
   
@@ -46,6 +50,9 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
   @override
   bool get hasMoreData => _hasMoreData;
   int get totalPages => (_totalCount / _pageSize).ceil();
+  
+  String get sortBy => _sortBy;
+  String get sortOrder => _sortOrder;
 
   Future<void> fetchBooks({bool isAuthorIncluded = true, bool refresh = false}) async {
     if (refresh) {
@@ -70,6 +77,8 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
         page: _currentPage,
         pageSize: _pageSize,
         title: _searchQuery.isNotEmpty ? _searchQuery : null,
+        sortBy: _sortBy,
+        sortOrder: _sortOrder,
       );
       
       final List<Book> newBooks = result['books'] as List<Book>;
@@ -124,6 +133,14 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
     _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
       refresh();
     });
+  }
+  
+  void setSorting(String sortBy, String sortOrder) {
+    if (_sortBy != sortBy || _sortOrder != sortOrder) {
+      _sortBy = sortBy;
+      _sortOrder = sortOrder;
+      refresh();
+    }
   }
   
   void clearSearch() {

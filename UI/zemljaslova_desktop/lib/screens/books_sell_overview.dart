@@ -54,6 +54,10 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
     // Register as an observer to detect when the app regains focus
     WidgetsBinding.instance.addObserver(this);
     _loadBooks();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<BookProvider>().setSorting('title', 'asc');
+    });
   }
   
   @override
@@ -77,6 +81,42 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
     Future.microtask(() {
       Provider.of<BookProvider>(context, listen: false).refresh(isAuthorIncluded: true);
     });
+  }
+  
+  void _handleSortChange(String? value) {
+    if (value != null) {
+      setState(() {
+        _sortOption = value;
+      });
+      
+      String sortBy;
+      String sortOrder;
+      
+      switch (value) {
+        case 'Naslov (A-Z)':
+          sortBy = 'title';
+          sortOrder = 'asc';
+          break;
+        case 'Naslov (Z-A)':
+          sortBy = 'title';
+          sortOrder = 'desc';
+          break;
+        case 'Cijena (manja)':
+          sortBy = 'price';
+          sortOrder = 'asc';
+          break;
+        case 'Cijena (veća)':
+          sortBy = 'price';
+          sortOrder = 'desc';
+          break;
+        default:
+          sortBy = 'title';
+          sortOrder = 'asc';
+          break;
+      }
+      
+      context.read<BookProvider>().setSorting(sortBy, sortOrder);
+    }
   }
 
   @override
@@ -136,16 +176,11 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
           items: const [
             DropdownMenuItem(value: 'Naslov (A-Z)', child: Text('Naslov (A-Z)')),
             DropdownMenuItem(value: 'Naslov (Z-A)', child: Text('Naslov (Z-A)')),
-            DropdownMenuItem(value: 'Autor (A-Z)', child: Text('Autor (A-Z)')),
-            DropdownMenuItem(value: 'Cijena (veća)', child: Text('Cijena (veća)')),
             DropdownMenuItem(value: 'Cijena (manja)', child: Text('Cijena (manja)')),
+            DropdownMenuItem(value: 'Cijena (veća)', child: Text('Cijena (veća)')),
           ],
           onChanged: (value) {
-            if (value != null) {
-              setState(() {
-                _sortOption = value;
-              });
-            }
+            _handleSortChange(value);
           },
           borderColor: Colors.grey.shade300,
         ),
@@ -212,26 +247,6 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
           );
         }
         
-        // Sort the books list based on the selected option
-        final sortedBooks = List<Book>.from(books);
-        switch (_sortOption) {
-          case 'Naslov (A-Z)':
-            sortedBooks.sort((a, b) => a.title.compareTo(b.title));
-            break;
-          case 'Naslov (Z-A)':
-            sortedBooks.sort((a, b) => b.title.compareTo(a.title));
-            break;
-          case 'Autor (A-Z)':
-            sortedBooks.sort((a, b) => a.authorNames.compareTo(b.authorNames));
-            break;
-          case 'Cijena (veća)':
-            sortedBooks.sort((a, b) => b.price.compareTo(a.price));
-            break;
-          case 'Cijena (manja)':
-            sortedBooks.sort((a, b) => a.price.compareTo(b.price));
-            break;
-        }
-        
         return Stack(
           children: [
             AnimatedOpacity(
@@ -250,7 +265,7 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        final book = sortedBooks[index];
+                        final book = books[index];
                         return ZSCard.fromBook(
                           context,
                           book,
@@ -268,7 +283,7 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
                           },
                         );
                       },
-                      childCount: sortedBooks.length,
+                      childCount: books.length,
                     ),
                   ),
                   
