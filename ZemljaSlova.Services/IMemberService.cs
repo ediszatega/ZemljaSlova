@@ -14,5 +14,6 @@ namespace ZemljaSlova.Services
         public Task<Model.Member> CreateMember(MemberInsertRequest request);
         public Task<Model.Member> UpdateMember(int id, MemberUpdateRequest request);
         public List<Model.Favourite> GetMemberFavourites(int memberId);
+        public Model.Member GetByUserId(int userId);
     }
 }

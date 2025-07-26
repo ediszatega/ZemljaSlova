@@ -46,8 +46,8 @@ namespace ZemljaSlova.API.Controllers
             }
         }
         
-        [HttpGet("by-user/{userId}")]
-        public ActionResult<Model.Employee> GetByUserId(int userId)
+        [HttpGet("GetEmployeeByUserId/{userId}")]
+        public ActionResult<Model.Employee> GetEmployeeByUserId(int userId)
         {
             try
             {

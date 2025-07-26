@@ -55,6 +55,21 @@ class MemberService {
     }
   }
 
+  Future<Member?> getMemberByUserId(int userId) async {
+    try {
+      final response = await _apiService.get('Member/GetMemberByUserId/$userId');
+      
+      if (response != null) {
+        return _mapMemberFromBackend(response);
+      }
+      
+      return null;
+    } catch (e) {
+      debugPrint('Failed to get member by user ID: $e');
+      throw Exception('Failed to get member by user ID: $e');
+    }
+  }
+
   Future<Member?> updateMember({
     required int id,
     required String firstName,

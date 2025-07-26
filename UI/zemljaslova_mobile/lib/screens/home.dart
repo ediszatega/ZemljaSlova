@@ -12,7 +12,7 @@ class HomeScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildWelcomeBox(),
+          _buildWelcomeBox(context),
           
           const SizedBox(height: 24),
 
@@ -22,7 +22,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildWelcomeBox() {
+  Widget _buildWelcomeBox(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24.0),
@@ -37,49 +37,54 @@ class HomeScreen extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            flex: 2,
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Dobrodošli,',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Dobrodošli,',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      'uplovi u svijet knjiga',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      'i uživaj u našim uslugama',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  'uplovi u svijet knjiga',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black87,
-                  ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                flex: 1,
+                child: Image.asset(
+                  'assets/books_home.png',
+                  height: 120,
+                  fit: BoxFit.contain,
                 ),
-                Text(
-                  'i uživaj u našim uslugama',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 1,
-            child: Image.asset(
-              'assets/books_home.png',
-              height: 120,
-              fit: BoxFit.contain,
-            ),
-          ),
+
         ],
       ),
     );
@@ -187,4 +192,6 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+
+
 } 

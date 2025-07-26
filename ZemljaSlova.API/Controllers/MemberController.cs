@@ -45,6 +45,24 @@ namespace ZemljaSlova.API.Controllers
             }
         }
 
+        [HttpGet("GetMemberByUserId/{userId}")]
+        public ActionResult<Model.Member> GetMemberByUserId(int userId)
+        {
+            try
+            {
+                var member = _memberService.GetByUserId(userId);
+                if (member == null)
+                {
+                    return NotFound("Member not found for the given user ID.");
+                }
+                return Ok(member);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while retrieving the member.");
+            }
+        }
+
         [HttpDelete("{id}")]
         [Authorize(Roles = "admin")]
         public override async Task<Model.Member> Delete(int id)

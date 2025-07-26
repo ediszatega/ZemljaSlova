@@ -77,7 +77,7 @@ class UserService {
       }
 
       // Use the new endpoint to get employee by userId
-      final response = await _apiService.get('Employee/by-user/${Authorization.userId}');
+      final response = await _apiService.get('Employee/GetEmployeeByUserId/${Authorization.userId}');
       
       if (response != null) {
         return _mapEmployeeToProfileData(response);

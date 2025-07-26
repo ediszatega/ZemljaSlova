@@ -73,6 +73,28 @@ class MemberProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> getMemberByUserId(int userId) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      final member = await _memberService.getMemberByUserId(userId);
+      
+      if (member != null) {
+        _currentMember = member;
+        _setLoading(false);
+        notifyListeners();
+        return true;
+      } else {
+        _setError('Member not found');
+        return false;
+      }
+    } catch (e) {
+      _setError(e.toString());
+      return false;
+    }
+  }
+
   Future<bool> updateMember({
     required int id,
     required String firstName,

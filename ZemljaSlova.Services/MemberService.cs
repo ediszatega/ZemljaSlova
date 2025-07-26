@@ -153,6 +153,17 @@ namespace ZemljaSlova.Services
 
             return _mapper.Map<List<Model.Favourite>>(favourites);
         }
+
+        public Model.Member GetByUserId(int userId)
+        {
+            var entity = _context.Members
+                .Include(m => m.User)
+                .FirstOrDefault(m => m.UserId == userId);
+
+            if (entity == null) return null;
+
+            return _mapper.Map<Model.Member>(entity);
+        }
         
         public override async Task<Model.Member> Delete(int id)
         {

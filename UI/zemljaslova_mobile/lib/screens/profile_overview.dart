@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/user_provider.dart';
+import '../providers/member_provider.dart';
 import '../models/member.dart';
 import '../utils/authorization.dart';
 import '../screens/login_screen.dart';
@@ -9,40 +10,92 @@ import '../screens/change_password_screen.dart';
 import '../widgets/zs_button.dart';
 import '../services/user_service.dart';
 
-class ProfileOverview extends StatelessWidget {
+class ProfileOverview extends StatefulWidget {
   const ProfileOverview({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Mock member data - in real app this would come from provider
-    final member = Member(
-      id: 1,
-      userId: 1,
-      dateOfBirth: DateTime(1990, 5, 15),
-      joinedAt: DateTime(2023, 1, 15),
-      firstName: 'Member',
-      lastName: 'Member',
-      email: 'member@email.com',
-      gender: 'Male',
-      isActive: true,
-      profileImageUrl: null,
-    );
+  State<ProfileOverview> createState() => _ProfileOverviewState();
+}
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeader(context),
-          const SizedBox(height: 16),
-          _buildProfileCard(context, member),
-          const SizedBox(height: 24),
-          _buildPersonalInfoCard(context, member),
-          const SizedBox(height: 24),
-          _buildActionButtons(context),
-          const SizedBox(height: 32),
-        ],
-      ),
+class _ProfileOverviewState extends State<ProfileOverview> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadMemberData();
+    });
+  }
+
+  void _loadMemberData() {
+    final memberProvider = context.read<MemberProvider>();
+    
+    if (Authorization.userId != null) {
+      memberProvider.getMemberByUserId(Authorization.userId!);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<MemberProvider>(
+      builder: (context, memberProvider, child) {
+        if (memberProvider.isLoading) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        final member = memberProvider.currentMember;
+        
+        if (member == null) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Greška pri učitavanju podataka',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  memberProvider.error ?? 'Nepoznata greška',
+                  style: const TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _loadMemberData,
+                  child: const Text('Pokušaj ponovo'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(context),
+              const SizedBox(height: 16),
+              _buildProfileCard(context, member),
+              const SizedBox(height: 24),
+              _buildPersonalInfoCard(context, member),
+              const SizedBox(height: 24),
+              _buildActionButtons(context),
+              const SizedBox(height: 32),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -173,7 +226,7 @@ class ProfileOverview extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _buildInfoRow('Datum rođenja', _formatDate(member.dateOfBirth)),
-          _buildInfoRow('Spol', member.gender ?? 'Nije navedeno'),
+          _buildInfoRow('Spol', _formatGender(member.gender)),
           _buildInfoRow('Datum registracije', _formatDate(member.joinedAt)),
         ],
       ),
@@ -325,5 +378,18 @@ class ProfileOverview extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+  }
+
+  String _formatGender(String? gender) {
+    if (gender == null) return 'Nije navedeno';
+    
+    switch (gender.toLowerCase()) {
+      case 'male':
+        return 'Muški';
+      case 'female':
+        return 'Ženski';
+      default:
+        return gender;
+    }
   }
 } 
