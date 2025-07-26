@@ -26,6 +26,7 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<BookProvider>().fetchBooks(refresh: true);
+      context.read<BookProvider>().setSorting('title', 'asc');
     });
   }
 
@@ -33,6 +34,42 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _handleSortChange(String? value) {
+    if (value != null) {
+      setState(() {
+        _sortOption = value;
+      });
+      
+      String sortBy;
+      String sortOrder;
+      
+      switch (value) {
+        case 'Naslov (A-Z)':
+          sortBy = 'title';
+          sortOrder = 'asc';
+          break;
+        case 'Naslov (Z-A)':
+          sortBy = 'title';
+          sortOrder = 'desc';
+          break;
+        case 'Cijena (manja)':
+          sortBy = 'price';
+          sortOrder = 'asc';
+          break;
+        case 'Cijena (veća)':
+          sortBy = 'price';
+          sortOrder = 'desc';
+          break;
+        default:
+          sortBy = 'title';
+          sortOrder = 'asc';
+          break;
+      }
+      
+      context.read<BookProvider>().setSorting(sortBy, sortOrder);
+    }
   }
 
   @override
@@ -80,17 +117,10 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> {
                   items: const [
                     DropdownMenuItem(value: 'Naslov (A-Z)', child: Text('Naslov (A-Z)')),
                     DropdownMenuItem(value: 'Naslov (Z-A)', child: Text('Naslov (Z-A)')),
-                    DropdownMenuItem(value: 'Autor (A-Z)', child: Text('Autor (A-Z)')),
-                    DropdownMenuItem(value: 'Cijena (veća)', child: Text('Cijena (veća)')),
                     DropdownMenuItem(value: 'Cijena (manja)', child: Text('Cijena (manja)')),
+                    DropdownMenuItem(value: 'Cijena (veća)', child: Text('Cijena (veća)')),
                   ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _sortOption = value;
-                      });
-                    }
-                  },
+                  onChanged: _handleSortChange,
                   borderColor: Colors.grey.shade300,
                 ),
               ),
@@ -133,36 +163,9 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> {
           emptyStateIcon: Icons.book_outlined,
           emptyStateMessage: 'Nema dostupnih knjiga',
           gridBuilder: (context, books) {
-            // Sort the books list based on the selected option
-            final sortedBooks = List<Book>.from(books);
-            switch (_sortOption) {
-              case 'Naslov (A-Z)':
-                sortedBooks.sort((a, b) => a.title.compareTo(b.title));
-                break;
-              case 'Naslov (Z-A)':
-                sortedBooks.sort((a, b) => b.title.compareTo(a.title));
-                break;
-              case 'Autor (A-Z)':
-                sortedBooks.sort((a, b) => a.authorNames.compareTo(b.authorNames));
-                break;
-              case 'Cijena (veća)':
-                sortedBooks.sort((a, b) => b.price.compareTo(a.price));
-                break;
-              case 'Cijena (manja)':
-                sortedBooks.sort((a, b) => a.price.compareTo(b.price));
-                break;
-            }
-
             return LayoutBuilder(
               builder: (context, constraints) {
-                // Calculate number of columns based on screen width
                 int crossAxisCount = 2;
-                if (constraints.maxWidth > 600) {
-                  crossAxisCount = 3;
-                }
-                if (constraints.maxWidth > 900) {
-                  crossAxisCount = 4;
-                }
                 
                 return GridView.builder(
                   shrinkWrap: true,
@@ -173,9 +176,9 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> {
                     mainAxisSpacing: 16,
                     childAspectRatio: 0.5,
                   ),
-                  itemCount: sortedBooks.length,
+                  itemCount: books.length,
                   itemBuilder: (context, index) {
-                    final book = sortedBooks[index];
+                    final book = books[index];
                     return ZSCard.fromBook(
                       context,
                       book,

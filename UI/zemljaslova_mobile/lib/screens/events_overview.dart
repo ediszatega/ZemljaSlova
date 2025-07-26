@@ -25,6 +25,7 @@ class _EventsOverviewScreenState extends State<EventsOverviewScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<EventProvider>().fetchEvents(refresh: true);
+      context.read<EventProvider>().setSorting('date', 'desc');
     });
   }
 
@@ -32,6 +33,50 @@ class _EventsOverviewScreenState extends State<EventsOverviewScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _handleSortChange(String? value) {
+    if (value != null) {
+      setState(() {
+        _sortOption = value;
+      });
+      
+      String sortBy;
+      String sortOrder;
+      
+      switch (value) {
+        case 'Naslov (A-Z)':
+          sortBy = 'title';
+          sortOrder = 'asc';
+          break;
+        case 'Naslov (Z-A)':
+          sortBy = 'title';
+          sortOrder = 'desc';
+          break;
+        case 'Najnoviji':
+          sortBy = 'date';
+          sortOrder = 'desc';
+          break;
+        case 'Najstariji':
+          sortBy = 'date';
+          sortOrder = 'asc';
+          break;
+        case 'Cijena (manja)':
+          sortBy = 'price';
+          sortOrder = 'asc';
+          break;
+        case 'Cijena (veća)':
+          sortBy = 'price';
+          sortOrder = 'desc';
+          break;
+        default:
+          sortBy = 'date';
+          sortOrder = 'desc';
+          break;
+      }
+      
+      context.read<EventProvider>().setSorting(sortBy, sortOrder);
+    }
   }
 
   @override
@@ -77,18 +122,14 @@ class _EventsOverviewScreenState extends State<EventsOverviewScreen> {
                     label: 'Sortiraj',
                     value: _sortOption,
                     items: const [
+                      DropdownMenuItem(value: 'Naslov (A-Z)', child: Text('Naslov (A-Z)')),
+                      DropdownMenuItem(value: 'Naslov (Z-A)', child: Text('Naslov (Z-A)')),
                       DropdownMenuItem(value: 'Najnoviji', child: Text('Najnoviji')),
                       DropdownMenuItem(value: 'Najstariji', child: Text('Najstariji')),
-                      DropdownMenuItem(value: 'Cijena (veća)', child: Text('Cijena (veća)')),
                       DropdownMenuItem(value: 'Cijena (manja)', child: Text('Cijena (manja)')),
+                      DropdownMenuItem(value: 'Cijena (veća)', child: Text('Cijena (veća)')),
                     ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _sortOption = value;
-                        });
-                      }
-                    },
+                    onChanged: _handleSortChange,
                     borderColor: Colors.grey.shade300,
                   ),
                 ),
@@ -130,51 +171,6 @@ class _EventsOverviewScreenState extends State<EventsOverviewScreen> {
           emptyStateIcon: Icons.event_outlined,
           emptyStateMessage: 'Nema dostupnih događaja',
           gridBuilder: (context, events) {
-            // Sort the events list based on the selected option
-            final sortedEvents = List<Event>.from(events);
-            switch (_sortOption) {
-              case 'Najnoviji':
-                sortedEvents.sort((a, b) => b.startAt.compareTo(a.startAt));
-                break;
-              case 'Najstariji':
-                sortedEvents.sort((a, b) => a.startAt.compareTo(b.startAt));
-                break;
-              case 'Cijena (veća)':
-                sortedEvents.sort((a, b) {
-                  double getMaxPrice(Event event) {
-                    if (event.ticketTypes == null || event.ticketTypes!.isEmpty) {
-                      return 0.0;
-                    }
-                    return event.ticketTypes!.map((t) => t.price).reduce((max, price) => price > max ? price : max);
-                  }
-                  return getMaxPrice(b).compareTo(getMaxPrice(a));
-                });
-                break;
-              case 'Cijena (manja)':
-                sortedEvents.sort((a, b) {
-                  double getMinPrice(Event event) {
-                    if (event.ticketTypes == null || event.ticketTypes!.isEmpty) {
-                      return double.infinity;
-                    }
-                    return event.ticketTypes!.map((t) => t.price).reduce((min, price) => price < min ? price : min);
-                  }
-                  
-                  double minPriceA = getMinPrice(a);
-                  double minPriceB = getMinPrice(b);
-                  
-                  if (minPriceA == double.infinity && minPriceB == double.infinity) {
-                    return 0;
-                  } else if (minPriceA == double.infinity) {
-                    return 1;
-                  } else if (minPriceB == double.infinity) {
-                    return -1;
-                  }
-                  
-                  return minPriceA.compareTo(minPriceB);
-                });
-                break;
-            }
-
             return LayoutBuilder(
               builder: (context, constraints) {
                 int crossAxisCount = 1;
@@ -188,9 +184,9 @@ class _EventsOverviewScreenState extends State<EventsOverviewScreen> {
                     mainAxisSpacing: 16,
                     childAspectRatio: 2.5,
                   ),
-                  itemCount: sortedEvents.length,
+                  itemCount: events.length,
                   itemBuilder: (context, index) {
-                    final event = sortedEvents[index];
+                    final event = events[index];
                     return ZSCardVertical.fromEvent(
                       context,
                       event,

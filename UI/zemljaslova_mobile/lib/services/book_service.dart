@@ -14,6 +14,8 @@ class BookService {
     int? page,
     int? pageSize,
     String? name,
+    String? sortBy,
+    String? sortOrder,
   }) async {
     try {
       List<String> queryParams = ['IsAuthorIncluded=$isAuthorIncluded'];
@@ -28,6 +30,14 @@ class BookService {
       
       if (name != null && name.isNotEmpty) {
         queryParams.add('Title=${Uri.encodeComponent(name)}');
+      }
+      
+      if (sortBy != null && sortBy.isNotEmpty) {
+        queryParams.add('SortBy=${Uri.encodeComponent(sortBy)}');
+      }
+      
+      if (sortOrder != null && sortOrder.isNotEmpty) {
+        queryParams.add('SortOrder=${Uri.encodeComponent(sortOrder)}');
       }
       
       final queryString = queryParams.join('&');
