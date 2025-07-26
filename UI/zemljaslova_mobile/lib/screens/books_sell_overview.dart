@@ -17,14 +17,17 @@ class BooksSellOverviewScreen extends StatefulWidget {
   State<BooksSellOverviewScreen> createState() => _BooksSellOverviewScreenState();
 }
 
-class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> {
+class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> with WidgetsBindingObserver {
   String _sortOption = 'Naslov (A-Z)';
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Clear any existing search and reset to default state
+      context.read<BookProvider>().clearSearch();
       context.read<BookProvider>().fetchBooks(refresh: true);
       context.read<BookProvider>().setSorting('title', 'asc');
     });
@@ -32,8 +35,18 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _searchController.dispose();
     super.dispose();
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      // Clear search when leaving the screen
+      context.read<BookProvider>().clearSearch();
+      _searchController.clear();
+    }
   }
 
   void _handleSortChange(String? value) {

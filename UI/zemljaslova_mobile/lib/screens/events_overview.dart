@@ -16,14 +16,17 @@ class EventsOverviewScreen extends StatefulWidget {
   State<EventsOverviewScreen> createState() => _EventsOverviewScreenState();
 }
 
-class _EventsOverviewScreenState extends State<EventsOverviewScreen> {
+class _EventsOverviewScreenState extends State<EventsOverviewScreen> with WidgetsBindingObserver {
   String _sortOption = 'Najnoviji';
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Clear any existing search and reset to default state
+      context.read<EventProvider>().clearSearch();
       context.read<EventProvider>().fetchEvents(refresh: true);
       context.read<EventProvider>().setSorting('date', 'desc');
     });
@@ -31,8 +34,18 @@ class _EventsOverviewScreenState extends State<EventsOverviewScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _searchController.dispose();
     super.dispose();
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      // Clear search when leaving the screen
+      context.read<EventProvider>().clearSearch();
+      _searchController.clear();
+    }
   }
 
   void _handleSortChange(String? value) {
