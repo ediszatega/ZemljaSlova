@@ -22,6 +22,10 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
   
   String _searchQuery = '';
   Timer? _searchDebounceTimer;
+  
+  // Sorting state
+  String _sortBy = 'date';
+  String _sortOrder = 'desc';
 
   List<Event> get events => [..._events];
   
@@ -44,6 +48,9 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
   @override
   bool get hasMoreData => _hasMoreData;
   int get totalPages => (_totalCount / _pageSize).ceil();
+  
+  String get sortBy => _sortBy;
+  String get sortOrder => _sortOrder;
 
   Future<void> fetchEvents({bool isTicketTypeIncluded = true, bool refresh = false}) async {
     if (refresh) {
@@ -68,6 +75,8 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
         page: _currentPage,
         pageSize: _pageSize,
         name: _searchQuery.isNotEmpty ? _searchQuery : null,
+        sortBy: _sortBy,
+        sortOrder: _sortOrder,
       );
       
       final List<Event> newEvents = result['events'] as List<Event>;
@@ -122,6 +131,14 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
     _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
       refresh();
     });
+  }
+  
+  void setSorting(String sortBy, String sortOrder) {
+    if (_sortBy != sortBy || _sortOrder != sortOrder) {
+      _sortBy = sortBy;
+      _sortOrder = sortOrder;
+      refresh();
+    }
   }
   
   void clearSearch() {

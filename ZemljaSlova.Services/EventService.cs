@@ -42,6 +42,41 @@ namespace ZemljaSlova.Services
                 query = query.Where(e => e.Title.ToLower().Contains(search.Name.ToLower()));
             }
 
+            // Filter out events that have already ended (show only current and future events)
+            var today = DateTime.Today;
+            query = query.Where(e => e.StartAt >= today);
+
+            // Apply sorting
+            if (!string.IsNullOrEmpty(search.SortBy))
+            {
+                switch (search.SortBy.ToLower())
+                {
+                    case "title":
+                        query = search.SortOrder?.ToLower() == "desc" 
+                            ? query.OrderByDescending(e => e.Title)
+                            : query.OrderBy(e => e.Title);
+                        break;
+                    case "price":
+                        // For price sorting, we need to join with ticket types and get min/max price
+                        query = search.SortOrder?.ToLower() == "desc" 
+                            ? query.OrderByDescending(e => e.TicketTypes.Max(t => t.Price))
+                            : query.OrderBy(e => e.TicketTypes.Min(t => t.Price));
+                        break;
+                    case "date":
+                        query = search.SortOrder?.ToLower() == "desc" 
+                            ? query.OrderByDescending(e => e.StartAt)
+                            : query.OrderBy(e => e.StartAt);
+                        break;
+                    default:
+                        query = query.OrderByDescending(e => e.StartAt);
+                        break;
+                }
+            }
+            else
+            {
+                query = query.OrderByDescending(e => e.StartAt);
+            }
+
             return base.AddFilter(search, query);
         }
     }
