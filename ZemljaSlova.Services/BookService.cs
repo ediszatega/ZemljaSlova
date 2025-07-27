@@ -32,6 +32,39 @@ namespace ZemljaSlova.Services
                 query = query.Where(b => b.Title.ToLower().Contains(search.Title.ToLower()));
             }
 
+            if (search.MinPrice.HasValue)
+            {
+                query = query.Where(b => b.Price >= search.MinPrice.Value);
+            }
+
+            if (search.MaxPrice.HasValue)
+            {
+                query = query.Where(b => b.Price <= search.MaxPrice.Value);
+            }
+
+            if (search.AuthorId.HasValue)
+            {
+                query = query.Where(b => b.Authors.Any(a => a.Id == search.AuthorId.Value));
+            }
+
+            if (search.IsAvailable.HasValue)
+            {
+                if (search.IsAvailable.Value)
+                {
+                    query = query.Where(b => 
+                        !Context.OrderItems.Any(oi => oi.BookId == b.Id) || 
+                        Context.OrderItems.Where(oi => oi.BookId == b.Id).Sum(oi => oi.Quantity) < 10
+                    );
+                }
+                else
+                {
+                    query = query.Where(b => 
+                        Context.OrderItems.Any(oi => oi.BookId == b.Id) && 
+                        Context.OrderItems.Where(oi => oi.BookId == b.Id).Sum(oi => oi.Quantity) >= 10
+                    );
+                }
+            }
+
             if (!string.IsNullOrEmpty(search.SortBy))
             {
                 switch (search.SortBy.ToLower())

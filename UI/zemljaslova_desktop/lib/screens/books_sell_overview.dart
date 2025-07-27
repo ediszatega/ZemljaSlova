@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/book.dart';
+import '../models/book_filters.dart';
 import '../providers/book_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_card.dart';
@@ -10,6 +11,7 @@ import '../widgets/search_input.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/pagination_controls_widget.dart';
 import '../widgets/search_loading_indicator.dart';
+import '../widgets/book_filters_dialog.dart';
 import 'book_detail_overview.dart';
 import 'book_add.dart';
 
@@ -119,6 +121,27 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
     }
   }
 
+  void _showFiltersDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => BookFiltersDialog(
+        initialFilters: context.read<BookProvider>().filters,
+        onApplyFilters: (filters) {
+          context.read<BookProvider>().setFilters(filters);
+        },
+      ),
+    );
+  }
+
+  int _getActiveFilterCount(BookFilters filters) {
+    int count = 0;
+    if (filters.minPrice != null) count++;
+    if (filters.maxPrice != null) count++;
+    if (filters.authorId != null) count++;
+    if (filters.isAvailable != null) count++;
+    return count;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -187,12 +210,44 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
         const SizedBox(width: 16),
         
         // Filter
-        ZSButton(
-          onPressed: () {},
-          text: 'Postavi filtre',
-          label: 'Filtriraj',
-          borderColor: Colors.grey.shade300,
-          width: 180,
+        Consumer<BookProvider>(
+          builder: (context, bookProvider, child) {
+            final hasActiveFilters = bookProvider.filters.hasActiveFilters;
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                ZSButton(
+                  onPressed: () {
+                    _showFiltersDialog();
+                  },
+                  text: hasActiveFilters ? 'Filteri aktivni (${_getActiveFilterCount(bookProvider.filters)})' : 'Postavi filtre',
+                  label: 'Filtriraj',
+                  backgroundColor: hasActiveFilters ? const Color(0xFFE3F2FD) : Colors.white,
+                  foregroundColor: hasActiveFilters ? Colors.blue : Colors.black,
+                  borderColor: hasActiveFilters ? Colors.blue : Colors.grey.shade300,
+                  width: 180,
+                ),
+                if (hasActiveFilters) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    height: 40,
+                    child: IconButton(
+                      onPressed: () {
+                        bookProvider.clearFilters();
+                      },
+                      icon: const Icon(Icons.clear, color: Colors.red),
+                      tooltip: 'Očisti filtre',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 40,
+                        minHeight: 40,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            );
+          },
         ),
         const SizedBox(width: 16),
         

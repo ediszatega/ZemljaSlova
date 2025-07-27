@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/book.dart';
+import '../models/book_filters.dart';
 import '../services/book_service.dart';
 import '../widgets/paginated_data_widget.dart';
 
@@ -27,6 +28,9 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
   // Sorting state
   String _sortBy = 'title';
   String _sortOrder = 'asc';
+  
+  // Filter state
+  BookFilters _filters = BookFilters.empty;
 
   List<Book> get books => [..._books];
   
@@ -53,6 +57,7 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
   
   String get sortBy => _sortBy;
   String get sortOrder => _sortOrder;
+  BookFilters get filters => _filters;
 
   Future<void> fetchBooks({bool isAuthorIncluded = true, bool refresh = false}) async {
     if (refresh) {
@@ -79,6 +84,7 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
         title: _searchQuery.isNotEmpty ? _searchQuery : null,
         sortBy: _sortBy,
         sortOrder: _sortOrder,
+        filters: _filters.hasActiveFilters ? _filters.toQueryParams() : null,
       );
       
       final List<Book> newBooks = result['books'] as List<Book>;
@@ -141,6 +147,18 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
       _sortOrder = sortOrder;
       refresh();
     }
+  }
+  
+  void setFilters(BookFilters filters) {
+    if (_filters != filters) {
+      _filters = filters;
+      refresh();
+    }
+  }
+  
+  void clearFilters() {
+    _filters = BookFilters.empty;
+    refresh();
   }
   
   void clearSearch() {
