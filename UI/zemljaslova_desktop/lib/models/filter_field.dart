@@ -3,6 +3,7 @@ enum FilterFieldType {
   number,
   date,
   dropdown,
+  checkbox,
 }
 
 class FilterField {

@@ -70,6 +70,12 @@ class FilterConfigurations {
         label: 'Do datuma',
         type: FilterFieldType.date,
       ),
+      // Show past events checkbox
+      const FilterField(
+        key: 'showPastEvents',
+        label: 'Prikaži prošle događaje',
+        type: FilterFieldType.checkbox,
+      ),
     ];
   }
 

@@ -144,6 +144,7 @@ class _EventsContentState extends State<EventsContent> {
     if (filters.maxPrice != null) count++;
     if (filters.startDateFrom != null) count++;
     if (filters.startDateTo != null) count++;
+    if (filters.showPastEvents == true) count++;
     return count;
   }
 

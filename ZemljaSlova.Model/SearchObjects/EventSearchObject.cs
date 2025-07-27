@@ -16,5 +16,6 @@ namespace ZemljaSlova.Model.SearchObjects
         public decimal? MaxPrice { get; set; }
         public DateTime? StartDateFrom { get; set; }
         public DateTime? StartDateTo { get; set; }
+        public bool? ShowPastEvents { get; set; }
     }
 }

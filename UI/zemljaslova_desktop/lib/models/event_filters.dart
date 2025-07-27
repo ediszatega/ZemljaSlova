@@ -3,12 +3,14 @@ class EventFilters {
   final double? maxPrice;
   final DateTime? startDateFrom;
   final DateTime? startDateTo;
+  final bool? showPastEvents;
 
   const EventFilters({
     this.minPrice,
     this.maxPrice,
     this.startDateFrom,
     this.startDateTo,
+    this.showPastEvents,
   });
 
   EventFilters copyWith({
@@ -16,12 +18,14 @@ class EventFilters {
     double? maxPrice,
     DateTime? startDateFrom,
     DateTime? startDateTo,
+    bool? showPastEvents,
   }) {
     return EventFilters(
       minPrice: minPrice ?? this.minPrice,
       maxPrice: maxPrice ?? this.maxPrice,
       startDateFrom: startDateFrom ?? this.startDateFrom,
       startDateTo: startDateTo ?? this.startDateTo,
+      showPastEvents: showPastEvents ?? this.showPastEvents,
     );
   }
 
@@ -29,7 +33,8 @@ class EventFilters {
     return minPrice != null ||
            maxPrice != null ||
            startDateFrom != null ||
-           startDateTo != null;
+           startDateTo != null ||
+           showPastEvents == true;
   }
 
   static EventFilters get empty => const EventFilters();
@@ -50,6 +55,9 @@ class EventFilters {
     if (startDateTo != null) {
       params['StartDateTo'] = startDateTo!.toIso8601String();
     }
+    if (showPastEvents == true) {
+      params['ShowPastEvents'] = 'true';
+    }
     
     return params;
   }
@@ -61,6 +69,7 @@ class EventFilters {
       maxPrice: values['maxPrice'] as double?,
       startDateFrom: values['startDateFrom'] as DateTime?,
       startDateTo: values['startDateTo'] as DateTime?,
+      showPastEvents: values['showPastEvents'] as bool?,
     );
   }
 
@@ -71,6 +80,7 @@ class EventFilters {
       'maxPrice': maxPrice,
       'startDateFrom': startDateFrom,
       'startDateTo': startDateTo,
+      'showPastEvents': showPastEvents,
     };
   }
 } 

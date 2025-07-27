@@ -43,8 +43,12 @@ namespace ZemljaSlova.Services
             }
 
             // Filter out events that have already ended (show only current and future events)
-            var today = DateTime.Today;
-            query = query.Where(e => e.StartAt >= today);
+            // Unless ShowPastEvents is explicitly set to true
+            if (!search.ShowPastEvents.HasValue || !search.ShowPastEvents.Value)
+            {
+                var today = DateTime.Today;
+                query = query.Where(e => e.StartAt >= today);
+            }
 
             // Price range filters
             if (search.MinPrice.HasValue)

@@ -112,6 +112,9 @@ class _FilterDialogState extends State<FilterDialog> {
       case FilterFieldType.dropdown:
         return _buildDropdown(field);
 
+      case FilterFieldType.checkbox:
+        return _buildCheckbox(field);
+
       default:
         return const SizedBox.shrink();
     }
@@ -208,6 +211,30 @@ class _FilterDialogState extends State<FilterDialog> {
         });
       },
       borderColor: Colors.grey.shade300,
+    );
+  }
+
+  Widget _buildCheckbox(FilterField field) {
+    final currentValue = _values[field.key] as bool? ?? false;
+    
+    return Row(
+      children: [
+        Checkbox(
+          value: currentValue,
+          onChanged: (value) {
+            setState(() {
+              _values[field.key] = value ?? false;
+            });
+          },
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            field.label,
+            style: const TextStyle(fontSize: 16),
+          ),
+        ),
+      ],
     );
   }
 
