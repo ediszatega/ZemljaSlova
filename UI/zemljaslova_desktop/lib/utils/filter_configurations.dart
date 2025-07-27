@@ -79,6 +79,25 @@ class FilterConfigurations {
     ];
   }
 
+  static List<FilterField> getAuthorFilters(BuildContext context) {
+    return [
+      // Birth year range - From
+      const FilterField(
+        key: 'birthYearFrom',
+        label: 'Godina rođenja od',
+        type: FilterFieldType.number,
+        placeholder: 'npr. 1950',
+      ),
+      // Birth year range - To
+      const FilterField(
+        key: 'birthYearTo',
+        label: 'Godina rođenja do',
+        type: FilterFieldType.number,
+        placeholder: 'npr. 2000',
+      ),
+    ];
+  }
+
   static List<FilterDropdownOption> _getAuthorDropdownOptions(BuildContext context) {
     try {
       final authorProvider = Provider.of<AuthorProvider>(context, listen: false);

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/author.dart';
+import '../models/author_filters.dart';
 import '../services/author_service.dart';
 import '../widgets/paginated_data_widget.dart';
 
@@ -24,6 +25,9 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
   // Sorting state
   String _sortBy = 'name';
   String _sortOrder = 'asc';
+  
+  // Filter state
+  AuthorFilters _filters = AuthorFilters.empty;
 
   AuthorProvider(this._authorService);
 
@@ -52,6 +56,7 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
   
   String get sortBy => _sortBy;
   String get sortOrder => _sortOrder;
+  AuthorFilters get filters => _filters;
 
   Future<void> fetchAuthors({bool refresh = false}) async {
     if (refresh) {
@@ -77,6 +82,7 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
         name: _searchQuery.isNotEmpty ? _searchQuery : null,
         sortBy: _sortBy,
         sortOrder: _sortOrder,
+        filters: _filters.hasActiveFilters ? _filters.toQueryParams() : null,
       );
       
       final List<Author> newAuthors = result['authors'] as List<Author>;
@@ -139,6 +145,18 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
       _sortOrder = sortOrder;
       refresh();
     }
+  }
+  
+  void setFilters(AuthorFilters filters) {
+    if (_filters != filters) {
+      _filters = filters;
+      refresh();
+    }
+  }
+  
+  void clearFilters() {
+    _filters = AuthorFilters.empty;
+    refresh();
   }
   
   void clearSearch() {

@@ -59,8 +59,14 @@ class _FilterDialogState extends State<FilterDialog> {
       } else if (field.type == FilterFieldType.number) {
         final text = _controllers[field.key]?.text ?? '';
         if (text.isNotEmpty) {
-          final number = double.tryParse(text);
-          _values[field.key] = number;
+          // Try to parse as integer first, then as double
+          final integer = int.tryParse(text);
+          if (integer != null) {
+            _values[field.key] = integer;
+          } else {
+            final number = double.tryParse(text);
+            _values[field.key] = number;
+          }
         } else {
           _values[field.key] = null;
         }

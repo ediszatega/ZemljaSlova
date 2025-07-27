@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/author.dart';
+import '../models/author_filters.dart';
 import '../providers/author_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_card.dart';
@@ -10,6 +11,8 @@ import '../widgets/search_input.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/pagination_controls_widget.dart';
 import '../widgets/search_loading_indicator.dart';
+import '../widgets/filter_dialog.dart';
+import '../utils/filter_configurations.dart';
 import 'author_detail_overview.dart';
 import 'author_add.dart';
 
@@ -107,6 +110,31 @@ class _AuthorsContentState extends State<AuthorsContent> with WidgetsBindingObse
     }
   }
 
+  void _showFiltersDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => FilterDialog(
+        title: 'Filtri za autore',
+        fields: FilterConfigurations.getAuthorFilters(context),
+        initialValues: context.read<AuthorProvider>().filters.toMap(),
+        onApplyFilters: (values) {
+          final filters = AuthorFilters.fromMap(values);
+          context.read<AuthorProvider>().setFilters(filters);
+        },
+        onClearFilters: () {
+          context.read<AuthorProvider>().clearFilters();
+        },
+      ),
+    );
+  }
+
+  int _getActiveFilterCount(AuthorFilters filters) {
+    int count = 0;
+    if (filters.birthYearFrom != null) count++;
+    if (filters.birthYearTo != null) count++;
+    return count;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -172,12 +200,44 @@ class _AuthorsContentState extends State<AuthorsContent> with WidgetsBindingObse
         const SizedBox(width: 16),
         
         // Filter
-        ZSButton(
-          onPressed: () {},
-          text: 'Postavi filtre',
-          label: 'Filtriraj',
-          borderColor: Colors.grey.shade300,
-          width: 180,
+        Consumer<AuthorProvider>(
+          builder: (context, authorProvider, child) {
+            final hasActiveFilters = authorProvider.filters.hasActiveFilters;
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                ZSButton(
+                  onPressed: () {
+                    _showFiltersDialog();
+                  },
+                  text: hasActiveFilters ? 'Filteri aktivni (${_getActiveFilterCount(authorProvider.filters)})' : 'Postavi filtre',
+                  label: 'Filtriraj',
+                  backgroundColor: hasActiveFilters ? const Color(0xFFE3F2FD) : Colors.white,
+                  foregroundColor: hasActiveFilters ? Colors.blue : Colors.black,
+                  borderColor: hasActiveFilters ? Colors.blue : Colors.grey.shade300,
+                  width: 180,
+                ),
+                if (hasActiveFilters) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    height: 40,
+                    child: IconButton(
+                      onPressed: () {
+                        authorProvider.clearFilters();
+                      },
+                      icon: const Icon(Icons.clear, color: Colors.red),
+                      tooltip: 'Očisti filtre',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 40,
+                        minHeight: 40,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            );
+          },
         ),
         const SizedBox(width: 16),
         
