@@ -10,5 +10,11 @@ namespace ZemljaSlova.Model.SearchObjects
         public string? Name { get; set; }
         public string? SortBy { get; set; }
         public string? SortOrder { get; set; }
+        
+        // Filter properties
+        public decimal? MinPrice { get; set; }
+        public decimal? MaxPrice { get; set; }
+        public DateTime? StartDateFrom { get; set; }
+        public DateTime? StartDateTo { get; set; }
     }
 }

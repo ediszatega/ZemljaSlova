@@ -46,6 +46,28 @@ namespace ZemljaSlova.Services
             var today = DateTime.Today;
             query = query.Where(e => e.StartAt >= today);
 
+            // Price range filters
+            if (search.MinPrice.HasValue)
+            {
+                query = query.Where(e => e.TicketTypes.Any(t => t.Price >= search.MinPrice.Value));
+            }
+
+            if (search.MaxPrice.HasValue)
+            {
+                query = query.Where(e => e.TicketTypes.Any(t => t.Price <= search.MaxPrice.Value));
+            }
+
+            // Date range filters
+            if (search.StartDateFrom.HasValue)
+            {
+                query = query.Where(e => e.StartAt >= search.StartDateFrom.Value);
+            }
+
+            if (search.StartDateTo.HasValue)
+            {
+                query = query.Where(e => e.StartAt <= search.StartDateTo.Value);
+            }
+
             // Apply sorting
             if (!string.IsNullOrEmpty(search.SortBy))
             {

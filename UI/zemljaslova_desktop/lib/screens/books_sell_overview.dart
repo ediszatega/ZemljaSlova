@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/book.dart';
 import '../models/book_filters.dart';
 import '../providers/book_provider.dart';
+import '../providers/author_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_card.dart';
 import '../widgets/zs_button.dart';
@@ -11,7 +12,8 @@ import '../widgets/search_input.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/pagination_controls_widget.dart';
 import '../widgets/search_loading_indicator.dart';
-import '../widgets/book_filters_dialog.dart';
+import '../widgets/filter_dialog.dart';
+import '../utils/filter_configurations.dart';
 import 'book_detail_overview.dart';
 import 'book_add.dart';
 
@@ -122,15 +124,23 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
   }
 
   void _showFiltersDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => BookFiltersDialog(
-        initialFilters: context.read<BookProvider>().filters,
-        onApplyFilters: (filters) {
-          context.read<BookProvider>().setFilters(filters);
-        },
-      ),
-    );
+    context.read<AuthorProvider>().refresh();
+    
+          showDialog(
+        context: context,
+        builder: (context) => FilterDialog(
+          title: 'Filteri za knjige',
+          fields: FilterConfigurations.getBookFilters(context),
+          initialValues: context.read<BookProvider>().filters.toMap(),
+          onApplyFilters: (values) {
+            final filters = BookFilters.fromMap(values);
+            context.read<BookProvider>().setFilters(filters);
+          },
+          onClearFilters: () {
+            context.read<BookProvider>().clearFilters();
+          },
+        ),
+      );
   }
 
   int _getActiveFilterCount(BookFilters filters) {

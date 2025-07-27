@@ -16,6 +16,7 @@ class EventService {
     String? name,
     String? sortBy,
     String? sortOrder,
+    Map<String, String>? filters,
   }) async {
     try {
       List<String> queryParams = ['IsTicketTypeIncluded=$isTicketTypeIncluded'];
@@ -38,6 +39,14 @@ class EventService {
       
       if (sortOrder != null && sortOrder.isNotEmpty) {
         queryParams.add('SortOrder=${Uri.encodeComponent(sortOrder)}');
+      }
+      
+      if (filters != null) {
+        for (final entry in filters.entries) {
+          if (entry.value.isNotEmpty) {
+            queryParams.add('${entry.key}=${Uri.encodeComponent(entry.value)}');
+          }
+        }
       }
       
       final queryString = queryParams.join('&');

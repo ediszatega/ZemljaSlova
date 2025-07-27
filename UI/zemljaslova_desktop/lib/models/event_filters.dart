@@ -1,38 +1,38 @@
-class BookFilters {
+class EventFilters {
   final double? minPrice;
   final double? maxPrice;
-  final int? authorId;
-  final bool? isAvailable;
+  final DateTime? startDateFrom;
+  final DateTime? startDateTo;
 
-  const BookFilters({
+  const EventFilters({
     this.minPrice,
     this.maxPrice,
-    this.authorId,
-    this.isAvailable,
+    this.startDateFrom,
+    this.startDateTo,
   });
 
-  BookFilters copyWith({
+  EventFilters copyWith({
     double? minPrice,
     double? maxPrice,
-    int? authorId,
-    bool? isAvailable,
+    DateTime? startDateFrom,
+    DateTime? startDateTo,
   }) {
-    return BookFilters(
+    return EventFilters(
       minPrice: minPrice ?? this.minPrice,
       maxPrice: maxPrice ?? this.maxPrice,
-      authorId: authorId ?? this.authorId,
-      isAvailable: isAvailable ?? this.isAvailable,
+      startDateFrom: startDateFrom ?? this.startDateFrom,
+      startDateTo: startDateTo ?? this.startDateTo,
     );
   }
 
   bool get hasActiveFilters {
     return minPrice != null ||
            maxPrice != null ||
-           authorId != null ||
-           isAvailable != null;
+           startDateFrom != null ||
+           startDateTo != null;
   }
 
-  static BookFilters get empty => const BookFilters();
+  static EventFilters get empty => const EventFilters();
 
   // Convert to query parameters for API
   Map<String, String> toQueryParams() {
@@ -44,23 +44,23 @@ class BookFilters {
     if (maxPrice != null) {
       params['MaxPrice'] = maxPrice!.toString();
     }
-    if (authorId != null) {
-      params['AuthorId'] = authorId!.toString();
+    if (startDateFrom != null) {
+      params['StartDateFrom'] = startDateFrom!.toIso8601String();
     }
-    if (isAvailable != null) {
-      params['IsAvailable'] = isAvailable!.toString();
+    if (startDateTo != null) {
+      params['StartDateTo'] = startDateTo!.toIso8601String();
     }
     
     return params;
   }
 
   // Convert from unified dialog values
-  static BookFilters fromMap(Map<String, dynamic> values) {
-    return BookFilters(
+  static EventFilters fromMap(Map<String, dynamic> values) {
+    return EventFilters(
       minPrice: values['minPrice'] as double?,
       maxPrice: values['maxPrice'] as double?,
-      authorId: values['authorId'] as int?,
-      isAvailable: values['isAvailable'] as bool?,
+      startDateFrom: values['startDateFrom'] as DateTime?,
+      startDateTo: values['startDateTo'] as DateTime?,
     );
   }
 
@@ -69,8 +69,8 @@ class BookFilters {
     return {
       'minPrice': minPrice,
       'maxPrice': maxPrice,
-      'authorId': authorId,
-      'isAvailable': isAvailable,
+      'startDateFrom': startDateFrom,
+      'startDateTo': startDateTo,
     };
   }
 } 
