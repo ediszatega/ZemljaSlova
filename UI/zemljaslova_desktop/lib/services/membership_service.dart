@@ -10,12 +10,7 @@ class MembershipService {
   MembershipService(this._apiService);
   
   Future<Map<String, dynamic>> fetchMemberships({
-    bool? isActive,
-    bool? isExpired,
-    DateTime? startDateFrom,
-    DateTime? startDateTo,
-    DateTime? endDateFrom,
-    DateTime? endDateTo,
+    Map<String, dynamic>? filters,
     bool includeMember = true,
     int? page,
     int? pageSize,
@@ -24,23 +19,16 @@ class MembershipService {
     try {
       final queryParams = <String, String>{};
       
-      if (isActive != null) {
-        queryParams['IsActive'] = isActive.toString();
-      }
-      if (isExpired != null) {
-        queryParams['IsExpired'] = isExpired.toString();
-      }
-      if (startDateFrom != null) {
-        queryParams['StartDateFrom'] = startDateFrom.toIso8601String();
-      }
-      if (startDateTo != null) {
-        queryParams['StartDateTo'] = startDateTo.toIso8601String();
-      }
-      if (endDateFrom != null) {
-        queryParams['EndDateFrom'] = endDateFrom.toIso8601String();
-      }
-      if (endDateTo != null) {
-        queryParams['EndDateTo'] = endDateTo.toIso8601String();
+      if (filters != null) {
+        filters.forEach((key, value) {
+          if (value != null) {
+            if (value is DateTime) {
+              queryParams[key] = value.toIso8601String();
+            } else {
+              queryParams[key] = value.toString();
+            }
+          }
+        });
       }
       if (includeMember) {
         queryParams['IncludeMember'] = 'true';

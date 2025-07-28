@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/membership.dart';
+import '../models/membership_filters.dart';
 import '../providers/membership_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/search_input.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/filter_dialog.dart';
+import '../utils/filter_configurations.dart';
 import 'membership_add.dart';
 
 class MembershipsOverview extends StatefulWidget {
@@ -95,14 +98,44 @@ class _MembershipsOverviewState extends State<MembershipsOverview> {
         const SizedBox(width: 16),
         
         // Filter button
-        ZSButton(
-          onPressed: () {
-            // TODO: Implement filter functionality
+        Consumer<MembershipProvider>(
+          builder: (context, membershipProvider, child) {
+            final hasActiveFilters = membershipProvider.filters.hasActiveFilters;
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                ZSButton(
+                  onPressed: () {
+                    _showFiltersDialog();
+                  },
+                  text: hasActiveFilters ? 'Filteri aktivni (${_getActiveFilterCount(membershipProvider.filters)})' : 'Postavi filtre',
+                  label: 'Filtriraj',
+                  backgroundColor: hasActiveFilters ? const Color(0xFFE3F2FD) : Colors.white,
+                  foregroundColor: hasActiveFilters ? Colors.blue : Colors.black,
+                  borderColor: hasActiveFilters ? Colors.blue : Colors.grey.shade300,
+                  width: 180,
+                ),
+                if (hasActiveFilters) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    height: 40,
+                    child: IconButton(
+                      onPressed: () {
+                        membershipProvider.clearFilters();
+                      },
+                      icon: const Icon(Icons.clear, color: Colors.red),
+                      tooltip: 'Očisti filtre',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 40,
+                        minHeight: 40,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            );
           },
-          text: 'Postavi filtere',
-          label: 'Filtriraj',
-          borderColor: Colors.grey.shade300,
-          width: 180,
         ),
         
         const SizedBox(width: 16),
@@ -363,7 +396,41 @@ class _MembershipsOverviewState extends State<MembershipsOverview> {
   void _applyFilters() {
     final membershipProvider = Provider.of<MembershipProvider>(context, listen: false);
     
-    membershipProvider.fetchMemberships(includeMember: true);
+    membershipProvider.fetchMemberships(
+      name: _searchController.text.isNotEmpty ? _searchController.text : null,
+    );
+  }
+
+  void _showFiltersDialog() {
+    final membershipProvider = Provider.of<MembershipProvider>(context, listen: false);
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return FilterDialog(
+          title: 'Filteri članarina',
+          fields: FilterConfigurations.getMembershipFilters(context),
+          initialValues: membershipProvider.filters.toMap(),
+          onApplyFilters: (Map<String, dynamic> filters) {
+            final membershipFilters = MembershipFilters.fromMap(filters);
+            membershipProvider.setFilters(membershipFilters);
+          },
+          onClearFilters: () {
+            membershipProvider.clearFilters();
+          },
+        );
+      },
+    );
+  }
+
+  int _getActiveFilterCount(MembershipFilters filters) {
+    int count = 0;
+    if (filters.isActive != null) count++;
+    if (filters.startDateFrom != null) count++;
+    if (filters.startDateTo != null) count++;
+    if (filters.endDateFrom != null) count++;
+    if (filters.endDateTo != null) count++;
+    return count;
   }
 
   List<Membership> _getFilteredMemberships(List<Membership> memberships) {

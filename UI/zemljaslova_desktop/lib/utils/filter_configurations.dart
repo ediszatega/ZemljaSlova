@@ -327,4 +327,44 @@ class FilterConfigurations {
       ),
     ];
   }
+
+  static List<FilterField> getMembershipFilters(BuildContext context) {
+    return [
+      // Membership status filter
+      const FilterField(
+        key: 'isActive',
+        label: 'Status članarine',
+        type: FilterFieldType.dropdown,
+        dropdownOptions: [
+          FilterDropdownOption(value: '', label: 'Sve članarine', data: null),
+          FilterDropdownOption(value: 'true', label: 'Samo aktivne', data: true),
+          FilterDropdownOption(value: 'false', label: 'Samo neaktivne', data: false),
+        ],
+      ),
+      // Start date range - From
+      const FilterField(
+        key: 'startDateFrom',
+        label: 'Datum početka od',
+        type: FilterFieldType.date,
+      ),
+      // Start date range - To
+      const FilterField(
+        key: 'startDateTo',
+        label: 'Datum početka do',
+        type: FilterFieldType.date,
+      ),
+      // End date range - From
+      const FilterField(
+        key: 'endDateFrom',
+        label: 'Datum završetka od',
+        type: FilterFieldType.date,
+      ),
+      // End date range - To
+      const FilterField(
+        key: 'endDateTo',
+        label: 'Datum završetka do',
+        type: FilterFieldType.date,
+      ),
+    ];
+  }
 } 

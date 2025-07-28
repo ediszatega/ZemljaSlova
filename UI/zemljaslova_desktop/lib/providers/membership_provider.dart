@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/membership.dart';
+import '../models/membership_filters.dart';
 import '../services/membership_service.dart';
 
 class MembershipProvider with ChangeNotifier {
@@ -17,7 +18,8 @@ class MembershipProvider with ChangeNotifier {
   final int _pageSize = 10;
   int _totalCount = 0;
   
-  Map<String, dynamic> _currentFilters = {};
+  MembershipFilters _filters = const MembershipFilters();
+  MembershipFilters get filters => _filters;
   
   String _searchQuery = '';
   Timer? _searchDebounceTimer;
@@ -35,28 +37,18 @@ class MembershipProvider with ChangeNotifier {
   bool get shouldShowPagination => _totalCount > _pageSize;
 
   Future<void> fetchMemberships({
-    bool? isActive,
-    bool? isExpired,
-    DateTime? startDateFrom,
-    DateTime? startDateTo,
-    DateTime? endDateFrom,
-    DateTime? endDateTo,
+    MembershipFilters? filters,
     bool includeMember = true,
     bool resetPage = true,
+    String? name,
   }) async {
     if (resetPage) {
       _currentPage = 0;
     }
     
-    _currentFilters = {
-      'isActive': isActive,
-      'isExpired': isExpired,
-      'startDateFrom': startDateFrom,
-      'startDateTo': startDateTo,
-      'endDateFrom': endDateFrom,
-      'endDateTo': endDateTo,
-      'includeMember': includeMember,
-    };
+    if (filters != null) {
+      _filters = filters;
+    }
     
     if (_memberships.isNotEmpty && resetPage) {
       _isUpdating = true;
@@ -68,16 +60,11 @@ class MembershipProvider with ChangeNotifier {
     
     try {
       final result = await _membershipService.fetchMemberships(
-        isActive: isActive,
-        isExpired: isExpired,
-        startDateFrom: startDateFrom,
-        startDateTo: startDateTo,
-        endDateFrom: endDateFrom,
-        endDateTo: endDateTo,
+        filters: _filters.toQueryParams(),
         includeMember: includeMember,
         page: _currentPage,
         pageSize: _pageSize,
-        name: _searchQuery.isNotEmpty ? _searchQuery : null,
+        name: name ?? (_searchQuery.isNotEmpty ? _searchQuery : null),
       );
       
       if (result != null) {
@@ -114,6 +101,16 @@ class MembershipProvider with ChangeNotifier {
       fetchMemberships(resetPage: true);
     });
   }
+
+  void setFilters(MembershipFilters filters) {
+    _filters = filters;
+    fetchMemberships(resetPage: true);
+  }
+
+  void clearFilters() {
+    _filters = const MembershipFilters();
+    fetchMemberships(resetPage: true);
+  }
   
   void clearSearch() {
     _searchQuery = '';
@@ -142,13 +139,7 @@ class MembershipProvider with ChangeNotifier {
   // Helper method to refetch with stored filters
   Future<void> _fetchWithCurrentFilters() async {
     await fetchMemberships(
-      isActive: _currentFilters['isActive'],
-      isExpired: _currentFilters['isExpired'],
-      startDateFrom: _currentFilters['startDateFrom'],
-      startDateTo: _currentFilters['startDateTo'],
-      endDateFrom: _currentFilters['endDateFrom'],
-      endDateTo: _currentFilters['endDateTo'],
-      includeMember: _currentFilters['includeMember'],
+      filters: _filters,
       resetPage: false, // Don't reset page since we're navigating
     );
   }
