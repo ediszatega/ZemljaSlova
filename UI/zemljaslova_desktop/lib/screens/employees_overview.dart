@@ -10,6 +10,9 @@ import '../widgets/search_input.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/pagination_controls_widget.dart';
 import '../widgets/search_loading_indicator.dart';
+import '../widgets/filter_dialog.dart';
+import '../utils/filter_configurations.dart';
+import '../models/employee_filters.dart';
 import '../screens/employee_details_overview.dart';
 import '../screens/employee_add.dart';
 
@@ -109,6 +112,33 @@ class _EmployeesContentState extends State<EmployeesContent> with WidgetsBinding
     }
   }
 
+  void _showFiltersDialog() {
+    final employeeProvider = Provider.of<EmployeeProvider>(context, listen: false);
+    
+    showDialog(
+      context: context,
+      builder: (context) => FilterDialog(
+        title: 'Filtriraj uposlenike',
+        fields: FilterConfigurations.getEmployeeFilters(context),
+        initialValues: employeeProvider.filters.toMap(),
+        onApplyFilters: (Map<String, dynamic> values) {
+          final filters = EmployeeFilters.fromMap(values);
+          employeeProvider.setFilters(filters);
+        },
+        onClearFilters: () {
+          employeeProvider.clearFilters();
+        },
+      ),
+    );
+  }
+
+  int _getActiveFilterCount(EmployeeFilters filters) {
+    int count = 0;
+    if (filters.gender != null) count++;
+    if (filters.accessLevel != null) count++;
+    return count;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -173,12 +203,44 @@ class _EmployeesContentState extends State<EmployeesContent> with WidgetsBinding
         ),
         const SizedBox(width: 16),
         
-        ZSButton(
-          onPressed: () {},
-          text: 'Postavi filtre',
-          label: 'Filtriraj',
-          borderColor: Colors.grey.shade300,
-          width: 180,
+        Consumer<EmployeeProvider>(
+          builder: (context, employeeProvider, child) {
+            final hasActiveFilters = employeeProvider.filters.hasActiveFilters;
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                ZSButton(
+                  onPressed: () {
+                    _showFiltersDialog();
+                  },
+                  text: hasActiveFilters ? 'Filteri aktivni (${_getActiveFilterCount(employeeProvider.filters)})' : 'Postavi filtre',
+                  label: 'Filtriraj',
+                  backgroundColor: hasActiveFilters ? const Color(0xFFE3F2FD) : Colors.white,
+                  foregroundColor: hasActiveFilters ? Colors.blue : Colors.black,
+                  borderColor: hasActiveFilters ? Colors.blue : Colors.grey.shade300,
+                  width: 180,
+                ),
+                if (hasActiveFilters) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    height: 40,
+                    child: IconButton(
+                      onPressed: () {
+                        employeeProvider.clearFilters();
+                      },
+                      icon: const Icon(Icons.clear, color: Colors.red),
+                      tooltip: 'Očisti filtre',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 40,
+                        minHeight: 40,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            );
+          },
         ),
         const SizedBox(width: 16),
         

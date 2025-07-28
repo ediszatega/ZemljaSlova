@@ -33,11 +33,22 @@ namespace ZemljaSlova.Services
                 query = query.Include("User");
             }
 
-            // Filter by name (firstName or lastName)
             if (!string.IsNullOrEmpty(search.Name))
             {
                 query = query.Where(e => e.User.FirstName.ToLower().Contains(search.Name.ToLower()) || e.User.LastName.ToLower().Contains(search.Name.ToLower()));
             }
+
+            if (!string.IsNullOrEmpty(search.Gender))
+            {
+                query = query.Where(e => e.User.Gender == search.Gender);
+            }
+
+            if (!string.IsNullOrEmpty(search.AccessLevel))
+            {
+                query = query.Where(e => e.AccessLevel == search.AccessLevel);
+            }
+
+
 
             if (!string.IsNullOrEmpty(search.SortBy))
             {

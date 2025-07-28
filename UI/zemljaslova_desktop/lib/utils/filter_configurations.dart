@@ -167,4 +167,31 @@ class FilterConfigurations {
       ),
     ];
   }
+
+  static List<FilterField> getEmployeeFilters(BuildContext context) {
+    return [
+      // Gender filter
+      const FilterField(
+        key: 'gender',
+        label: 'Pol',
+        type: FilterFieldType.dropdown,
+        dropdownOptions: [
+          FilterDropdownOption(value: '', label: 'Svi polovi', data: null),
+          FilterDropdownOption(value: 'male', label: 'Muško', data: 'male'),
+          FilterDropdownOption(value: 'female', label: 'Žensko', data: 'female'),
+        ],
+      ),
+      // Access level filter
+      const FilterField(
+        key: 'accessLevel',
+        label: 'Nivo pristupa',
+        type: FilterFieldType.dropdown,
+        dropdownOptions: [
+          FilterDropdownOption(value: '', label: 'Svi nivoi', data: null),
+          FilterDropdownOption(value: 'admin', label: 'Admin', data: 'admin'),
+          FilterDropdownOption(value: 'employee', label: 'Uposlenik', data: 'employee'),
+        ],
+      ),
+    ];
+  }
 } 

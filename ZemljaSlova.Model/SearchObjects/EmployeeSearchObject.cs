@@ -10,5 +10,9 @@ namespace ZemljaSlova.Model.SearchObjects
         public string? Name { get; set; }
         public string? SortBy { get; set; }
         public string? SortOrder { get; set; }
+        
+        // Filter
+        public string? Gender { get; set; }
+        public string? AccessLevel { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/employee.dart';
+import '../models/employee_filters.dart';
 import '../services/employee_service.dart';
 import '../widgets/paginated_data_widget.dart';
 
@@ -27,6 +28,9 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
   // Sorting state
   String _sortBy = 'name';
   String _sortOrder = 'asc';
+  
+  // Filter state
+  EmployeeFilters _filters = const EmployeeFilters();
 
   List<Employee> get employees => [..._employees];
   
@@ -53,6 +57,7 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
   
   String get sortBy => _sortBy;
   String get sortOrder => _sortOrder;
+  EmployeeFilters get filters => _filters;
 
   Future<void> fetchEmployees({bool isUserIncluded = true, bool refresh = false}) async {
     if (refresh) {
@@ -79,6 +84,7 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
         name: _searchQuery.isNotEmpty ? _searchQuery : null,
         sortBy: _sortBy,
         sortOrder: _sortOrder,
+        filters: _filters.toQueryParams(),
       );
       
       final List<Employee> newEmployees = result['employees'] as List<Employee>;
@@ -148,6 +154,16 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
     _searchQuery = '';
     _searchDebounceTimer?.cancel();
     _employees.clear();
+    refresh();
+  }
+  
+  void setFilters(EmployeeFilters filters) {
+    _filters = filters;
+    refresh();
+  }
+  
+  void clearFilters() {
+    _filters = const EmployeeFilters();
     refresh();
   }
   
