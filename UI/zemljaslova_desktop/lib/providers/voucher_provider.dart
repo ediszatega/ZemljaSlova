@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/voucher.dart';
+import '../models/voucher_filters.dart';
 import '../services/voucher_service.dart';
 
 class VoucherProvider with ChangeNotifier {
@@ -19,6 +20,9 @@ class VoucherProvider with ChangeNotifier {
   
   Map<String, dynamic> _currentFilters = {};
   
+  // Filter state
+  VoucherFilters _filters = const VoucherFilters();
+  
   String _searchQuery = '';
   Timer? _searchDebounceTimer;
 
@@ -33,6 +37,7 @@ class VoucherProvider with ChangeNotifier {
   bool get hasPreviousPage => _currentPage > 0;
   bool get hasNextPage => (_currentPage + 1) < totalPages;
   bool get shouldShowPagination => _totalCount > _pageSize;
+  VoucherFilters get filters => _filters;
 
   Future<void> fetchVouchers({
     int? memberId,
@@ -117,6 +122,16 @@ class VoucherProvider with ChangeNotifier {
   }
   
   String get searchQuery => _searchQuery;
+  
+  void setFilters(VoucherFilters filters) {
+    _filters = filters;
+    fetchVouchers(resetPage: true);
+  }
+  
+  void clearFilters() {
+    _filters = const VoucherFilters();
+    fetchVouchers(resetPage: true);
+  }
   
   // Pagination methods
   Future<void> nextPage() async {

@@ -18,6 +18,7 @@ class VoucherService {
     int? page,
     int? pageSize,
     String? name,
+    Map<String, dynamic>? filters,
   }) async {
     try {
       final queryParams = <String, String>{};
@@ -45,6 +46,14 @@ class VoucherService {
       }
       if (name != null && name.isNotEmpty) {
         queryParams['Name'] = name;
+      }
+      
+      if (filters != null) {
+        for (final entry in filters.entries) {
+          if (entry.value != null) {
+            queryParams[entry.key] = entry.value.toString();
+          }
+        }
       }
       
       String endpoint = 'Voucher';

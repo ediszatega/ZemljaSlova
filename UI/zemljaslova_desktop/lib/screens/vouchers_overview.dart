@@ -8,6 +8,9 @@ import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/permission_guard.dart';
+import '../widgets/filter_dialog.dart';
+import '../utils/filter_configurations.dart';
+import '../models/voucher_filters.dart';
 import 'voucher_add.dart';
 
 class VouchersOverview extends StatefulWidget {
@@ -97,14 +100,44 @@ class _VouchersOverviewState extends State<VouchersOverview> {
         const SizedBox(width: 16),
         
         // Filter button
-        ZSButton(
-          onPressed: () {
-            // TODO: Implement filter functionality
+        Consumer<VoucherProvider>(
+          builder: (context, voucherProvider, child) {
+            final hasActiveFilters = voucherProvider.filters.hasActiveFilters;
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                ZSButton(
+                  onPressed: () {
+                    _showFiltersDialog();
+                  },
+                  text: hasActiveFilters ? 'Filteri aktivni (${_getActiveFilterCount(voucherProvider.filters)})' : 'Postavi filtre',
+                  label: 'Filtriraj',
+                  backgroundColor: hasActiveFilters ? const Color(0xFFE3F2FD) : Colors.white,
+                  foregroundColor: hasActiveFilters ? Colors.blue : Colors.black,
+                  borderColor: hasActiveFilters ? Colors.blue : Colors.grey.shade300,
+                  width: 180,
+                ),
+                if (hasActiveFilters) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    height: 40,
+                    child: IconButton(
+                      onPressed: () {
+                        voucherProvider.clearFilters();
+                      },
+                      icon: const Icon(Icons.clear, color: Colors.red),
+                      tooltip: 'Očisti filtre',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 40,
+                        minHeight: 40,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            );
           },
-          text: 'Postavi filtere',
-          label: 'Filtriraj',
-          borderColor: Colors.grey.shade300,
-          width: 180,
         ),
         
         const SizedBox(width: 16),
@@ -126,6 +159,45 @@ class _VouchersOverviewState extends State<VouchersOverview> {
           width: 180,
         ),
       ],
+    );
+  }
+
+  void _showFiltersDialog() {
+    final voucherProvider = Provider.of<VoucherProvider>(context, listen: false);
+    
+    showDialog(
+      context: context,
+      builder: (context) => FilterDialog(
+        title: 'Filtriraj vaučere',
+        fields: FilterConfigurations.getVoucherFilters(context),
+        initialValues: voucherProvider.filters.toMap(),
+        onApplyFilters: (Map<String, dynamic> values) {
+          final filters = VoucherFilters.fromMap(values);
+          voucherProvider.setFilters(filters);
+        },
+        onClearFilters: () {
+          voucherProvider.clearFilters();
+        },
+      ),
+    );
+  }
+
+  int _getActiveFilterCount(VoucherFilters filters) {
+    int count = 0;
+    if (filters.minValue != null) count++;
+    if (filters.maxValue != null) count++;
+    if (filters.voucherType != null) count++;
+    if (filters.isUsed != null) count++;
+    if (filters.expirationDateFrom != null) count++;
+    if (filters.expirationDateTo != null) count++;
+    return count;
+  }
+
+  void _applyFilters() {
+    final voucherProvider = Provider.of<VoucherProvider>(context, listen: false);
+    
+    voucherProvider.fetchVouchers(
+      code: _searchController.text.isNotEmpty ? _searchController.text : null,
     );
   }
 
@@ -345,13 +417,11 @@ class _VouchersOverviewState extends State<VouchersOverview> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (voucher.isPromotional && !voucher.isUsed)
-            CanDeleteVouchers(
-              child: IconButton(
-                onPressed: () => _showDeleteDialog(voucher),
-                icon: const Icon(Icons.delete, size: 18),
-                tooltip: 'Obriši',
-                color: Colors.red,
-              ),
+            IconButton(
+              onPressed: () => _showDeleteDialog(voucher),
+              icon: const Icon(Icons.delete, size: 18),
+              tooltip: 'Obriši',
+              color: Colors.red,
             ),
           
           IconButton(
@@ -362,14 +432,6 @@ class _VouchersOverviewState extends State<VouchersOverview> {
           ),
         ],
       ),
-    );
-  }
-
-  void _applyFilters() {
-    final voucherProvider = Provider.of<VoucherProvider>(context, listen: false);
-    
-    voucherProvider.fetchVouchers(
-      code: _searchController.text.isNotEmpty ? _searchController.text : null,
     );
   }
 

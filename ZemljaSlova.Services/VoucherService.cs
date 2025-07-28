@@ -114,6 +114,27 @@ namespace ZemljaSlova.Services
                 query = query.Where(v => v.ExpirationDate <= search.ExpirationDateTo.Value);
             }
 
+            if (search.MinValue.HasValue)
+            {
+                query = query.Where(v => v.Value >= search.MinValue.Value);
+            }
+            if (search.MaxValue.HasValue)
+            {
+                query = query.Where(v => v.Value <= search.MaxValue.Value);
+            }
+
+            if (!string.IsNullOrEmpty(search.VoucherType))
+            {
+                if (search.VoucherType == "promotional")
+                {
+                    query = query.Where(v => v.PurchasedByMemberId == null);
+                }
+                else if (search.VoucherType == "purchased")
+                {
+                    query = query.Where(v => v.PurchasedByMemberId != null);
+                }
+            }
+
             return base.AddFilter(search, query);
         }
 

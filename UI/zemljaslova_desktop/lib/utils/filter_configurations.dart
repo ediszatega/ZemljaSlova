@@ -194,4 +194,59 @@ class FilterConfigurations {
       ),
     ];
   }
+
+  static List<FilterField> getVoucherFilters(BuildContext context) {
+    return [
+      // Value range - Min
+      const FilterField(
+        key: 'minValue',
+        label: 'Minimalna vrijednost',
+        type: FilterFieldType.number,
+        suffix: 'KM',
+        placeholder: 'npr. 10',
+      ),
+      // Value range - Max
+      const FilterField(
+        key: 'maxValue',
+        label: 'Maksimalna vrijednost',
+        type: FilterFieldType.number,
+        suffix: 'KM',
+        placeholder: 'npr. 100',
+      ),
+      // Voucher type filter
+      const FilterField(
+        key: 'voucherType',
+        label: 'Tip vaučera',
+        type: FilterFieldType.dropdown,
+        dropdownOptions: [
+          FilterDropdownOption(value: '', label: 'Svi tipovi', data: null),
+          FilterDropdownOption(value: 'promotional', label: 'Promocijski', data: 'promotional'),
+          FilterDropdownOption(value: 'purchased', label: 'Kupljeni', data: 'purchased'),
+        ],
+      ),
+      // Usage status filter
+      const FilterField(
+        key: 'isUsed',
+        label: 'Status korištenja',
+        type: FilterFieldType.dropdown,
+        dropdownOptions: [
+          FilterDropdownOption(value: '', label: 'Svi statusi', data: null),
+          FilterDropdownOption(value: 'false', label: 'Aktivni', data: false),
+          FilterDropdownOption(value: 'true', label: 'Iskorišteni', data: true),
+        ],
+      ),
+      // Expiration date range - From
+      const FilterField(
+        key: 'expirationDateFrom',
+        label: 'Datum isteka od',
+        type: FilterFieldType.date,
+      ),
+      // Expiration date range - To
+      const FilterField(
+        key: 'expirationDateTo',
+        label: 'Datum isteka do',
+        type: FilterFieldType.date,
+      ),
+    ];
+  }
 } 
