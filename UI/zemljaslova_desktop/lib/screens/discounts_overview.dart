@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/discount.dart';
+import '../models/discount_filters.dart';
 import '../providers/discount_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/search_input.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/filter_dialog.dart';
+import '../utils/filter_configurations.dart';
 import '../providers/book_provider.dart';
 
 class DiscountsOverview extends StatefulWidget {
@@ -95,14 +98,44 @@ class _DiscountsOverviewState extends State<DiscountsOverview> {
         const SizedBox(width: 16),
         
         // Filter button
-        ZSButton(
-          onPressed: () {
-            // TODO: Implement filter functionality
+        Consumer<DiscountProvider>(
+          builder: (context, discountProvider, child) {
+            final hasActiveFilters = discountProvider.filters.hasActiveFilters;
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                ZSButton(
+                  onPressed: () {
+                    _showFiltersDialog();
+                  },
+                  text: hasActiveFilters ? 'Filteri aktivni (${_getActiveFilterCount(discountProvider.filters)})' : 'Postavi filtre',
+                  label: 'Filtriraj',
+                  backgroundColor: hasActiveFilters ? const Color(0xFFE3F2FD) : Colors.white,
+                  foregroundColor: hasActiveFilters ? Colors.blue : Colors.black,
+                  borderColor: hasActiveFilters ? Colors.blue : Colors.grey.shade300,
+                  width: 180,
+                ),
+                if (hasActiveFilters) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    height: 40,
+                    child: IconButton(
+                      onPressed: () {
+                        discountProvider.clearFilters();
+                      },
+                      icon: const Icon(Icons.clear, color: Colors.red),
+                      tooltip: 'Očisti filtre',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 40,
+                        minHeight: 40,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            );
           },
-          text: 'Postavi filtere',
-          label: 'Filtriraj',
-          borderColor: Colors.grey.shade300,
-          width: 180,
         ),
         
         const SizedBox(width: 16),
@@ -373,8 +406,42 @@ class _DiscountsOverviewState extends State<DiscountsOverview> {
     final discountProvider = Provider.of<DiscountProvider>(context, listen: false);
     
     discountProvider.fetchDiscounts(
-      code: _searchController.text.isNotEmpty ? _searchController.text : null,
+      name: _searchController.text.isNotEmpty ? _searchController.text : null,
     );
+  }
+
+  void _showFiltersDialog() {
+    final discountProvider = Provider.of<DiscountProvider>(context, listen: false);
+    
+    showDialog(
+      context: context,
+      builder: (context) => FilterDialog(
+        title: 'Filtriraj popuste',
+        fields: FilterConfigurations.getDiscountFilters(context),
+        initialValues: discountProvider.filters.toMap(),
+        onApplyFilters: (Map<String, dynamic> values) {
+          final filters = DiscountFilters.fromMap(values);
+          discountProvider.setFilters(filters);
+        },
+        onClearFilters: () {
+          discountProvider.clearFilters();
+        },
+      ),
+    );
+  }
+
+  int _getActiveFilterCount(DiscountFilters filters) {
+    int count = 0;
+    if (filters.isActive != null) count++;
+    if (filters.scope != null) count++;
+    if (filters.minPercentage != null) count++;
+    if (filters.maxPercentage != null) count++;
+    if (filters.hasUsageLimit != null) count++;
+    if (filters.startDateFrom != null) count++;
+    if (filters.startDateTo != null) count++;
+    if (filters.endDateFrom != null) count++;
+    if (filters.endDateTo != null) count++;
+    return count;
   }
 
   List<Discount> _getFilteredDiscounts(List<Discount> discounts) {

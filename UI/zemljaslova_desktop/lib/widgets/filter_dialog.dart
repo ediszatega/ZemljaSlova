@@ -177,7 +177,7 @@ class _FilterDialogState extends State<FilterDialog> {
                       final DateTime? picked = await showDatePicker(
                         context: context,
                         initialDate: selectedDate ?? DateTime.now(),
-                        firstDate: DateTime.now(),
+                        firstDate: DateTime(1900),
                         lastDate: DateTime.now().add(const Duration(days: 3650)),
                       );
                       if (picked != null) {
@@ -252,61 +252,76 @@ class _FilterDialogState extends State<FilterDialog> {
       ),
       child: Container(
         width: 330,
-        padding: const EdgeInsets.all(24),
+        constraints: const BoxConstraints(maxHeight: 600),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  widget.title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Fields
-            ...widget.fields.map((field) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildField(field),
-                  const SizedBox(height: 24),
+                  Text(
+                    widget.title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close),
+                  ),
                 ],
-              );
-            }).toList(),
+              ),
+            ),
+
+            // Scrollable fields
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ...widget.fields.map((field) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildField(field),
+                          const SizedBox(height: 24),
+                        ],
+                      );
+                    }).toList(),
+                  ],
+                ),
+              ),
+            ),
 
             // Action buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ZSButton(
-                  onPressed: _clearFilters,
-                  text: 'Očisti filtre',
-                  backgroundColor: Colors.grey.shade100,
-                  foregroundColor: Colors.grey.shade700,
-                  borderColor: Colors.grey.shade300,
-                ),
-                const SizedBox(width: 12),
-                ZSButton(
-                  onPressed: _applyFilters,
-                  text: 'Primijeni filtre',
-                  backgroundColor: const Color(0xFFE5FFEE),
-                  foregroundColor: Colors.green,
-                  borderColor: Colors.grey.shade300,
-                ),
-              ],
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  ZSButton(
+                    onPressed: _clearFilters,
+                    text: 'Očisti filtre',
+                    backgroundColor: Colors.grey.shade100,
+                    foregroundColor: Colors.grey.shade700,
+                    borderColor: Colors.grey.shade300,
+                  ),
+                  const SizedBox(width: 12),
+                  ZSButton(
+                    onPressed: _applyFilters,
+                    text: 'Primijeni filtre',
+                    backgroundColor: const Color(0xFFE5FFEE),
+                    foregroundColor: Colors.green,
+                    borderColor: Colors.grey.shade300,
+                  ),
+                ],
+              ),
             ),
           ],
         ),

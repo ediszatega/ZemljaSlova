@@ -9,17 +9,7 @@ class DiscountService {
   DiscountService(this._apiService);
   
   Future<Map<String, dynamic>> fetchDiscounts({
-    bool? isActive,
-    String? code,
-    DateTime? startDateFrom,
-    DateTime? startDateTo,
-    DateTime? endDateFrom,
-    DateTime? endDateTo,
-    int? scope,
-    double? minPercentage,
-    double? maxPercentage,
-    bool? hasUsageLimit,
-    int? bookId,
+    Map<String, dynamic>? filters,
     int? page,
     int? pageSize,
     String? name,
@@ -27,39 +17,18 @@ class DiscountService {
     try {
       final queryParams = <String, String>{};
       
-      if (isActive != null) {
-        queryParams['IsActive'] = isActive.toString();
+      if (filters != null) {
+        filters.forEach((key, value) {
+          if (value != null) {
+            if (value is DateTime) {
+              queryParams[key] = value.toIso8601String();
+            } else {
+              queryParams[key] = value.toString();
+            }
+          }
+        });
       }
-      if (code != null && code.isNotEmpty) {
-        queryParams['Code'] = code;
-      }
-      if (startDateFrom != null) {
-        queryParams['StartDateFrom'] = startDateFrom.toIso8601String();
-      }
-      if (startDateTo != null) {
-        queryParams['StartDateTo'] = startDateTo.toIso8601String();
-      }
-      if (endDateFrom != null) {
-        queryParams['EndDateFrom'] = endDateFrom.toIso8601String();
-      }
-      if (endDateTo != null) {
-        queryParams['EndDateTo'] = endDateTo.toIso8601String();
-      }
-      if (scope != null) {
-        queryParams['Scope'] = scope.toString();
-      }
-      if (minPercentage != null) {
-        queryParams['MinPercentage'] = minPercentage.toString();
-      }
-      if (maxPercentage != null) {
-        queryParams['MaxPercentage'] = maxPercentage.toString();
-      }
-      if (hasUsageLimit != null) {
-        queryParams['HasUsageLimit'] = hasUsageLimit.toString();
-      }
-      if (bookId != null) {
-        queryParams['BookId'] = bookId.toString();
-      }
+      
       if (page != null) {
         queryParams['Page'] = page.toString();
       }

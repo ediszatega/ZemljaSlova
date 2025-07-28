@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/discount.dart';
+import '../models/discount_filters.dart';
 import '../services/discount_service.dart';
 
 class DiscountProvider with ChangeNotifier {
@@ -17,7 +18,7 @@ class DiscountProvider with ChangeNotifier {
   final int _pageSize = 10;
   int _totalCount = 0;
   
-  Map<String, dynamic> _currentFilters = {};
+  DiscountFilters _filters = const DiscountFilters();
   
   String _searchQuery = '';
   Timer? _searchDebounceTimer;
@@ -33,38 +34,20 @@ class DiscountProvider with ChangeNotifier {
   bool get hasPreviousPage => _currentPage > 0;
   bool get hasNextPage => (_currentPage + 1) < totalPages;
   bool get shouldShowPagination => _totalCount > _pageSize;
+  DiscountFilters get filters => _filters;
 
   Future<void> fetchDiscounts({
-    bool? isActive,
-    String? code,
-    DateTime? startDateFrom,
-    DateTime? startDateTo,
-    DateTime? endDateFrom,
-    DateTime? endDateTo,
-    int? scope,
-    double? minPercentage,
-    double? maxPercentage,
-    bool? hasUsageLimit,
-    int? bookId,
+    DiscountFilters? filters,
     bool resetPage = true,
+    String? name,
   }) async {
     if (resetPage) {
       _currentPage = 0;
     }
     
-    _currentFilters = {
-      'isActive': isActive,
-      'code': code,
-      'startDateFrom': startDateFrom,
-      'startDateTo': startDateTo,
-      'endDateFrom': endDateFrom,
-      'endDateTo': endDateTo,
-      'scope': scope,
-      'minPercentage': minPercentage,
-      'maxPercentage': maxPercentage,
-      'hasUsageLimit': hasUsageLimit,
-      'bookId': bookId,
-    };
+    if (filters != null) {
+      _filters = filters;
+    }
     
     if (_discounts.isNotEmpty && resetPage) {
       _isUpdating = true;
@@ -76,20 +59,10 @@ class DiscountProvider with ChangeNotifier {
     
     try {
       final result = await _discountService.fetchDiscounts(
-        isActive: isActive,
-        code: code,
-        startDateFrom: startDateFrom,
-        startDateTo: startDateTo,
-        endDateFrom: endDateFrom,
-        endDateTo: endDateTo,
-        scope: scope,
-        minPercentage: minPercentage,
-        maxPercentage: maxPercentage,
-        hasUsageLimit: hasUsageLimit,
-        bookId: bookId,
+        filters: _filters.toQueryParams(),
         page: _currentPage,
         pageSize: _pageSize,
-        name: _searchQuery.isNotEmpty ? _searchQuery : null,
+        name: name ?? (_searchQuery.isNotEmpty ? _searchQuery : null),
       );
       
       if (result != null) {
@@ -154,19 +127,19 @@ class DiscountProvider with ChangeNotifier {
   // Helper method to refetch with stored filters
   Future<void> _fetchWithCurrentFilters() async {
     await fetchDiscounts(
-      isActive: _currentFilters['isActive'],
-      code: _currentFilters['code'],
-      startDateFrom: _currentFilters['startDateFrom'],
-      startDateTo: _currentFilters['startDateTo'],
-      endDateFrom: _currentFilters['endDateFrom'],
-      endDateTo: _currentFilters['endDateTo'],
-      scope: _currentFilters['scope'],
-      minPercentage: _currentFilters['minPercentage'],
-      maxPercentage: _currentFilters['maxPercentage'],
-      hasUsageLimit: _currentFilters['hasUsageLimit'],
-      bookId: _currentFilters['bookId'],
+      filters: _filters,
       resetPage: false, // Don't reset page since we're navigating
     );
+  }
+
+  void setFilters(DiscountFilters filters) {
+    _filters = filters;
+    fetchDiscounts(filters: filters);
+  }
+
+  void clearFilters() {
+    _filters = const DiscountFilters();
+    fetchDiscounts(filters: _filters);
   }
 
   Future<Discount?> getDiscountById(int id) async {

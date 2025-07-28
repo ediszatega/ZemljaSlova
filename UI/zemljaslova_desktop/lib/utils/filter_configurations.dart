@@ -249,4 +249,82 @@ class FilterConfigurations {
       ),
     ];
   }
+
+  static List<FilterField> getDiscountFilters(BuildContext context) {
+    return [
+      // Percentage range - Min
+      const FilterField(
+        key: 'minPercentage',
+        label: 'Minimalni popust',
+        type: FilterFieldType.number,
+        suffix: '%',
+        placeholder: 'npr. 10',
+      ),
+      // Percentage range - Max
+      const FilterField(
+        key: 'maxPercentage',
+        label: 'Maksimalni popust',
+        type: FilterFieldType.number,
+        suffix: '%',
+        placeholder: 'npr. 50',
+      ),
+      // Active status filter
+      const FilterField(
+        key: 'isActive',
+        label: 'Status aktivnosti',
+        type: FilterFieldType.dropdown,
+        dropdownOptions: [
+          FilterDropdownOption(value: '', label: 'Svi statusi', data: null),
+          FilterDropdownOption(value: 'true', label: 'Aktivni', data: true),
+          FilterDropdownOption(value: 'false', label: 'Neaktivni', data: false),
+        ],
+      ),
+      // Scope filter
+      const FilterField(
+        key: 'scope',
+        label: 'Opseg popusta',
+        type: FilterFieldType.dropdown,
+        dropdownOptions: [
+          FilterDropdownOption(value: '', label: 'Svi opsezi', data: null),
+          FilterDropdownOption(value: '1', label: 'Knjiga', data: 1),
+          FilterDropdownOption(value: '2', label: 'Narudžba', data: 2),
+        ],
+      ),
+      // Usage limit filter
+      const FilterField(
+        key: 'hasUsageLimit',
+        label: 'Ograničenje korištenja',
+        type: FilterFieldType.dropdown,
+        dropdownOptions: [
+          FilterDropdownOption(value: '', label: 'Svi popusti', data: null),
+          FilterDropdownOption(value: 'true', label: 'S ograničenjem', data: true),
+          FilterDropdownOption(value: 'false', label: 'Bez ograničenja', data: false),
+        ],
+      ),
+      // Start date range - From
+      const FilterField(
+        key: 'startDateFrom',
+        label: 'Datum početka od',
+        type: FilterFieldType.date,
+      ),
+      // Start date range - To
+      const FilterField(
+        key: 'startDateTo',
+        label: 'Datum početka do',
+        type: FilterFieldType.date,
+      ),
+      // End date range - From
+      const FilterField(
+        key: 'endDateFrom',
+        label: 'Datum završetka od',
+        type: FilterFieldType.date,
+      ),
+      // End date range - To
+      const FilterField(
+        key: 'endDateTo',
+        label: 'Datum završetka do',
+        type: FilterFieldType.date,
+      ),
+    ];
+  }
 } 
