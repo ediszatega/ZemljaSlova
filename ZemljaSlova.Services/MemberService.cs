@@ -31,11 +31,45 @@ namespace ZemljaSlova.Services
             {
                 query = query.Include("User");
             }
+            
+            // Always include Memberships for active/inactive filtering
+            query = query.Include("Memberships");
 
             // Filter by name (firstName or lastName)
             if (!string.IsNullOrEmpty(search.Name))
             {
                 query = query.Where(m => m.User.FirstName.ToLower().Contains(search.Name.ToLower()) || m.User.LastName.ToLower().Contains(search.Name.ToLower()));
+            }
+
+            if (!string.IsNullOrEmpty(search.Gender))
+            {
+                query = query.Where(m => m.User.Gender == search.Gender);
+            }
+
+            if (search.BirthYearFrom.HasValue)
+            {
+                query = query.Where(m => m.DateOfBirth.Year >= search.BirthYearFrom.Value);
+            }
+            if (search.BirthYearTo.HasValue)
+            {
+                query = query.Where(m => m.DateOfBirth.Year <= search.BirthYearTo.Value);
+            }
+
+            if (search.JoinedYearFrom.HasValue)
+            {
+                query = query.Where(m => m.JoinedAt.Year >= search.JoinedYearFrom.Value);
+            }
+            if (search.JoinedYearTo.HasValue)
+            {
+                query = query.Where(m => m.JoinedAt.Year <= search.JoinedYearTo.Value);
+            }
+
+            // Filter by active/inactive members
+            // By default, show only active members unless ShowInactiveMembers is explicitly set to true
+            if (!search.ShowInactiveMembers.HasValue || !search.ShowInactiveMembers.Value)
+            {
+                var today = DateTime.Today;
+                query = query.Where(m => m.Memberships.Any(ms => ms.EndDate >= today));
             }
 
             if (!string.IsNullOrEmpty(search.SortBy))

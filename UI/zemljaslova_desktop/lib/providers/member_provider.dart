@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/member.dart';
+import '../models/member_filters.dart';
 import '../services/member_service.dart';
 import '../widgets/paginated_data_widget.dart';
 
@@ -27,6 +28,9 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
   // Sorting state
   String _sortBy = 'name';
   String _sortOrder = 'asc';
+  
+  // Filter state
+  MemberFilters _filters = const MemberFilters();
 
   List<Member> get members => [..._members];
   
@@ -53,6 +57,7 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
   
   String get sortBy => _sortBy;
   String get sortOrder => _sortOrder;
+  MemberFilters get filters => _filters;
 
   Future<void> fetchMembers({bool isUserIncluded = true, bool refresh = false}) async {
     if (refresh) {
@@ -79,6 +84,7 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
         name: _searchQuery.isNotEmpty ? _searchQuery : null,
         sortBy: _sortBy,
         sortOrder: _sortOrder,
+        filters: _filters.toQueryParams(),
       );
       
       final List<Member> newMembers = result['members'] as List<Member>;
@@ -147,6 +153,16 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
     _searchQuery = '';
     _searchDebounceTimer?.cancel();
     _members.clear();
+    refresh();
+  }
+  
+  void setFilters(MemberFilters filters) {
+    _filters = filters;
+    refresh();
+  }
+  
+  void clearFilters() {
+    _filters = const MemberFilters();
     refresh();
   }
   

@@ -15,6 +15,7 @@ class MemberService {
     String? name,
     String? sortBy,
     String? sortOrder,
+    Map<String, dynamic>? filters,
   }) async {
     try {
       List<String> queryParams = ['IsUserIncluded=$isUserIncluded'];
@@ -37,6 +38,14 @@ class MemberService {
       
       if (sortOrder != null && sortOrder.isNotEmpty) {
         queryParams.add('SortOrder=${Uri.encodeComponent(sortOrder)}');
+      }
+      
+      if (filters != null) {
+        for (final entry in filters.entries) {
+          if (entry.value != null) {
+            queryParams.add('${entry.key}=${Uri.encodeComponent(entry.value.toString())}');
+          }
+        }
       }
       
       final queryString = queryParams.join('&');

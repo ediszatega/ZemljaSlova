@@ -117,4 +117,54 @@ class FilterConfigurations {
       ];
     }
   }
+
+  static List<FilterField> getMemberFilters(BuildContext context) {
+    return [
+      // Gender filter
+      const FilterField(
+        key: 'gender',
+        label: 'Pol',
+        type: FilterFieldType.dropdown,
+        dropdownOptions: [
+          FilterDropdownOption(value: '', label: 'Svi polovi', data: null),
+          FilterDropdownOption(value: 'male', label: 'Muško', data: 'male'),
+          FilterDropdownOption(value: 'female', label: 'Žensko', data: 'female'),
+        ],
+      ),
+      // Birth year range - From
+      const FilterField(
+        key: 'birthYearFrom',
+        label: 'Godina rođenja od',
+        type: FilterFieldType.number,
+        placeholder: 'npr. 1950',
+      ),
+      // Birth year range - To
+      const FilterField(
+        key: 'birthYearTo',
+        label: 'Godina rođenja do',
+        type: FilterFieldType.number,
+        placeholder: 'npr. 2000',
+      ),
+      // Joined year range - From
+      const FilterField(
+        key: 'joinedYearFrom',
+        label: 'Godina učlanjenja od',
+        type: FilterFieldType.number,
+        placeholder: 'npr. 2020',
+      ),
+      // Joined year range - To
+      const FilterField(
+        key: 'joinedYearTo',
+        label: 'Godina učlanjenja do',
+        type: FilterFieldType.number,
+        placeholder: 'npr. 2024',
+      ),
+      // Show inactive members checkbox
+      const FilterField(
+        key: 'showInactiveMembers',
+        label: 'Prikaži neaktivne članove',
+        type: FilterFieldType.checkbox,
+      ),
+    ];
+  }
 } 

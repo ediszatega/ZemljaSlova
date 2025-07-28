@@ -11,6 +11,9 @@ import '../widgets/search_input.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/pagination_controls_widget.dart';
 import '../widgets/search_loading_indicator.dart';
+import '../widgets/filter_dialog.dart';
+import '../utils/filter_configurations.dart';
+import '../models/member_filters.dart';
 import '../screens/members_detail_overview.dart';
 import '../screens/member_add.dart';
 
@@ -149,6 +152,37 @@ class _MembersContentState extends State<MembersContent> with WidgetsBindingObse
     await _loadMembershipStatuses();
   }
 
+  void _showFiltersDialog() {
+    final memberProvider = Provider.of<MemberProvider>(context, listen: false);
+    
+    showDialog(
+      context: context,
+      builder: (context) => FilterDialog(
+        title: 'Filtriraj članove',
+        fields: FilterConfigurations.getMemberFilters(context),
+        initialValues: memberProvider.filters.toMap(),
+        onApplyFilters: (Map<String, dynamic> values) {
+          final filters = MemberFilters.fromMap(values);
+          memberProvider.setFilters(filters);
+        },
+        onClearFilters: () {
+          memberProvider.clearFilters();
+        },
+      ),
+    );
+  }
+
+  int _getActiveFilterCount(MemberFilters filters) {
+    int count = 0;
+    if (filters.gender != null) count++;
+    if (filters.birthYearFrom != null) count++;
+    if (filters.birthYearTo != null) count++;
+    if (filters.joinedYearFrom != null) count++;
+    if (filters.joinedYearTo != null) count++;
+    if (filters.showInactiveMembers == true) count++;
+    return count;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -235,12 +269,44 @@ class _MembersContentState extends State<MembersContent> with WidgetsBindingObse
         const SizedBox(width: 16),
         
         // Filter
-        ZSButton(
-          onPressed: () {},
-          text: 'Postavi filtre',
-          label: 'Filtriraj',
-          borderColor: Colors.grey.shade300,
-          width: 180,
+        Consumer<MemberProvider>(
+          builder: (context, memberProvider, child) {
+            final hasActiveFilters = memberProvider.filters.hasActiveFilters;
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                ZSButton(
+                  onPressed: () {
+                    _showFiltersDialog();
+                  },
+                  text: hasActiveFilters ? 'Filteri aktivni (${_getActiveFilterCount(memberProvider.filters)})' : 'Postavi filtre',
+                  label: 'Filtriraj',
+                  backgroundColor: hasActiveFilters ? const Color(0xFFE3F2FD) : Colors.white,
+                  foregroundColor: hasActiveFilters ? Colors.blue : Colors.black,
+                  borderColor: hasActiveFilters ? Colors.blue : Colors.grey.shade300,
+                  width: 180,
+                ),
+                if (hasActiveFilters) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    height: 40,
+                    child: IconButton(
+                      onPressed: () {
+                        memberProvider.clearFilters();
+                      },
+                      icon: const Icon(Icons.clear, color: Colors.red),
+                      tooltip: 'Očisti filtre',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 40,
+                        minHeight: 40,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            );
+          },
         ),
         const SizedBox(width: 16),
         

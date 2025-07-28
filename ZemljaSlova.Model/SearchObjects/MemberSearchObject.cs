@@ -10,5 +10,13 @@ namespace ZemljaSlova.Model.SearchObjects
         public string? Name { get; set; }
         public string? SortBy { get; set; }
         public string? SortOrder { get; set; }
+        
+        // Filter
+        public string? Gender { get; set; }
+        public int? BirthYearFrom { get; set; }
+        public int? BirthYearTo { get; set; }
+        public int? JoinedYearFrom { get; set; }
+        public int? JoinedYearTo { get; set; }
+        public bool? ShowInactiveMembers { get; set; }
     }
 }
