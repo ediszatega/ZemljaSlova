@@ -25,4 +25,13 @@ class Author {
   factory Author.fromJson(Map<String, dynamic> json) => _$AuthorFromJson(json);
 
   Map<String, dynamic> toJson() => _$AuthorToJson(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is Author && other.id == id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
 } 

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/book.dart';
-import '../models/author.dart';
+import '../models/book_filters.dart';
 import '../widgets/zs_card.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../widgets/paginated_data_widget.dart';
+import '../widgets/filter_dialog.dart';
 import '../providers/book_provider.dart';
 import 'book_detail_overview.dart';
 
@@ -140,18 +141,20 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> with 
               const SizedBox(width: 12),
               
               // Filter button
-              Expanded(
-                child: ZSButton(
-                  onPressed: () {
-                    // TODO: Implement filter functionality
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Filteri će biti implementirani')),
-                    );
-                  },
-                  text: 'Postavi filtre',
-                  label: 'Filtriraj',
-                  borderColor: Colors.grey.shade300,
-                ),
+              Consumer<BookProvider>(
+                builder: (context, bookProvider, child) {
+                  final hasActiveFilters = bookProvider.filters.hasActiveFilters;
+                  return Expanded(
+                    child: ZSButton(
+                      onPressed: () => _showFiltersDialog(),
+                      text: hasActiveFilters ? 'Filteri aktivni (${_getActiveFilterCount(bookProvider.filters)})' : 'Postavi filtre',
+                      label: 'Filtriraj',
+                      backgroundColor: hasActiveFilters ? const Color(0xFFE3F2FD) : Colors.white,
+                      foregroundColor: hasActiveFilters ? Colors.blue : Colors.black,
+                      borderColor: hasActiveFilters ? Colors.blue : Colors.grey.shade300,
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -166,6 +169,31 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> with 
     );
   }
   
+  void _showFiltersDialog() {
+    final bookProvider = Provider.of<BookProvider>(context, listen: false);
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return BookFilterDialog(
+          initialFilters: bookProvider.filters,
+          onApply: (BookFilters filters) {
+            bookProvider.setFilters(filters);
+          },
+        );
+      },
+    );
+  }
+
+  int _getActiveFilterCount(BookFilters filters) {
+    int count = 0;
+    if (filters.minPrice != null) count++;
+    if (filters.maxPrice != null) count++;
+    if (filters.authorId != null) count++;
+    if (filters.isAvailable != null) count++;
+    return count;
+  }
+
   Widget _buildBooksGrid() {
     return Consumer<BookProvider>(
       builder: (context, bookProvider, child) {
