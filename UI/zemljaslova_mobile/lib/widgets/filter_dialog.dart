@@ -1,93 +1,305 @@
 import 'package:flutter/material.dart';
-import '../models/book_filters.dart';
+import 'package:provider/provider.dart';
+import '../models/filter_field.dart';
 import '../models/author.dart';
 import '../providers/author_provider.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/zs_input.dart';
-import 'package:provider/provider.dart';
 
-class BookFilterDialog extends StatefulWidget {
-  final BookFilters initialFilters;
-  final Function(BookFilters) onApply;
+class FilterDialog extends StatefulWidget {
+  final String title;
+  final List<FilterField> fields;
+  final Map<String, dynamic> initialValues;
+  final Function(Map<String, dynamic>) onApplyFilters;
+  final Function() onClearFilters;
 
-  const BookFilterDialog({
+  const FilterDialog({
     super.key,
-    required this.initialFilters,
-    required this.onApply,
+    required this.title,
+    required this.fields,
+    required this.initialValues,
+    required this.onApplyFilters,
+    required this.onClearFilters,
   });
 
   @override
-  State<BookFilterDialog> createState() => _BookFilterDialogState();
+  State<FilterDialog> createState() => _FilterDialogState();
 }
 
-class _BookFilterDialogState extends State<BookFilterDialog> {
-  late BookFilters _filters;
-  final TextEditingController _minPriceController = TextEditingController();
-  final TextEditingController _maxPriceController = TextEditingController();
-  Author? _selectedAuthor;
-  bool? _isAvailable;
+class _FilterDialogState extends State<FilterDialog> {
+  late Map<String, dynamic> _values;
+  final Map<String, TextEditingController> _controllers = {};
 
   @override
   void initState() {
     super.initState();
-    _filters = widget.initialFilters;
-    _minPriceController.text = _filters.minPrice?.toString() ?? '';
-    _maxPriceController.text = _filters.maxPrice?.toString() ?? '';
-    _isAvailable = _filters.isAvailable;
+    _values = Map.from(widget.initialValues);
     
-    // Load authors when dialog opens
+    // Initialize controllers for text/number fields
+    for (final field in widget.fields) {
+      if (field.type == FilterFieldType.text || field.type == FilterFieldType.number) {
+        _controllers[field.key] = TextEditingController(
+          text: _values[field.key]?.toString() ?? '',
+        );
+      }
+    }
+    
+    // Load authors if needed
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadAuthors();
+      _loadAuthorsIfNeeded();
     });
   }
 
   @override
   void dispose() {
-    _minPriceController.dispose();
-    _maxPriceController.dispose();
+    for (final controller in _controllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
-  void _loadAuthors() async {
-    final authorProvider = Provider.of<AuthorProvider>(context, listen: false);
-    await authorProvider.fetchAuthors();
-    
-    // Set selected author if there's an existing filter
-    if (_filters.authorId != null) {
-      final authors = authorProvider.authors;
-      if (authors.isNotEmpty) {
-        _selectedAuthor = authors.firstWhere(
-          (author) => author.id == _filters.authorId,
-          orElse: () => authors.first,
-        );
+  void _applyFilters() {
+    // Parse values from controllers
+    for (final field in widget.fields) {
+      if (field.type == FilterFieldType.text) {
+        final text = _controllers[field.key]?.text ?? '';
+        _values[field.key] = text.isNotEmpty ? text : null;
+      } else if (field.type == FilterFieldType.number) {
+        final text = _controllers[field.key]?.text ?? '';
+        if (text.isNotEmpty) {
+          // Try to parse as integer first, then as double
+          final integer = int.tryParse(text);
+          if (integer != null) {
+            _values[field.key] = integer;
+          } else {
+            final number = double.tryParse(text);
+            _values[field.key] = number;
+          }
+        } else {
+          _values[field.key] = null;
+        }
       }
     }
-  }
 
-  void _applyFilters() {
-    final minPrice = double.tryParse(_minPriceController.text);
-    final maxPrice = double.tryParse(_maxPriceController.text);
-    
-    final newFilters = BookFilters(
-      minPrice: minPrice,
-      maxPrice: maxPrice,
-      authorId: _selectedAuthor?.id,
-      isAvailable: _isAvailable,
-    );
-    
-    widget.onApply(newFilters);
+    widget.onApplyFilters(_values);
     Navigator.of(context).pop();
   }
 
   void _clearFilters() {
     setState(() {
-      _filters = const BookFilters();
-      _minPriceController.clear();
-      _maxPriceController.clear();
-      _selectedAuthor = null;
-      _isAvailable = null;
+      _values.clear();
+      for (final controller in _controllers.values) {
+        controller.clear();
+      }
     });
+    widget.onClearFilters();
+  }
+
+  void _loadAuthorsIfNeeded() async {
+    // Check if any field needs authors
+    final needsAuthors = widget.fields.any((field) => 
+      field.type == FilterFieldType.dropdown && 
+      field.key == 'authorId'
+    );
+    
+    if (needsAuthors) {
+      final authorProvider = Provider.of<AuthorProvider>(context, listen: false);
+      await authorProvider.fetchAuthors();
+    }
+  }
+
+  Widget _buildField(FilterField field) {
+    switch (field.type) {
+      case FilterFieldType.text:
+        return ZSInput(
+          controller: _controllers[field.key]!,
+          label: field.label,
+          hintText: field.placeholder ?? '',
+        );
+        
+      case FilterFieldType.number:
+        return ZSInput(
+          controller: _controllers[field.key]!,
+          label: field.label,
+          hintText: field.placeholder ?? '',
+          keyboardType: TextInputType.number,
+        );
+        
+      case FilterFieldType.date:
+        return _buildDateField(field);
+        
+      case FilterFieldType.dropdown:
+        return _buildDropdownField(field);
+        
+      case FilterFieldType.checkbox:
+        return _buildCheckboxField(field);
+    }
+  }
+
+  Widget _buildDateField(FilterField field) {
+    final currentValue = _values[field.key];
+    DateTime? selectedDate;
+    if (currentValue != null) {
+      if (currentValue is int) {
+        selectedDate = DateTime.fromMillisecondsSinceEpoch(currentValue);
+      } else if (currentValue is DateTime) {
+        selectedDate = currentValue;
+      }
+    }
+
+    return GestureDetector(
+      onTap: () => _selectDate(field.key),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.calendar_today, size: 20, color: Colors.grey),
+            const SizedBox(width: 8),
+            Text(
+              selectedDate != null 
+                  ? _formatDate(selectedDate)
+                  : field.placeholder ?? 'Odaberi datum',
+              style: TextStyle(
+                color: selectedDate != null ? Colors.black : Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDropdownField(FilterField field) {
+    final currentValue = _values[field.key];
+    
+    // Handle author dropdown specifically
+    if (field.key == 'authorId') {
+      return Consumer<AuthorProvider>(
+        builder: (context, authorProvider, child) {
+          final authors = authorProvider.authors;
+          final options = [
+            const FilterDropdownOption(value: '', label: 'Svi autori', data: null),
+            ...authors.map((author) => FilterDropdownOption(
+              value: author.id.toString(),
+              label: '${author.firstName} ${author.lastName}',
+              data: author,
+            )),
+          ];
+          
+          // Get the current author ID as string
+          String currentAuthorId = '';
+          if (currentValue != null) {
+            if (currentValue is int) {
+              currentAuthorId = currentValue.toString();
+            } else if (currentValue is String) {
+              currentAuthorId = currentValue;
+            } else if (currentValue is Author) {
+              currentAuthorId = currentValue.id.toString();
+            }
+          }
+          
+          return ZSDropdown<String>(
+            label: field.label,
+            value: currentAuthorId,
+            items: options.map((option) => DropdownMenuItem<String>(
+              value: option.value,
+              child: Text(option.label),
+            )).toList(),
+            onChanged: (String? value) {
+              setState(() {
+                if (value != null && value.isNotEmpty) {
+                  final option = options.firstWhere((opt) => opt.value == value);
+                  // Store the author ID (int) instead of the Author object
+                  if (option.data is Author) {
+                    _values[field.key] = (option.data as Author).id;
+                  } else {
+                    _values[field.key] = option.data;
+                  }
+                } else {
+                  _values[field.key] = null;
+                }
+              });
+            },
+          );
+        },
+      );
+    }
+    
+    // Handle other dropdowns
+    final options = field.dropdownOptions ?? [];
+    return ZSDropdown<String>(
+      label: field.label,
+      value: currentValue?.toString() ?? '',
+      items: options.map((option) => DropdownMenuItem<String>(
+        value: option.value,
+        child: Text(option.label),
+      )).toList(),
+      onChanged: (String? value) {
+        setState(() {
+          if (value != null && value.isNotEmpty) {
+            final option = options.firstWhere((opt) => opt.value == value);
+            _values[field.key] = option.data;
+          } else {
+            _values[field.key] = null;
+          }
+        });
+      },
+    );
+  }
+
+  Widget _buildCheckboxField(FilterField field) {
+    final currentValue = _values[field.key] ?? false;
+    
+    return Row(
+      children: [
+        Checkbox(
+          value: currentValue,
+          onChanged: (bool? value) {
+            setState(() {
+              _values[field.key] = value ?? false;
+            });
+          },
+        ),
+        Expanded(
+          child: Text(field.label),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _selectDate(String fieldKey) async {
+    final currentValue = _values[fieldKey];
+    DateTime? initialDate;
+    if (currentValue != null) {
+      if (currentValue is int) {
+        initialDate = DateTime.fromMillisecondsSinceEpoch(currentValue);
+      } else if (currentValue is DateTime) {
+        initialDate = currentValue;
+      }
+    }
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    
+    if (picked != null) {
+      setState(() {
+        _values[fieldKey] = picked.millisecondsSinceEpoch;
+      });
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}.${date.month}.${date.year}';
   }
 
   @override
@@ -115,10 +327,10 @@ class _BookFilterDialogState extends State<BookFilterDialog> {
                 children: [
                   const Icon(Icons.filter_list, color: Colors.blue),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Filtriraj knjige',
-                      style: TextStyle(
+                      widget.title,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -139,106 +351,10 @@ class _BookFilterDialogState extends State<BookFilterDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Price range
-                    const Text(
-                      'Cijena',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ZSInput(
-                            controller: _minPriceController,
-                            label: 'Min cijena',
-                            hintText: '0.00',
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ZSInput(
-                            controller: _maxPriceController,
-                            label: 'Max cijena',
-                            hintText: '1000.00',
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // Author filter
-                    const Text(
-                      'Autor',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Consumer<AuthorProvider>(
-                      builder: (context, authorProvider, child) {
-                        return ZSDropdown<Author?>(
-                          label: 'Odaberi autora',
-                          value: _selectedAuthor,
-                          items: [
-                            const DropdownMenuItem<Author?>(
-                              value: null,
-                              child: Text('Svi autori'),
-                            ),
-                            ...authorProvider.authors.map((author) => DropdownMenuItem<Author?>(
-                              value: author,
-                              child: Text('${author.firstName} ${author.lastName}'),
-                            )),
-                          ],
-                          onChanged: (Author? author) {
-                            setState(() {
-                              _selectedAuthor = author;
-                            });
-                          },
-                        );
-                      },
-                    ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // Availability filter
-                    const Text(
-                      'Dostupnost',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ZSDropdown<bool?>(
-                      label: 'Status dostupnosti',
-                      value: _isAvailable,
-                      items: const [
-                        DropdownMenuItem<bool?>(
-                          value: null,
-                          child: Text('Sve knjige'),
-                        ),
-                        DropdownMenuItem<bool?>(
-                          value: true,
-                          child: Text('Dostupne'),
-                        ),
-                        DropdownMenuItem<bool?>(
-                          value: false,
-                          child: Text('Nedostupne'),
-                        ),
-                      ],
-                      onChanged: (bool? value) {
-                        setState(() {
-                          _isAvailable = value;
-                        });
-                      },
-                    ),
+                    for (int i = 0; i < widget.fields.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 20),
+                      _buildField(widget.fields[i]),
+                    ],
                   ],
                 ),
               ),
@@ -269,8 +385,8 @@ class _BookFilterDialogState extends State<BookFilterDialog> {
                     child: ZSButton(
                       onPressed: _applyFilters,
                       text: 'Primijeni',
-                      backgroundColor: Colors.green.shade50,
-                      foregroundColor: Colors.green,
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
                     ),
                   ),
                 ],

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/event.dart';
+import '../models/event_filters.dart';
 import '../widgets/zs_card_vertical.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../widgets/paginated_data_widget.dart';
+import '../widgets/filter_dialog.dart';
+import '../utils/filter_configurations.dart';
 import '../providers/event_provider.dart';
 import 'event_detail_overview.dart';
 
@@ -149,17 +152,20 @@ class _EventsOverviewScreenState extends State<EventsOverviewScreen> with Widget
                 const SizedBox(width: 12),
                 
                 // Filter button
-                Expanded(
-                  child: ZSButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Filteri će biti implementirani')),
-                      );
-                    },
-                    text: 'Postavi filtre',
-                    label: 'Filtriraj',
-                    borderColor: Colors.grey.shade300,
-                  ),
+                Consumer<EventProvider>(
+                  builder: (context, eventProvider, child) {
+                    final hasActiveFilters = eventProvider.filters.hasActiveFilters;
+                    return Expanded(
+                      child: ZSButton(
+                        onPressed: () => _showFiltersDialog(),
+                        text: hasActiveFilters ? 'Filteri aktivni (${_getActiveFilterCount(eventProvider.filters)})' : 'Postavi filtre',
+                        label: 'Filtriraj',
+                        backgroundColor: hasActiveFilters ? const Color(0xFFE3F2FD) : Colors.white,
+                        foregroundColor: hasActiveFilters ? Colors.blue : Colors.black,
+                        borderColor: hasActiveFilters ? Colors.blue : Colors.grey.shade300,
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -174,6 +180,37 @@ class _EventsOverviewScreenState extends State<EventsOverviewScreen> with Widget
     );
   }
   
+  void _showFiltersDialog() {
+    final eventProvider = Provider.of<EventProvider>(context, listen: false);
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return FilterDialog(
+          title: 'Filtriraj događaje',
+          fields: FilterConfigurations.getEventFilters(context),
+          initialValues: eventProvider.filters.toMap(),
+          onApplyFilters: (Map<String, dynamic> filters) {
+            final eventFilters = EventFilters.fromMap(filters);
+            eventProvider.setFilters(eventFilters);
+          },
+          onClearFilters: () {
+            eventProvider.clearFilters();
+          },
+        );
+      },
+    );
+  }
+
+  int _getActiveFilterCount(EventFilters filters) {
+    int count = 0;
+    if (filters.minPrice != null) count++;
+    if (filters.maxPrice != null) count++;
+    if (filters.startDateFrom != null) count++;
+    if (filters.startDateTo != null) count++;
+    return count;
+  }
+
   Widget _buildEventsGrid() {
     return Consumer<EventProvider>(
       builder: (context, eventProvider, child) {

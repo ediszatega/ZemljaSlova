@@ -8,6 +8,7 @@ import '../widgets/zs_dropdown.dart';
 import '../widgets/search_input.dart';
 import '../widgets/paginated_data_widget.dart';
 import '../widgets/filter_dialog.dart';
+import '../utils/filter_configurations.dart';
 import '../providers/book_provider.dart';
 import 'book_detail_overview.dart';
 
@@ -175,10 +176,16 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> with 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return BookFilterDialog(
-          initialFilters: bookProvider.filters,
-          onApply: (BookFilters filters) {
-            bookProvider.setFilters(filters);
+        return FilterDialog(
+          title: 'Filtriraj knjige',
+          fields: FilterConfigurations.getBookFilters(context),
+          initialValues: bookProvider.filters.toMap(),
+          onApplyFilters: (Map<String, dynamic> filters) {
+            final bookFilters = BookFilters.fromMap(filters);
+            bookProvider.setFilters(bookFilters);
+          },
+          onClearFilters: () {
+            bookProvider.clearFilters();
           },
         );
       },

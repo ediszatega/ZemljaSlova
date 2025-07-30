@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/event.dart';
+import '../models/event_filters.dart';
 import '../services/event_service.dart';
 import '../widgets/paginated_data_widget.dart';
 
@@ -25,6 +26,9 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
   // Sorting state
   String _sortBy = 'date';
   String _sortOrder = 'desc';
+  
+  // Filters state
+  EventFilters _filters = const EventFilters();
 
   List<Event> get events => [..._events];
   
@@ -50,6 +54,7 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
   
   String get sortBy => _sortBy;
   String get sortOrder => _sortOrder;
+  EventFilters get filters => _filters;
 
   Future<void> fetchEvents({bool isTicketTypeIncluded = true, bool refresh = false}) async {
     if (refresh) {
@@ -76,6 +81,7 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
         name: _searchQuery.isNotEmpty ? _searchQuery : null,
         sortBy: _sortBy,
         sortOrder: _sortOrder,
+        filters: _filters.hasActiveFilters ? _filters.toQueryParams() : null,
       );
       
       final List<Event> newEvents = result['events'] as List<Event>;
@@ -143,6 +149,18 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
   void clearSearch() {
     _searchQuery = '';
     _searchDebounceTimer?.cancel();
+    _events.clear();
+    refresh();
+  }
+  
+  void setFilters(EventFilters filters) {
+    _filters = filters;
+    _events.clear();
+    refresh();
+  }
+  
+  void clearFilters() {
+    _filters = const EventFilters();
     _events.clear();
     refresh();
   }
