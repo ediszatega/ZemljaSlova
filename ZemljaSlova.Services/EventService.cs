@@ -14,10 +14,12 @@ namespace ZemljaSlova.Services
     public class EventService : BaseCRUDService<Model.Event, EventSearchObject, Database.Event, EventUpsertRequest, EventUpsertRequest>, IEventService
     {
         private readonly IMapper _mapper;
+        private readonly ITicketTypeService _ticketTypeService;
 
-        public EventService(_200036Context context, IMapper mapper) : base(context, mapper)
+        public EventService(_200036Context context, IMapper mapper, ITicketTypeService ticketTypeService) : base(context, mapper)
         {
             _mapper = mapper;
+            _ticketTypeService = ticketTypeService;
         }
 
         public async Task<Model.Event> GetEventWithTicketTypes(int id)
@@ -27,7 +29,15 @@ namespace ZemljaSlova.Services
             if (entity == null)
                 return null;
                 
-            return _mapper.Map<Model.Event>(entity);
+            var eventModel = _mapper.Map<Model.Event>(entity);
+            
+            // Calculate current quantities for each ticket type
+            foreach (var ticketType in eventModel.TicketTypes)
+            {
+                ticketType.CurrentQuantity = await _ticketTypeService.GetCurrentQuantityAsync(ticketType.Id);
+            }
+            
+            return eventModel;
         }
 
         public override IQueryable<Database.Event> AddFilter(EventSearchObject search, IQueryable<Database.Event> query)

@@ -103,7 +103,7 @@ class EventService {
     required DateTime endAt,
     String? organizer,
     String? lecturers,
-    List<int>? coverImage, // For image bytes
+    List<int>? coverImage,
     int? maxNumberOfPeople,
   }) async {
     try {
@@ -177,6 +177,8 @@ class EventService {
     required double price,
     required String name,
     String? description,
+    int? initialQuantity,
+    int? userId,
   }) async {
     try {
       final data = {
@@ -184,6 +186,8 @@ class EventService {
         'price': price,
         'name': name,
         'description': description ?? '',
+        'initialQuantity': initialQuantity,
+        'userId': userId,
       };
       
       final response = await _apiService.post('TicketType', data);
@@ -195,6 +199,8 @@ class EventService {
           price: (response['price'] as num).toDouble(),
           description: response['description'] ?? '',
           eventId: response['eventId'],
+          initialQuantity: response['initialQuantity'],
+          currentQuantity: response['currentQuantity'],
         );
         return ticketType;
       }
@@ -228,6 +234,8 @@ class EventService {
           price: (response['price'] as num).toDouble(),
           description: response['description'] ?? '',
           eventId: response['eventId'],
+          initialQuantity: response['initialQuantity'],
+          currentQuantity: response['currentQuantity'],
         );
         return ticketType;
       }
@@ -261,6 +269,8 @@ class EventService {
         'price': data['price'],
         'name': data['name'],
         'description': data['description'] ?? '',
+        'initialQuantity': data['initialQuantity'],
+        'userId': data['userId'],
       };
       
       try {
@@ -273,6 +283,8 @@ class EventService {
             price: (response['price'] as num).toDouble(),
             description: response['description'] ?? '',
             eventId: response['eventId'],
+            initialQuantity: response['initialQuantity'],
+            currentQuantity: response['currentQuantity'],
           );
           
           createdTypes.add(ticketType);
@@ -322,6 +334,8 @@ class EventService {
           var price = ticketTypeJson['price'];
           var name = ticketTypeJson['name'];
           var description = ticketTypeJson['description'];
+          var initialQuantity = ticketTypeJson['initialQuantity'];
+          var currentQuantity = ticketTypeJson['currentQuantity'];
           
           return TicketType(
             id: id,
@@ -329,6 +343,8 @@ class EventService {
             price: (price as num).toDouble(),
             name: name,
             description: description,
+            initialQuantity: initialQuantity,
+            currentQuantity: currentQuantity,
           );
         }).toList();
       }

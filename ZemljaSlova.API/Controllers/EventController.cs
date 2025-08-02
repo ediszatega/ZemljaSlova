@@ -13,10 +13,12 @@ namespace ZemljaSlova.API.Controllers
     public class EventController : BaseCRUDController<Model.Event, EventSearchObject, EventUpsertRequest, EventUpsertRequest>
     {
         private readonly IEventService _eventService;
+        private readonly ITicketTypeService _ticketTypeService;
 
-        public EventController(IEventService service) : base(service) 
+        public EventController(IEventService service, ITicketTypeService ticketTypeService) : base(service) 
         {
             _eventService = service;
+            _ticketTypeService = ticketTypeService;
         }
 
         [HttpGet("GetEventWithTicketTypes/{id}")]
@@ -25,5 +27,33 @@ namespace ZemljaSlova.API.Controllers
             var result = await _eventService.GetEventWithTicketTypes(id);
             return Ok(result);
         }
+
+        [HttpPost("PurchaseTickets")]
+        public async Task<IActionResult> PurchaseTickets([FromBody] PurchaseTicketsRequest request)
+        {
+            var success = await _ticketTypeService.SellTicketsAsync(
+                request.TicketTypeId, 
+                request.Quantity, 
+                request.UserId, 
+                request.Data);
+
+            if (success)
+            {
+                return Ok(new { success = true, message = "Tickets purchased successfully" });
+            }
+            else
+            {
+                return BadRequest(new { success = false, message = "Failed to purchase tickets. Insufficient quantity or invalid request." });
+            }
+        }
+    }
+
+    //TODO: move to Model.Requests
+    public class PurchaseTicketsRequest
+    {
+        public int TicketTypeId { get; set; }
+        public int Quantity { get; set; }
+        public int UserId { get; set; }
+        public string? Data { get; set; }
     }
 }

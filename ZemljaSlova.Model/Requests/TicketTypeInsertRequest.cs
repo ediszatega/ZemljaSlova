@@ -13,5 +13,9 @@ namespace ZemljaSlova.Model.Requests
         public string Name { get; set; } = null!;
 
         public string? Description { get; set; }
+
+        public int? InitialQuantity { get; set; }
+
+        public int? UserId { get; set; }
     }
 }

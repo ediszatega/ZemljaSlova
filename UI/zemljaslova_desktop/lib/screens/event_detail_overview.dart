@@ -7,6 +7,7 @@ import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import 'event_add.dart';
 import 'event_edit.dart';
+import 'ticket_inventory_screen.dart';
 
 class EventDetailOverview extends StatefulWidget {
   final int eventId;
@@ -320,6 +321,8 @@ class _EventDetailOverviewState extends State<EventDetailOverview> {
                               },
                             ),
                             
+                            const SizedBox(height: 8),
+                            
                             ZSButton(
                               text: 'Obriši događaj',
                               backgroundColor: Colors.red.shade50,
@@ -352,64 +355,116 @@ class _EventDetailOverviewState extends State<EventDetailOverview> {
       runSpacing: 16,
       children: ticketTypes.map((ticket) {
         return Container(
-          width: 230,
+          width: 280,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: Colors.grey.shade100,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.grey.shade300),
           ),
-          child: Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
-                Icons.confirmation_number,
-                color: Colors.black87,
-                size: 20,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.confirmation_number,
+                    color: Colors.black87,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          ticket.name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (ticket.description != null && ticket.description!.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            ticket.description!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.black54,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '${ticket.price.toStringAsFixed(2)} KM',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            if (ticket.currentQuantity != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: ticket.currentQuantity! > 0 
+                                      ? Colors.green.withOpacity(0.1)
+                                      : Colors.red.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '${ticket.currentQuantity} na stanju',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: ticket.currentQuantity! > 0 ? Colors.green : Colors.red,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      ticket.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (ticket.description != null && ticket.description!.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        ticket.description!,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.black54,
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => TicketInventoryScreen(
+                            ticketTypeId: ticket.id!,
+                            ticketTypeName: ticket.name,
+                          ),
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        '${ticket.price.toStringAsFixed(2)} KM',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                          fontSize: 14,
-                        ),
-                      ),
+                      );
+                    },
+                    icon: const Icon(Icons.inventory, size: 16),
+                    label: const Text('Inventar'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.orange,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),

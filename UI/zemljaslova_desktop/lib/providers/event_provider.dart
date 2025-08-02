@@ -5,6 +5,7 @@ import '../models/ticket_type.dart';
 import '../models/event_filters.dart';
 import '../services/event_service.dart';
 import '../widgets/paginated_data_widget.dart';
+import '../utils/authorization.dart';
 
 class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> {
   final EventService _eventService;
@@ -195,8 +196,15 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
     _error = null;
     notifyListeners();
     
+    if (Authorization.userId == null) {
+      _error = 'Issue with logged in user';
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    }
+        
     try {
-      // Step 1: Create the event
+      // Create the event
       var newEvent = await _eventService.addEvent(
         title: title,
         description: description,
@@ -216,10 +224,17 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
         return null;
       }
       
-      // Step 2: Create ticket types for the event
+      // Create ticket types for the event
+      final ticketTypesWithUserId = ticketTypes.map((ticketType) {
+        return {
+          ...ticketType,
+          'userId': Authorization.userId,
+        };
+      }).toList();
+            
       final createdTicketTypes = await _eventService.batchCreateTicketTypes(
         eventId: newEvent.id,
-        ticketTypes: ticketTypes,
+        ticketTypes: ticketTypesWithUserId,
       );
       
       // Check if all ticket types were created

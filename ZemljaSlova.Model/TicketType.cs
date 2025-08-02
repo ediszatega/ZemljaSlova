@@ -18,5 +18,7 @@ namespace ZemljaSlova.Model
         public string? Description { get; set; }
 
         public int? InitialQuantity { get; set; }
+
+        public int? CurrentQuantity { get; set; }
     }
 }

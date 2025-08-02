@@ -9,6 +9,8 @@ class TicketType {
   final double price;
   final String name;
   final String? description;
+  final int? initialQuantity;
+  final int? currentQuantity;
 
   TicketType({
     this.id,
@@ -16,6 +18,8 @@ class TicketType {
     required this.price,
     required this.name,
     this.description,
+    this.initialQuantity,
+    this.currentQuantity,
   });
 
   factory TicketType.fromJson(Map<String, dynamic> json) => _$TicketTypeFromJson(json);

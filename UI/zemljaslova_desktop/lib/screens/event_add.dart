@@ -33,6 +33,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
   final TextEditingController _ticketNameController = TextEditingController();
   final TextEditingController _ticketPriceController = TextEditingController();
   final TextEditingController _ticketDescriptionController = TextEditingController();
+  final TextEditingController _ticketInitialQuantityController = TextEditingController();
   
   bool _isLoading = false;
   DateTime? _startDateTime;
@@ -51,6 +52,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
     _ticketNameController.dispose();
     _ticketPriceController.dispose();
     _ticketDescriptionController.dispose();
+    _ticketInitialQuantityController.dispose();
     super.dispose();
   }
 
@@ -78,6 +80,21 @@ class _EventAddScreenState extends State<EventAddScreen> {
       return;
     }
     
+    // Try parsing the initial quantity
+    int? initialQuantity;
+    if (_ticketInitialQuantityController.text.isNotEmpty) {
+      initialQuantity = int.tryParse(_ticketInitialQuantityController.text);
+      if (initialQuantity == null || initialQuantity <= 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Početna količina mora biti pozitivan broj'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+    }
+    
     setState(() {
       _ticketTypes.add({
         'name': _ticketNameController.text,
@@ -85,12 +102,14 @@ class _EventAddScreenState extends State<EventAddScreen> {
         'description': _ticketDescriptionController.text.isEmpty 
             ? null 
             : _ticketDescriptionController.text,
+        'initialQuantity': initialQuantity,
       });
       
       // Clear the form
       _ticketNameController.clear();
       _ticketPriceController.clear();
       _ticketDescriptionController.clear();
+      _ticketInitialQuantityController.clear();
     });
   }
   
@@ -298,8 +317,19 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                           final ticketType = _ticketTypes[index];
                                           return ListTile(
                                             title: Text(ticketType['name']),
-                                            subtitle: Text(
-                                              ticketType['description'] ?? 'Bez opisa',
+                                            subtitle: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(ticketType['description'] ?? 'Bez opisa'),
+                                                if (ticketType['initialQuantity'] != null)
+                                                  Text(
+                                                    'Početna količina: ${ticketType['initialQuantity']}',
+                                                    style: const TextStyle(
+                                                      color: Colors.green,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ),
+                                              ],
                                             ),
                                             trailing: Row(
                                               mainAxisSize: MainAxisSize.min,
@@ -343,6 +373,17 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                         child: ZSInput(
                                           label: 'Cijena (KM)',
                                           controller: _ticketPriceController,
+                                          keyboardType: TextInputType.number,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      
+                                      // Initial quantity
+                                      Expanded(
+                                        flex: 2,
+                                        child: ZSInput(
+                                          label: 'Početna količina (opciono)',
+                                          controller: _ticketInitialQuantityController,
                                           keyboardType: TextInputType.number,
                                         ),
                                       ),

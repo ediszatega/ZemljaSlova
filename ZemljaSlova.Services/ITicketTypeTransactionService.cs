@@ -11,5 +11,8 @@ namespace ZemljaSlova.Services
 {
     public interface ITicketTypeTransactionService : ICRUDService<TicketTypeTransaction, TicketTypeTransactionSearchObject, TicketTypeTransactionInsertRequest, TicketTypeTransactionUpdateRequest>
     {
+        Task<TicketTypeTransaction> CreateStockTransactionAsync(int ticketTypeId, int quantity, int userId, string? data = null);
+        Task<TicketTypeTransaction> CreateSoldTransactionAsync(int ticketTypeId, int quantity, int userId, string? data = null);
+        Task<List<TicketTypeTransaction>> GetTransactionsByTicketTypeAsync(int ticketTypeId);
     }
 }
