@@ -6,6 +6,9 @@ import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/permission_guard.dart';
 import 'book_edit.dart';
+import 'book_inventory_screen.dart';
+import '../services/book_inventory_service.dart';
+import '../services/api_service.dart';
 
 class BookDetailOverview extends StatefulWidget {
   final Book book;
@@ -21,17 +24,23 @@ class BookDetailOverview extends StatefulWidget {
 
 class _BookDetailOverviewState extends State<BookDetailOverview> {
   late Future<Book?> _bookFuture;
+  late Future<int> _currentQuantityFuture;
+  final BookInventoryService _inventoryService = BookInventoryService(ApiService());
   
   @override
   void initState() {
     super.initState();
-    // Load fresh book data to ensure we have the latest info including author
     _loadBookData();
+    _loadInventoryData();
   }
   
   void _loadBookData() {
     final bookProvider = Provider.of<BookProvider>(context, listen: false);
     _bookFuture = bookProvider.getBookById(widget.book.id);
+  }
+  
+  void _loadInventoryData() {
+    _currentQuantityFuture = _inventoryService.getCurrentQuantity(widget.book.id);
   }
 
   @override
@@ -57,8 +66,14 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
                   
                   final book = snapshot.data ?? widget.book;
                   
-                  return SingleChildScrollView(
-                    child: Column(
+                  return FutureBuilder<int>(
+                    future: _currentQuantityFuture,
+                    builder: (context, quantitySnapshot) {
+                      final currentQuantity = quantitySnapshot.data ?? 0;
+                      final isAvailable = currentQuantity > 0;
+                      
+                      return SingleChildScrollView(
+                        child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Back button
@@ -144,15 +159,15 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
                                           vertical: 4,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: book.isAvailable 
+                                          color: isAvailable 
                                               ? Colors.green.shade50
                                               : Colors.red.shade50,
                                           borderRadius: BorderRadius.circular(4),
                                         ),
                                         child: Text(
-                                          book.isAvailable ? 'Na stanju' : 'Nije na stanju',
+                                          isAvailable ? 'Na stanju' : 'Nije na stanju',
                                           style: TextStyle(
-                                            color: book.isAvailable ? Colors.green : Colors.red,
+                                            color: isAvailable ? Colors.green : Colors.red,
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
@@ -226,47 +241,7 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
                                                   ),
                                                 ),
                                                 Text(
-                                                  '${book.quantityInStock} komada',
-                                                  style: const TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.shade100,
-                                          borderRadius: BorderRadius.circular(8),
-                                          border: Border.all(color: Colors.grey.shade300),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.shopping_bag_outlined,
-                                              color: Colors.black87,
-                                              size: 20,
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                const Text(
-                                                  'Prodano',
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.black54,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  '${book.quantitySold} komada',
+                                                  '$currentQuantity komada',
                                                   style: const TextStyle(
                                                     fontSize: 16,
                                                     fontWeight: FontWeight.bold,
@@ -350,13 +325,25 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
                             ),
                             
                             ZSButton(
-                              text: book.isAvailable ? 'Označi kao nedostupno' : 'Označi kao dostupno',
-                              backgroundColor: Colors.white,
-                              foregroundColor: book.isAvailable ? Colors.red : Colors.green,
+                              text: 'Upravljanje inventarom',
+                              backgroundColor: Colors.orange.shade50,
+                              foregroundColor: Colors.orange,
                               borderColor: Colors.grey.shade300,
                               width: 410,
                               topPadding: 5,
-                              onPressed: () {},
+                              onPressed: () async {
+                                await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => BookInventoryScreen(
+                                      bookId: book.id,
+                                      bookTitle: book.title,
+                                    ),
+                                  ),
+                                );
+                                setState(() {
+                                  _loadInventoryData();
+                                });
+                              },
                             ),
                             
                             CanDeleteBooks(
@@ -376,6 +363,8 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
                         const SizedBox(height: 20),
                       ],
                     ),
+                  );
+                    },
                   );
                 },
               ),

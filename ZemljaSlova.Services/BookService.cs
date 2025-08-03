@@ -9,13 +9,17 @@ using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services.Database;
 using Microsoft.EntityFrameworkCore;
+using ZemljaSlova.Model.Enums;
 
 namespace ZemljaSlova.Services
 {
     public class BookService : BaseCRUDService<Model.Book, BookSearchObject, Database.Book, BookInsertRequest, BookUpdateRequest>, IBookService
     {
-        public BookService(_200036Context context, IMapper mapper) : base(context, mapper)
+        private readonly IBookTransactionService _transactionService;
+
+        public BookService(_200036Context context, IMapper mapper, IBookTransactionService transactionService) : base(context, mapper)
         {
+            _transactionService = transactionService;
         }
 
         public override IQueryable<Database.Book> AddFilter(BookSearchObject search, IQueryable<Database.Book> query)
@@ -306,6 +310,93 @@ namespace ZemljaSlova.Services
             if (favourites.Any())
             {
                 Context.Favourites.RemoveRange(favourites);
+            }
+        }
+
+        public async Task<int> GetCurrentQuantityAsync(int bookId)
+        {
+            var transactions = await Context.BookTransactions
+                .Where(t => t.BookId == bookId)
+                .ToListAsync();
+
+            int currentQuantity = 0;
+
+            foreach (var transaction in transactions)
+            {
+                if (transaction.ActivityTypeId == (byte)ActivityType.Stock)
+                {
+                    currentQuantity += transaction.Qantity;
+                }
+                else if (transaction.ActivityTypeId == (byte)ActivityType.Sold)
+                {
+                    currentQuantity -= transaction.Qantity;
+                }
+            }
+
+            return currentQuantity;
+        }
+
+        public async Task<bool> IsAvailableForPurchaseAsync(int bookId, int requestedQuantity)
+        {
+            if (requestedQuantity <= 0)
+                return false;
+
+            var currentQuantity = await GetCurrentQuantityAsync(bookId);
+            return currentQuantity >= requestedQuantity;
+        }
+
+        public async Task<bool> AddStockAsync(int bookId, int quantity, int userId, string? data = null)
+        {
+            if (quantity <= 0)
+            {
+                return false;
+            }
+
+            var userExists = await Context.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
+            {
+                return false;
+            }
+
+            try
+            {
+                await _transactionService.CreateStockTransactionAsync(bookId, quantity, userId, data);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> SellBooksAsync(int bookId, int quantity, int userId, string? data = null)
+        {
+            if (quantity <= 0)
+            {
+                return false;
+            }
+
+            var userExists = await Context.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
+            {
+                return false;
+            }
+
+            // Check if there are enough books in stock
+            var isAvailable = await IsAvailableForPurchaseAsync(bookId, quantity);
+            if (!isAvailable)
+            {
+                return false;
+            }
+
+            try
+            {
+                await _transactionService.CreateSoldTransactionAsync(bookId, quantity, userId, data);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
     }
