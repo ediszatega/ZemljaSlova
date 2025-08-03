@@ -1,16 +1,21 @@
 import 'package:json_annotation/json_annotation.dart';
+import '../widgets/inventory_screen.dart';
 
 part 'book_transaction.g.dart';
 
 @JsonSerializable()
-class BookTransaction {
+class BookTransaction implements InventoryTransaction {
   final int? id;
+  @override
   final int activityTypeId;
   final int bookId;
+  @override
   @JsonKey(name: 'qantity')
   final int quantity;
+  @override
   final DateTime createdAt;
   final int userId;
+  @override
   final String? data;
 
   BookTransaction({

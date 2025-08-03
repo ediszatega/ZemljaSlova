@@ -25,7 +25,7 @@ namespace ZemljaSlova.Services
                 ActivityTypeId = (byte)ActivityType.Stock,
                 TicketTypeId = ticketTypeId,
                 Quantity = quantity,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
                 UserId = userId,
                 Data = data
             };
@@ -43,7 +43,7 @@ namespace ZemljaSlova.Services
                 ActivityTypeId = (byte)ActivityType.Sold,
                 TicketTypeId = ticketTypeId,
                 Quantity = quantity,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
                 UserId = userId,
                 Data = data
             };

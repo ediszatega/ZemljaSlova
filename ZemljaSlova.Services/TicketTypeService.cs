@@ -46,7 +46,7 @@ namespace ZemljaSlova.Services
                         ticketType.Id, 
                         request.InitialQuantity.Value, 
                         request.UserId.Value,
-                        "Initial stock"
+                        "Inicijalna količina"
                     ).GetAwaiter().GetResult();
                 }
             }

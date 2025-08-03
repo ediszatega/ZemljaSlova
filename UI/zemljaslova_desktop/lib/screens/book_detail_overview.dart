@@ -7,8 +7,9 @@ import '../widgets/zs_button.dart';
 import '../widgets/permission_guard.dart';
 import 'book_edit.dart';
 import 'book_inventory_screen.dart';
-import '../services/book_inventory_service.dart';
+import '../services/inventory_service.dart';
 import '../services/api_service.dart';
+import '../models/book_transaction.dart';
 
 class BookDetailOverview extends StatefulWidget {
   final Book book;
@@ -25,7 +26,11 @@ class BookDetailOverview extends StatefulWidget {
 class _BookDetailOverviewState extends State<BookDetailOverview> {
   late Future<Book?> _bookFuture;
   late Future<int> _currentQuantityFuture;
-  final BookInventoryService _inventoryService = BookInventoryService(ApiService());
+  final InventoryService<BookTransaction> _inventoryService = InventoryService<BookTransaction>(
+    ApiService(),
+    'BookTransaction/book',
+    BookTransaction.fromJson,
+  );
   
   @override
   void initState() {

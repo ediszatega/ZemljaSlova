@@ -1,16 +1,22 @@
 import 'package:flutter/foundation.dart';
-import '../models/book_transaction.dart';
 import '../services/api_service.dart';
 import '../utils/authorization.dart';
+import '../widgets/inventory_screen.dart';
 
-class BookInventoryService {
+class InventoryService<T extends InventoryTransaction> {
   final ApiService _apiService;
+  final String _baseEndpoint;
+  final T Function(Map<String, dynamic>) _fromJson;
   
-  BookInventoryService(this._apiService);
+  InventoryService(
+    this._apiService,
+    this._baseEndpoint,
+    this._fromJson,
+  );
   
-  Future<int> getCurrentQuantity(int bookId) async {
+  Future<int> getCurrentQuantity(int id) async {
     try {
-      final response = await _apiService.get('BookTransaction/book/$bookId/current-quantity');
+      final response = await _apiService.get('$_baseEndpoint/$id/current-quantity');
       
       if (response != null && response is int) {
         return response;
@@ -23,9 +29,9 @@ class BookInventoryService {
     }
   }
   
-  Future<bool> isAvailableForPurchase(int bookId, int quantity) async {
+  Future<bool> isAvailableForPurchase(int id, int quantity) async {
     try {
-      final response = await _apiService.get('BookTransaction/book/$bookId/available?quantity=$quantity');
+      final response = await _apiService.get('$_baseEndpoint/$id/available?quantity=$quantity');
       
       if (response != null && response is bool) {
         return response;
@@ -39,7 +45,7 @@ class BookInventoryService {
   }
   
   Future<bool> addStock({
-    required int bookId,
+    required int id,
     required int quantity,
     String? data,
   }) async {
@@ -55,7 +61,7 @@ class BookInventoryService {
         'data': data,
       };
       
-      final response = await _apiService.post('BookTransaction/book/$bookId/add-stock', requestData);
+      final response = await _apiService.post('$_baseEndpoint/$id/add-stock', requestData);
       
       return response != null && response is bool && response;
     } catch (e) {
@@ -64,13 +70,13 @@ class BookInventoryService {
     }
   }
   
-  Future<bool> sellBooks({
-    required int bookId,
+  Future<bool> sellItems({
+    required int id,
     required int quantity,
     String? data,
   }) async {
     if (Authorization.userId == null) {
-      debugPrint('User not logged in. Cannot sell books.');
+      debugPrint('User not logged in. Cannot sell items.');
       return false;
     }
     
@@ -81,21 +87,21 @@ class BookInventoryService {
         'data': data,
       };
       
-      final response = await _apiService.post('BookTransaction/book/$bookId/sell', requestData);
+      final response = await _apiService.post('$_baseEndpoint/$id/sell', requestData);
       
       return response != null && response is bool && response;
     } catch (e) {
-      debugPrint('Failed to sell books: $e');
+      debugPrint('Failed to sell items: $e');
       return false;
     }
   }
   
-  Future<List<BookTransaction>> getTransactionsByBook(int bookId) async {
+  Future<List<T>> getTransactionsById(int id) async {
     try {
-      final response = await _apiService.get('BookTransaction/book/$bookId/transactions');
+      final response = await _apiService.get('$_baseEndpoint/$id/transactions');
       
       if (response != null && response is List) {
-        return response.map((json) => BookTransaction.fromJson(json)).toList();
+        return response.map((json) => _fromJson(json)).toList();
       }
       
       return [];
