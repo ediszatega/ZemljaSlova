@@ -18,7 +18,7 @@ namespace ZemljaSlova.Model.Requests
 
         public string? Publisher { get; set; }
 
-        public string? BookPurpos { get; set; }
+        public string? BookPurpose { get; set; }
 
         public int? NumberOfPages { get; set; }
 

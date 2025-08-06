@@ -10,7 +10,7 @@ namespace ZemljaSlova.Model.Requests
 
         public string? Description { get; set; }
 
-        public decimal Price { get; set; }
+        public decimal? Price { get; set; }
 
         public DateTime? DateOfPublish { get; set; }
 
@@ -18,7 +18,7 @@ namespace ZemljaSlova.Model.Requests
 
         public string? Publisher { get; set; }
 
-        public string BookPurpos { get; set; } = null!;
+        public string BookPurpose { get; set; } = null!;
 
         public int NumberOfPages { get; set; }
 

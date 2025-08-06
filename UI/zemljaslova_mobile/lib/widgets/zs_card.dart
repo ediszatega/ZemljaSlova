@@ -212,10 +212,17 @@ class ZSCard extends StatelessWidget {
       imageWidget = _buildFallbackBookImage();
     }
     
+    String? additionalText;
+    if (book.price != null) {
+      additionalText = '${book.price.toStringAsFixed(2)} KM';
+    } else {
+      additionalText = 'Knjiga za iznajmljivanje';
+    }
+    
     return ZSCard(
       title: book.title,
       subtitle: book.authorNames,
-      additionalText: '${book.price.toStringAsFixed(2)} KM',
+      additionalText: additionalText,
       image: imageWidget,
       onTap: onTap,
     );

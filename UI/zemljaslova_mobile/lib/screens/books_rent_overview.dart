@@ -12,14 +12,14 @@ import '../utils/filter_configurations.dart';
 import '../providers/book_provider.dart';
 import 'book_detail_overview.dart';
 
-class BooksSellOverviewScreen extends StatefulWidget {
-  const BooksSellOverviewScreen({super.key});
+class BooksRentOverviewScreen extends StatefulWidget {
+  const BooksRentOverviewScreen({super.key});
 
   @override
-  State<BooksSellOverviewScreen> createState() => _BooksSellOverviewScreenState();
+  State<BooksRentOverviewScreen> createState() => _BooksRentOverviewScreenState();
 }
 
-class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> with WidgetsBindingObserver {
+class _BooksRentOverviewScreenState extends State<BooksRentOverviewScreen> with WidgetsBindingObserver {
   String _sortOption = 'Naslov (A-Z)';
   final TextEditingController _searchController = TextEditingController();
 
@@ -28,7 +28,6 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> with 
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Clear any existing search and reset to default state
       context.read<BookProvider>().clearSearch();
       context.read<BookProvider>().clearFilters();
       context.read<BookProvider>().fetchBooks(refresh: true);
@@ -46,7 +45,6 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> with 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
-      // Clear search when leaving the screen
       context.read<BookProvider>().clearSearch();
       _searchController.clear();
     }
@@ -70,14 +68,6 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> with 
           sortBy = 'title';
           sortOrder = 'desc';
           break;
-        case 'Cijena (manja)':
-          sortBy = 'price';
-          sortOrder = 'asc';
-          break;
-        case 'Cijena (veća)':
-          sortBy = 'price';
-          sortOrder = 'desc';
-          break;
         default:
           sortBy = 'title';
           sortOrder = 'asc';
@@ -99,74 +89,72 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> with 
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-          // Header
-          const Text(
-            'Pregled knjiga na prodaju',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+            // Header
+            const Text(
+              'Pregled knjiga za iznajmljivanje',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-          
-          // Search bar
-          SearchInput(
-            label: 'Pretraži',
-            hintText: 'Pretraži knjige po naslovu',
-            controller: _searchController,
-            borderColor: Colors.grey.shade300,
-            onChanged: (value) {
-              context.read<BookProvider>().setSearchQuery(value);
-            },
-          ),
-          
-          const SizedBox(height: 8),
-          
-          // Toolbar - Sort and Filter
-          Row(
-            children: [
-              // Sort dropdown
-              Expanded(
-                child: ZSDropdown<String>(
-                  label: 'Sortiraj',
-                  value: _sortOption,
-                  items: const [
-                    DropdownMenuItem(value: 'Naslov (A-Z)', child: Text('Naslov (A-Z)')),
-                    DropdownMenuItem(value: 'Naslov (Z-A)', child: Text('Naslov (Z-A)')),
-                    DropdownMenuItem(value: 'Cijena (manja)', child: Text('Cijena (manja)')),
-                    DropdownMenuItem(value: 'Cijena (veća)', child: Text('Cijena (veća)')),
-                  ],
-                  onChanged: _handleSortChange,
-                  borderColor: Colors.grey.shade300,
+            const SizedBox(height: 10),
+            
+            // Search bar
+            SearchInput(
+              label: 'Pretraži',
+              hintText: 'Pretraži knjige po naslovu',
+              controller: _searchController,
+              borderColor: Colors.grey.shade300,
+              onChanged: (value) {
+                context.read<BookProvider>().setSearchQuery(value);
+              },
+            ),
+            
+            const SizedBox(height: 8),
+            
+            // Toolbar - Sort and Filter
+            Row(
+              children: [
+                // Sort dropdown
+                Expanded(
+                  child: ZSDropdown<String>(
+                    label: 'Sortiraj',
+                    value: _sortOption,
+                    items: const [
+                      DropdownMenuItem(value: 'Naslov (A-Z)', child: Text('Naslov (A-Z)')),
+                      DropdownMenuItem(value: 'Naslov (Z-A)', child: Text('Naslov (Z-A)')),
+                    ],
+                    onChanged: _handleSortChange,
+                    borderColor: Colors.grey.shade300,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              
-              // Filter button
-              Consumer<BookProvider>(
-                builder: (context, bookProvider, child) {
-                  final hasActiveFilters = bookProvider.filters.hasActiveFilters;
-                  return Expanded(
-                    child: ZSButton(
-                      onPressed: () => _showFiltersDialog(),
-                      text: hasActiveFilters ? 'Filteri aktivni (${_getActiveFilterCount(bookProvider.filters)})' : 'Postavi filtre',
-                      label: 'Filtriraj',
-                      backgroundColor: hasActiveFilters ? const Color(0xFFE3F2FD) : Colors.white,
-                      foregroundColor: hasActiveFilters ? Colors.blue : Colors.black,
-                      borderColor: hasActiveFilters ? Colors.blue : Colors.grey.shade300,
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-          
-          const SizedBox(height: 4),
-          
-          // Books grid
-          _buildBooksGrid(),
-        ],
-      ),
+                const SizedBox(width: 12),
+                
+                // Filter button
+                Consumer<BookProvider>(
+                  builder: (context, bookProvider, child) {
+                    final hasActiveFilters = bookProvider.filters.hasActiveFilters;
+                    return Expanded(
+                      child: ZSButton(
+                        onPressed: () => _showFiltersDialog(),
+                        text: hasActiveFilters ? 'Filteri aktivni (${_getActiveFilterCount(bookProvider.filters)})' : 'Postavi filtre',
+                        label: 'Filtriraj',
+                        backgroundColor: hasActiveFilters ? const Color(0xFFE3F2FD) : Colors.white,
+                        foregroundColor: hasActiveFilters ? Colors.blue : Colors.black,
+                        borderColor: hasActiveFilters ? Colors.blue : Colors.grey.shade300,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 4),
+            
+            // Books grid
+            _buildBooksGrid(),
+          ],
+        ),
       ),
     );
   }
@@ -178,7 +166,7 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> with 
       context: context,
       builder: (BuildContext context) {
         return FilterDialog(
-          title: 'Filtriraj knjige',
+          title: 'Filtriraj knjige za iznajmljivanje',
           fields: FilterConfigurations.getBookFilters(context),
           initialValues: bookProvider.filters.toMap(),
           onApplyFilters: (Map<String, dynamic> filters) {
@@ -195,8 +183,6 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> with 
 
   int _getActiveFilterCount(BookFilters filters) {
     int count = 0;
-    if (filters.minPrice != null) count++;
-    if (filters.maxPrice != null) count++;
     if (filters.authorId != null) count++;
     if (filters.isAvailable != null) count++;
     return count;
@@ -207,10 +193,10 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> with 
       builder: (context, bookProvider, child) {
         return PaginatedDataWidget<Book>(
           provider: bookProvider,
-          itemName: 'knjiga',
+          itemName: 'knjiga za iznajmljivanje',
           loadMoreText: 'Učitaj više knjiga',
           emptyStateIcon: Icons.book_outlined,
-          emptyStateMessage: 'Nema dostupnih knjiga',
+          emptyStateMessage: 'Nema dostupnih knjiga za iznajmljivanje',
           gridBuilder: (context, books) {
             return LayoutBuilder(
               builder: (context, constraints) {

@@ -193,7 +193,9 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${book.price.toStringAsFixed(2)} KM',
+                  book.price != null 
+                    ? '${book.price!.toStringAsFixed(2)} KM'
+                    : 'Knjiga za iznajmljivanje',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -275,29 +277,43 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
   }
   
   Widget _buildActionButtons(Book book) {
+    final isRentBook = book.price == null;
+    
     return Column(
         children: [
-          ZSButton(
-            text: 'Dodaj u korpu',
-            backgroundColor: const Color(0xFF28A745),
-            foregroundColor: Colors.white,
-            borderColor: const Color(0xFF28A745),
-            onPressed: () {
-              _addBookToCart(book);
-            },
-          ),
-          const SizedBox(height: 12),
-          ZSButton(
-            text: 'Pokloni knjigu',
-            backgroundColor: Colors.blue.shade50,
-            foregroundColor: Colors.blue.shade700,
-            borderColor: Colors.blue.shade300,
-            onPressed: () {
-              // TODO: Implement gift a book
-          },
-        ),
-      ],
-    );
+          if (!isRentBook) ...[
+            ZSButton(
+              text: 'Dodaj u korpu',
+              backgroundColor: const Color(0xFF28A745),
+              foregroundColor: Colors.white,
+              borderColor: const Color(0xFF28A745),
+              onPressed: () {
+                _addBookToCart(book);
+              },
+            ),
+            const SizedBox(height: 12),
+            ZSButton(
+              text: 'Pokloni knjigu',
+              backgroundColor: Colors.blue.shade50,
+              foregroundColor: Colors.blue.shade700,
+              borderColor: Colors.blue.shade300,
+              onPressed: () {
+                // TODO: Implement gift a book
+              },
+            ),
+          ] else ...[
+            ZSButton(
+              text: 'Iznajmi knjigu',
+              backgroundColor: const Color(0xFF007BFF),
+              foregroundColor: Colors.white,
+              borderColor: const Color(0xFF007BFF),
+              onPressed: () {
+                // TODO: Implement rent book functionality
+              },
+            ),
+          ],
+        ],
+      );
   }
   
   Widget _buildFallbackImage() {
@@ -312,12 +328,17 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
   }
 
   void _addBookToCart(Book book) {
+    if (book.price == null) {
+      SnackBarUtil.showTopSnackBar(context, 'Knjige za iznajmljivanje se ne mogu dodati u korpu!');
+      return;
+    }
+    
     final cartItemId = 'book_${book.id}';
     
     final cartItem = CartItem(
       id: cartItemId,
       title: book.title,
-      price: book.price,
+      price: book.price!,
       quantity: 1,
       type: CartItemType.book,
     );

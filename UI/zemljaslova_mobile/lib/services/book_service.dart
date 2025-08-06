@@ -17,6 +17,7 @@ class BookService {
     String? sortBy,
     String? sortOrder,
     Map<String, String>? filters,
+    BookPurpose? bookPurpose,
   }) async {
     try {
       List<String> queryParams = ['IsAuthorIncluded=$isAuthorIncluded'];
@@ -45,6 +46,10 @@ class BookService {
         for (final entry in filters.entries) {
           queryParams.add('${entry.key}=${Uri.encodeComponent(entry.value)}');
         }
+      }
+      
+      if (bookPurpose != null) {
+        queryParams.add('BookPurpose=${bookPurpose.index + 1}');
       }
       
       final queryString = queryParams.join('&');
@@ -116,7 +121,14 @@ class BookService {
     }
     int? edition = bookData['edition'];
     String? publisher = bookData['publisher'];
-    String? bookPurpos = bookData['bookPurpos'];
+    BookPurpose? bookPurpose;
+    if (bookData['bookPurpose'] != null) {
+      final purposeValue = bookData['bookPurpose'] as int;
+      bookPurpose = BookPurpose.values.firstWhere(
+        (p) => p.index + 1 == purposeValue,
+        orElse: () => BookPurpose.sell,
+      );
+    }
     int? numberOfPages = bookData['numberOfPages'];
     double? weight = bookData['weight']?.toDouble();
     String? dimensions = bookData['dimensions'];
@@ -155,7 +167,7 @@ class BookService {
       dateOfPublish: dateOfPublish,
       edition: edition,
       publisher: publisher,
-      bookPurpos: bookPurpos,
+      bookPurpose: bookPurpose,
       numberOfPages: numberOfPages ?? 0,
       weight: weight,
       dimensions: dimensions,

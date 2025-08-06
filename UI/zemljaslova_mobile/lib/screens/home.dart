@@ -108,7 +108,8 @@ class HomeScreen extends StatelessWidget {
           title: 'Pregled knjiga za iznajmljivanje',
           icon: Icons.book_outlined,
           onTap: () {
-            // TODO: Navigate to books for rent
+            final navigationProvider = Provider.of<MobileNavigationProvider>(context, listen: false);
+            navigationProvider.navigateTo(MobileNavigationItem.booksRentOverview);
           },
         ),
         const SizedBox(height: 12),

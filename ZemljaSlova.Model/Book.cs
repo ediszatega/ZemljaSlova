@@ -4,6 +4,12 @@ using System.Text;
 
 namespace ZemljaSlova.Model
 {
+    public enum BookPurpose
+    {
+        Sell = 1,
+        Rent = 2
+    }
+
     public class Book
     {
         public int Id { get; set; }
@@ -12,7 +18,7 @@ namespace ZemljaSlova.Model
 
         public string? Description { get; set; }
 
-        public decimal Price { get; set; }
+        public decimal? Price { get; set; }
 
         public DateTime? DateOfPublish { get; set; }
 
@@ -20,7 +26,7 @@ namespace ZemljaSlova.Model
 
         public string? Publisher { get; set; }
 
-        public string BookPurpos { get; set; } = null!;
+        public BookPurpose BookPurpose { get; set; }
 
         public int NumberOfPages { get; set; }
 
@@ -52,8 +58,9 @@ namespace ZemljaSlova.Model
         { 
             get 
             {
-                if (Discount != null && 
-                    Discount.IsActive && 
+                if (BookPurpose != BookPurpose.Sell || Price == null || Discount == null)
+                    return null;
+                if (Discount.IsActive && 
                     Discount.StartDate <= DateTime.Now && 
                     Discount.EndDate >= DateTime.Now &&
                     (!Discount.MaxUsage.HasValue || Discount.UsageCount < Discount.MaxUsage.Value))

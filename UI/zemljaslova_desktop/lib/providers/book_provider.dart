@@ -59,7 +59,7 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
   String get sortOrder => _sortOrder;
   BookFilters get filters => _filters;
 
-  Future<void> fetchBooks({bool isAuthorIncluded = true, bool refresh = false}) async {
+  Future<void> fetchBooks({bool isAuthorIncluded = true, bool refresh = false, BookPurpose? bookPurpose}) async {
     if (refresh) {
       _currentPage = 0;
       if (_books.isEmpty) {
@@ -85,6 +85,7 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
         sortBy: _sortBy,
         sortOrder: _sortOrder,
         filters: _filters.hasActiveFilters ? _filters.toQueryParams() : null,
+        bookPurpose: bookPurpose,
       );
       
       final List<Book> newBooks = result['books'] as List<Book>;
@@ -119,8 +120,8 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
   }
   
   @override
-  Future<void> refresh({bool isAuthorIncluded = true}) async {
-    await fetchBooks(isAuthorIncluded: isAuthorIncluded, refresh: true);
+  Future<void> refresh({bool isAuthorIncluded = true, BookPurpose? bookPurpose}) async {
+    await fetchBooks(isAuthorIncluded: isAuthorIncluded, refresh: true, bookPurpose: bookPurpose);
   }
   
   @override
@@ -184,11 +185,11 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
     int id,
     String title,
     String? description,
-    double price,
+    double? price,
     String? dateOfPublish,
     int? edition,
     String? publisher,
-    String? bookPurpos,
+    BookPurpose? bookPurpose,
     int numberOfPages,
     double? weight,
     String? dimensions,
@@ -210,7 +211,7 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
         dateOfPublish,
         edition,
         publisher,
-        bookPurpos,
+        bookPurpose,
         numberOfPages,
         weight,
         dimensions,
@@ -245,11 +246,11 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
   Future<bool> addBook(
     String title,
     String? description,
-    double price,
+    double? price,
     String? dateOfPublish,
     int? edition,
     String? publisher,
-    String bookPurpos,
+    BookPurpose? bookPurpose,
     int numberOfPages,
     double? weight,
     String? dimensions,
@@ -270,7 +271,7 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
         dateOfPublish,
         edition,
         publisher,
-        bookPurpos,
+        bookPurpose,
         numberOfPages,
         weight,
         dimensions,

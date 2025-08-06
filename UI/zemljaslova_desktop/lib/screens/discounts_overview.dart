@@ -817,7 +817,9 @@ class _DiscountsOverviewState extends State<DiscountsOverview> {
                                       style: const TextStyle(fontSize: 14),
                                     ),
                                     subtitle: Text(
-                                      '${book.price.toStringAsFixed(2)} KM',
+                                      book.price != null 
+                                        ? '${book.price!.toStringAsFixed(2)} KM'
+                                        : 'Knjiga za iznajmljivanje',
                                       style: const TextStyle(fontSize: 12),
                                     ),
                                     trailing: IconButton(

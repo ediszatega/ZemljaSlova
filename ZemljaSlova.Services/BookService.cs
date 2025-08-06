@@ -69,6 +69,11 @@ namespace ZemljaSlova.Services
                 }
             }
 
+            if (search.BookPurpose.HasValue)
+            {
+                query = query.Where(b => b.BookPurpose == (int)search.BookPurpose.Value);
+            }
+
             if (!string.IsNullOrEmpty(search.SortBy))
             {
                 switch (search.SortBy.ToLower())
@@ -93,7 +98,7 @@ namespace ZemljaSlova.Services
                 query = query.OrderBy(b => b.Title);
             }
 
-            return base.AddFilter(search, query);
+            return query;
         }
 
         public override PagedResult<Model.Book> GetPaged(BookSearchObject search)
@@ -325,11 +330,11 @@ namespace ZemljaSlova.Services
             {
                 if (transaction.ActivityTypeId == (byte)ActivityType.Stock)
                 {
-                    currentQuantity += transaction.Qantity;
+                    currentQuantity += transaction.Quantity;
                 }
                 else if (transaction.ActivityTypeId == (byte)ActivityType.Sold)
                 {
-                    currentQuantity -= transaction.Qantity;
+                    currentQuantity -= transaction.Quantity;
                 }
             }
 

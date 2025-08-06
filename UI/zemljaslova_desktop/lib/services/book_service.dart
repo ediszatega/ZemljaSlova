@@ -17,6 +17,7 @@ class BookService {
     String? sortBy,
     String? sortOrder,
     Map<String, String>? filters,
+    BookPurpose? bookPurpose,
   }) async {
     try {
       List<String> queryParams = ['IsAuthorIncluded=$isAuthorIncluded'];
@@ -47,6 +48,10 @@ class BookService {
             queryParams.add('${entry.key}=${Uri.encodeComponent(entry.value)}');
           }
         }
+      }
+      
+      if (bookPurpose != null) {
+        queryParams.add('BookPurpose=${bookPurpose.index + 1}');
       }
       
       final queryString = queryParams.join('&');
@@ -100,11 +105,11 @@ class BookService {
     int id,
     String title,
     String? description,
-    double price,
+    double? price,
     String? dateOfPublish,
     int? edition,
     String? publisher,
-    String? bookPurpos,
+    BookPurpose? bookPurpose,
     int numberOfPages,
     double? weight,
     String? dimensions,
@@ -135,7 +140,7 @@ class BookService {
         'dateOfPublish': publishDate?.toIso8601String(),
         'edition': edition,
         'publisher': publisher,
-        'bookPurpos': bookPurpos,
+        'bookPurpose': bookPurpose?.index != null ? (bookPurpose!.index + 1).toString() : null,
         'numberOfPages': numberOfPages,
         'weight': weight,
         'dimensions': dimensions,
@@ -161,11 +166,11 @@ class BookService {
   Future<Book?> addBook(
     String title,
     String? description,
-    double price,
+    double? price,
     String? dateOfPublish,
     int? edition,
     String? publisher,
-    String bookPurpos,
+    BookPurpose? bookPurpose,
     int numberOfPages,
     double? weight,
     String? dimensions,
@@ -195,7 +200,7 @@ class BookService {
         'dateOfPublish': publishDate?.toIso8601String(),
         'edition': edition,
         'publisher': publisher,
-        'bookPurpos': bookPurpos,
+        'bookPurpose': bookPurpose?.index != null ? (bookPurpose!.index + 1).toString() : null,
         'numberOfPages': numberOfPages,
         'weight': weight,
         'dimensions': dimensions,
@@ -250,7 +255,14 @@ class BookService {
     }
     int? edition = bookData['edition'];
     String? publisher = bookData['publisher'];
-    String? bookPurpos = bookData['bookPurpos'];
+    BookPurpose? bookPurpose;
+    if (bookData['bookPurpose'] != null) {
+      final purposeValue = bookData['bookPurpose'] as int;
+      bookPurpose = BookPurpose.values.firstWhere(
+        (p) => p.index + 1 == purposeValue,
+        orElse: () => BookPurpose.sell,
+      );
+    }
     int? numberOfPages = bookData['numberOfPages'];
     double? weight = bookData['weight']?.toDouble();
     String? dimensions = bookData['dimensions'];
@@ -289,7 +301,7 @@ class BookService {
       dateOfPublish: dateOfPublish,
       edition: edition,
       publisher: publisher,
-      bookPurpos: bookPurpos,
+      bookPurpose: bookPurpose,
       numberOfPages: numberOfPages ?? 0,
       weight: weight,
       dimensions: dimensions,

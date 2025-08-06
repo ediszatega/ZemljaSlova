@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/author.dart';
+import '../models/book.dart';
 import '../providers/book_provider.dart';
 import '../providers/author_provider.dart';
 import '../widgets/sidebar.dart';
@@ -11,7 +12,9 @@ import '../widgets/zs_dropdown.dart';
 
 // TODO: add image and discount fields
 class BookAddScreen extends StatefulWidget {
-  const BookAddScreen({super.key});
+  final BookPurpose? bookPurpose;
+  
+  const BookAddScreen({super.key, this.bookPurpose});
 
   @override
   State<BookAddScreen> createState() => _BookAddScreenState();
@@ -26,7 +29,7 @@ class _BookAddScreenState extends State<BookAddScreen> {
   final TextEditingController _dateOfPublishController = TextEditingController();
   final TextEditingController _editionController = TextEditingController();
   final TextEditingController _publisherController = TextEditingController();
-  final TextEditingController _bookPurposController = TextEditingController();
+  final TextEditingController _bookPurposeController = TextEditingController();
   final TextEditingController _numberOfPagesController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _dimensionsController = TextEditingController();
@@ -45,8 +48,15 @@ class _BookAddScreenState extends State<BookAddScreen> {
     _numberOfPagesController.text = '0';
     _priceController.text = '0.0';
     
-    // Load authors for dropdown
-    _loadAuthors();
+    // Prefill bookPurpose
+    if (widget.bookPurpose != null) {
+      _bookPurposeController.text = widget.bookPurpose == BookPurpose.sell ? 'sell' : 'rent';
+    }
+    
+    // Load authors for dropdown after the build is complete
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadAuthors();
+    });
   }
   
   Future<void> _loadAuthors() async {
@@ -77,7 +87,7 @@ class _BookAddScreenState extends State<BookAddScreen> {
     _dateOfPublishController.dispose();
     _editionController.dispose();
     _publisherController.dispose();
-    _bookPurposController.dispose();
+    _bookPurposeController.dispose();
     _numberOfPagesController.dispose();
     _weightController.dispose();
     _dimensionsController.dispose();
@@ -108,7 +118,7 @@ class _BookAddScreenState extends State<BookAddScreen> {
                   TextButton.icon(
                     onPressed: () {
                       Navigator.of(context).pushNamedAndRemoveUntil(
-                        '/books-sell',
+                        widget.bookPurpose == BookPurpose.rent ? '/book-rent' : '/books-sell',
                         (route) => false,
                       );
                     },
@@ -162,22 +172,24 @@ class _BookAddScreenState extends State<BookAddScreen> {
                                   
                                   const SizedBox(height: 20),
                                   
-                                  // Price field
-                                  ZSInput(
-                                    label: 'Cijena*',
-                                    controller: _priceController,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Unesite cijenu knjige';
-                                      }
-                                      if (double.tryParse(value) == null) {
-                                        return 'Cijena mora biti broj';
-                                      }
-                                      return null;
-                                    },
-                                  ),
+                                  // Price field - only show for books for sale
+                                  if (widget.bookPurpose != BookPurpose.rent)
+                                    ZSInput(
+                                      label: 'Cijena*',
+                                      controller: _priceController,
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Unesite cijenu knjige';
+                                        }
+                                        if (double.tryParse(value) == null) {
+                                          return 'Cijena mora biti broj';
+                                        }
+                                        return null;
+                                      },
+                                    ),
                                   
-                                  const SizedBox(height: 20),
+                                  if (widget.bookPurpose != BookPurpose.rent)
+                                    const SizedBox(height: 20),
                                   
                                   // Date of publish field with datepicker
                                   ZSDatePicker(
@@ -206,13 +218,14 @@ class _BookAddScreenState extends State<BookAddScreen> {
                                   // Book purpose field
                                   ZSInput(
                                     label: 'Namjena knjige*',
-                                    controller: _bookPurposController,
-                                    validator: (value) {
+                                    controller: _bookPurposeController,
+                                    enabled: widget.bookPurpose == null,
+                                    validator: widget.bookPurpose == null ? (value) {
                                       if (value == null || value.isEmpty) {
                                         return 'Unesite namjenu knjige';
                                       }
                                       return null;
-                                    },
+                                    } : null, // No validation needed when disabled
                                   ),
                                   
                                   const SizedBox(height: 20),
@@ -365,7 +378,7 @@ class _BookAddScreenState extends State<BookAddScreen> {
                                         width: 250,
                                         onPressed: () {
                                           Navigator.of(context).pushNamedAndRemoveUntil(
-                                            '/books-sell',
+                                            widget.bookPurpose == BookPurpose.rent ? '/book-rent' : '/books-sell',
                                             (route) => false,
                                           );
                                         },
@@ -392,14 +405,18 @@ class _BookAddScreenState extends State<BookAddScreen> {
     if (_formKey.currentState!.validate()) {
       final bookProvider = Provider.of<BookProvider>(context, listen: false);
       
+      double? price = widget.bookPurpose == BookPurpose.rent 
+          ? null 
+          : double.parse(_priceController.text);
+      
       bookProvider.addBook(
         _titleController.text,
         _descriptionController.text.isEmpty ? null : _descriptionController.text,
-        double.parse(_priceController.text),
+        price,
         _dateOfPublishController.text.isEmpty ? null : _dateOfPublishController.text,
         _editionController.text.isEmpty ? null : int.parse(_editionController.text),
         _publisherController.text.isEmpty ? null : _publisherController.text,
-        _bookPurposController.text,
+        _bookPurposeController.text == 'sell' ? BookPurpose.sell : BookPurpose.rent,
         int.parse(_numberOfPagesController.text),
         _weightController.text.isEmpty ? null : double.parse(_weightController.text),
         _dimensionsController.text.isEmpty ? null : _dimensionsController.text,
@@ -419,7 +436,7 @@ class _BookAddScreenState extends State<BookAddScreen> {
           
           // Navigate back to books list
           Navigator.of(context).pushNamedAndRemoveUntil(
-            '/books-sell',
+            widget.bookPurpose == BookPurpose.rent ? '/book-rent' : '/books-sell',
             (route) => false,
           );
         } else {

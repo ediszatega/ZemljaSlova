@@ -17,8 +17,8 @@ import '../utils/filter_configurations.dart';
 import 'book_detail_overview.dart';
 import 'book_add.dart';
 
-class BooksSellOverview extends StatelessWidget {
-  const BooksSellOverview({super.key});
+class BooksRentOverview extends StatelessWidget {
+  const BooksRentOverview({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +32,7 @@ class BooksSellOverview extends StatelessWidget {
           
           // Main content
           Expanded(
-            child: BooksContent(),
+            child: BooksRentContent(),
           ),
         ],
       ),
@@ -40,22 +40,21 @@ class BooksSellOverview extends StatelessWidget {
   }
 }
 
-class BooksContent extends StatefulWidget {
-  const BooksContent({super.key});
+class BooksRentContent extends StatefulWidget {
+  const BooksRentContent({super.key});
 
   @override
-  State<BooksContent> createState() => _BooksContentState();
+  State<BooksRentContent> createState() => _BooksRentContentState();
 }
 
-class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver {
+class _BooksRentContentState extends State<BooksRentContent> with WidgetsBindingObserver {
   String _sortOption = 'Naslov (A-Z)';
-  final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
-  
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
-    // Register as an observer to detect when the app regains focus
     WidgetsBinding.instance.addObserver(this);
     _loadBooks();
     
@@ -63,12 +62,12 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
       context.read<BookProvider>().setSorting('title', 'asc');
     });
   }
-  
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _scrollController.dispose();
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
   
@@ -79,17 +78,18 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
       _loadBooks();
     }
   }
-  
+
   void _loadBooks() {
     // Load books data using pagination
     Future.microtask(() {
       final bookProvider = Provider.of<BookProvider>(context, listen: false);
       bookProvider.clearFilters();
+      bookProvider.clearSearch();
       
-      bookProvider.refresh(isAuthorIncluded: true, bookPurpose: BookPurpose.sell);
+      bookProvider.refresh(isAuthorIncluded: true, bookPurpose: BookPurpose.rent);
     });
   }
-  
+
   void _handleSortChange(String? value) {
     if (value != null) {
       setState(() {
@@ -129,21 +129,21 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
   void _showFiltersDialog() {
     context.read<AuthorProvider>().refresh();
     
-          showDialog(
-        context: context,
-        builder: (context) => FilterDialog(
-          title: 'Filteri za knjige',
-          fields: FilterConfigurations.getBookFilters(context),
-          initialValues: context.read<BookProvider>().filters.toMap(),
-          onApplyFilters: (values) {
-            final filters = BookFilters.fromMap(values);
-            context.read<BookProvider>().setFilters(filters);
-          },
-          onClearFilters: () {
-            context.read<BookProvider>().clearFilters();
-          },
-        ),
-      );
+    showDialog(
+      context: context,
+      builder: (context) => FilterDialog(
+        title: 'Filteri za knjige za iznajmljivanje',
+        fields: FilterConfigurations.getBookFilters(context),
+        initialValues: context.read<BookProvider>().filters.toMap(),
+        onApplyFilters: (values) {
+          final filters = BookFilters.fromMap(values);
+          context.read<BookProvider>().setFilters(filters);
+        },
+        onClearFilters: () {
+          context.read<BookProvider>().clearFilters();
+        },
+      ),
+    );
   }
 
   int _getActiveFilterCount(BookFilters filters) {
@@ -164,7 +164,7 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
         children: [
           // Header
           const Text(
-            'Pregled knjiga na prodaju',
+            'Pregled knjiga za iznajmljivanje',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -185,12 +185,12 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
       ),
     );
   }
-  
+
   Widget _buildToolbar() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        // Search using our component
+        // Search 
         Expanded(
           child: SearchInput(
             label: 'Pretraži',
@@ -270,7 +270,7 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const BookAddScreen(bookPurpose: BookPurpose.sell),
+                builder: (context) => const BookAddScreen(bookPurpose: BookPurpose.rent),
               ),
             ).then((_) {
               // Refresh books when returning from add screen
@@ -286,7 +286,7 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
       ],
     );
   }
-  
+
   Widget _buildBooksGrid() {
     return Consumer<BookProvider>(
       builder: (ctx, bookProvider, child) {
@@ -309,9 +309,9 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
         
         if (books.isEmpty) {
           return const EmptyState(
-            icon: Icons.shopping_cart,
+            icon: Icons.book_outlined,
             title: 'Nema knjiga za prikaz',
-            description: 'Trenutno u sistemu nema knjiga za prodaju.\nDodajte novu knjigu da biste počeli.',
+            description: 'Trenutno u sistemu nema knjiga za iznajmljivanje.\nDodajte novu knjigu da biste počeli.',
           );
         }
         
@@ -367,7 +367,7 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
                           onLoadMore: () => bookProvider.loadMore(),
                           currentPageSize: bookProvider.pageSize,
                           onPageSizeChanged: (newSize) => bookProvider.setPageSize(newSize),
-                          itemName: 'knjiga',
+                          itemName: 'knjiga za iznajmljivanje',
                           loadMoreText: 'Učitaj više knjiga',
                         ),
                       ),

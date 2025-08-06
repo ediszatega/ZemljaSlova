@@ -3,11 +3,18 @@ import 'author.dart';
 
 part 'book.g.dart';
 
+enum BookPurpose {
+  @JsonValue(1)
+  sell,
+  @JsonValue(2)
+  rent,
+}
+
 @JsonSerializable()
 class Book {
   final int id;
   final String title;
-  final double price;
+  final double? price;
   final String? coverImageUrl;
   final bool isAvailable;
   final int quantityInStock;
@@ -17,7 +24,8 @@ class Book {
   final String? dateOfPublish;
   final int? edition;
   final String? publisher;
-  final String? bookPurpos;
+  @JsonKey(name: 'bookPurpose')
+  final BookPurpose? bookPurpose;
   final int numberOfPages;
   final double? weight;
   final String? dimensions;
@@ -30,7 +38,7 @@ class Book {
   Book({
     required this.id,
     required this.title,
-    required this.price,
+    this.price,
     this.coverImageUrl,
     this.isAvailable = true,
     this.quantityInStock = 0,
@@ -39,7 +47,7 @@ class Book {
     this.dateOfPublish,
     this.edition,
     this.publisher,
-    this.bookPurpos,
+    this.bookPurpose,
     this.numberOfPages = 0,
     this.weight,
     this.dimensions,

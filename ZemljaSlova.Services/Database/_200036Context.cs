@@ -94,7 +94,6 @@ public partial class _200036Context : DbContext
             entity.ToTable("Book");
 
             entity.Property(e => e.Binding).HasMaxLength(50);
-            entity.Property(e => e.BookPurpos).HasMaxLength(50);
             entity.Property(e => e.DateOfPublish).HasColumnType("datetime");
             entity.Property(e => e.Dimensions).HasMaxLength(50);
             entity.Property(e => e.Genre).HasMaxLength(50);

@@ -195,7 +195,9 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
                                   
                                   // Price
                                   Text(
-                                    'Cijena: ${book.price.toStringAsFixed(2)} KM',
+                                    book.price != null 
+                                      ? 'Cijena: ${book.price!.toStringAsFixed(2)} KM'
+                                      : 'Knjiga za iznajmljivanje',
                                     style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
@@ -205,7 +207,7 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
                                   
                                   const SizedBox(height: 30),
 
-                                                              // Availability information
+                                  // Availability information
                                   const Text(
                                     'Dostupnost',
                                     style: TextStyle(
@@ -283,8 +285,7 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
                                   if (book.edition != null)
                                     DetailRow(label: 'Izdanje', value: book.edition.toString()),
                                   DetailRow(label: 'Broj stranica', value: book.numberOfPages.toString()),
-                                  if (book.bookPurpos != null && book.bookPurpos!.isNotEmpty)
-                                    DetailRow(label: 'Namjena', value: book.bookPurpos!),
+                                    DetailRow(label: 'Namjena', value: book.bookPurpose == BookPurpose.sell ? 'Prodaja' : 'Iznajmljivanje'),
                                   if (book.dimensions != null && book.dimensions!.isNotEmpty)
                                     DetailRow(label: 'Dimenzije', value: book.dimensions!),
                                   if (book.weight != null)

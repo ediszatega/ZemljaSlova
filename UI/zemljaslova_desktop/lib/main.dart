@@ -13,7 +13,7 @@ import 'providers/membership_provider.dart';
 import 'providers/auth_provider.dart';
 import 'screens/members_overview.dart';
 import 'screens/books_sell_overview.dart';
-import 'screens/book_rent_overview.dart';
+import 'screens/books_rent_overview.dart';
 import 'screens/events_overview.dart';
 import 'screens/reports_overview.dart';
 import 'screens/profile_overview.dart';
@@ -130,7 +130,7 @@ class ZemljaSlova extends StatelessWidget {
         ),
         routes: {
           '/books-sell': (context) => const BooksSellOverview(),
-          '/book-rent': (context) => const BookRentOverview(),
+          '/book-rent': (context) => const BooksRentOverview(),
           '/events': (context) => const EventsOverview(),
           '/members': (context) => const MembersOverview(),
           '/memberships': (context) => const MembershipsOverview(),
@@ -171,7 +171,7 @@ class NavigationScreen extends StatelessWidget {
       case NavigationItem.booksSell:
         return const BooksSellOverview();
       case NavigationItem.bookRent:
-        return const BookRentOverview();
+        return const BooksRentOverview();
       case NavigationItem.events:
         return const EventsOverview();
       case NavigationItem.members:

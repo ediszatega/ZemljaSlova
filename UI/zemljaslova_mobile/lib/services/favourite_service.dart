@@ -120,7 +120,14 @@ class FavouriteService {
     }
     int? edition = bookData['edition'];
     String? publisher = bookData['publisher'];
-    String? bookPurpos = bookData['bookPurpos'];
+    BookPurpose? bookPurpose;
+    if (bookData['bookPurpose'] != null) {
+      final purposeValue = bookData['bookPurpose'] as int;
+      bookPurpose = BookPurpose.values.firstWhere(
+        (p) => p.index + 1 == purposeValue,
+        orElse: () => BookPurpose.sell,
+      );
+    }
     int? numberOfPages = bookData['numberOfPages'];
     double? weight = bookData['weight']?.toDouble();
     String? dimensions = bookData['dimensions'];
@@ -140,7 +147,7 @@ class FavouriteService {
       dateOfPublish: dateOfPublish,
       edition: edition,
       publisher: publisher,
-      bookPurpos: bookPurpos,
+      bookPurpose: bookPurpose,
       numberOfPages: numberOfPages ?? 0,
       weight: weight,
       dimensions: dimensions,

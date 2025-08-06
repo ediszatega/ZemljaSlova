@@ -7,6 +7,7 @@ enum MobileNavigationItem {
   profile,
   voucherPurchase,
   booksSellOverview,
+  booksRentOverview,
   eventsOverview,
 }
 

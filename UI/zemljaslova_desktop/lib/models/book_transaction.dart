@@ -10,7 +10,7 @@ class BookTransaction implements InventoryTransaction {
   final int activityTypeId;
   final int bookId;
   @override
-  @JsonKey(name: 'qantity')
+  @JsonKey(name: 'quantity')
   final int quantity;
   @override
   final DateTime createdAt;

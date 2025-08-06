@@ -192,9 +192,9 @@ namespace ZemljaSlova.Services
                                             d.EndDate >= now &&
                                             (!d.MaxUsage.HasValue || d.UsageCount < d.MaxUsage.Value));
 
-                if (bookDiscount != null)
+                if (bookDiscount != null && item.Book?.Price.HasValue == true)
                 {
-                    var itemTotal = item.Book.Price * item.Quantity;
+                    var itemTotal = item.Book!.Price!.Value * item.Quantity;
                     var discountAmount = itemTotal * (bookDiscount.DiscountPercentage / 100);
                     itemLevelDiscount += discountAmount;
                 }
@@ -212,7 +212,9 @@ namespace ZemljaSlova.Services
 
                 if (codeDiscount != null)
                 {
-                    var orderTotal = orderItems.Where(i => i.Book != null).Sum(i => i.Book!.Price * i.Quantity);
+                    var orderTotal = orderItems
+                        .Where(i => i.Book != null && i.Book.Price.HasValue)
+                        .Sum(i => i.Book!.Price!.Value * i.Quantity);
                     orderLevelDiscount = orderTotal * (codeDiscount.DiscountPercentage / 100);
                 }
             }

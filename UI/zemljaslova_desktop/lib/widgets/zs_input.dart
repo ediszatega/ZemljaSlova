@@ -7,6 +7,7 @@ class ZSInput extends StatelessWidget {
   final int maxLines;
   final TextInputType? keyboardType;
   final bool obscureText;
+  final bool enabled;
 
   const ZSInput({
     super.key,
@@ -16,6 +17,7 @@ class ZSInput extends StatelessWidget {
     this.maxLines = 1,
     this.keyboardType,
     this.obscureText = false,
+    this.enabled = true,
   });
 
   @override
@@ -37,6 +39,7 @@ class ZSInput extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(4),
             border: Border.all(color: Colors.grey.shade300),
+            color: enabled ? null : Colors.grey.shade100,
           ),
           child: TextFormField(
             controller: controller,
@@ -44,6 +47,7 @@ class ZSInput extends StatelessWidget {
             maxLines: obscureText ? 1 : maxLines,
             keyboardType: keyboardType,
             obscureText: obscureText,
+            enabled: enabled,
             decoration: InputDecoration(
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,

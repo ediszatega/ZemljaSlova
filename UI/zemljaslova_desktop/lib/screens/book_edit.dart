@@ -32,7 +32,7 @@ class _BookEditScreenState extends State<BookEditScreen> {
   late TextEditingController _dateOfPublishController;
   late TextEditingController _editionController;
   late TextEditingController _publisherController;
-  late TextEditingController _bookPurposController;
+  late TextEditingController _bookPurposeController;
   late TextEditingController _numberOfPagesController;
   late TextEditingController _weightController;
   late TextEditingController _dimensionsController;
@@ -56,7 +56,7 @@ class _BookEditScreenState extends State<BookEditScreen> {
     _dateOfPublishController = TextEditingController(text: widget.book.dateOfPublish);
     _editionController = TextEditingController(text: widget.book.edition?.toString() ?? '');
     _publisherController = TextEditingController(text: widget.book.publisher);
-    _bookPurposController = TextEditingController(text: widget.book.bookPurpos);
+    _bookPurposeController = TextEditingController(text: widget.book.bookPurpose == BookPurpose.sell ? 'sell' : 'rent');
     _numberOfPagesController = TextEditingController(text: widget.book.numberOfPages.toString());
     _weightController = TextEditingController(text: widget.book.weight?.toString() ?? '');
     _dimensionsController = TextEditingController(text: widget.book.dimensions);
@@ -68,8 +68,10 @@ class _BookEditScreenState extends State<BookEditScreen> {
       _selectedAuthorIds.addAll(widget.book.authorIds);
     }
     
-    // Load authors for dropdown
-    _loadAuthors();
+    // Load authors for dropdown after the build is complete
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadAuthors();
+    });
   }
   
   Future<void> _loadAuthors() async {
@@ -100,7 +102,7 @@ class _BookEditScreenState extends State<BookEditScreen> {
     _dateOfPublishController.dispose();
     _editionController.dispose();
     _publisherController.dispose();
-    _bookPurposController.dispose();
+    _bookPurposeController.dispose();
     _numberOfPagesController.dispose();
     _weightController.dispose();
     _dimensionsController.dispose();
@@ -182,22 +184,24 @@ class _BookEditScreenState extends State<BookEditScreen> {
                                   
                                   const SizedBox(height: 20),
                                   
-                                  // Price field
-                                  ZSInput(
-                                    label: 'Cijena*',
-                                    controller: _priceController,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Unesite cijenu knjige';
-                                      }
-                                      if (double.tryParse(value) == null) {
-                                        return 'Cijena mora biti broj';
-                                      }
-                                      return null;
-                                    },
-                                  ),
+                                  // Price field - only show for books for sale
+                                  if (widget.book.bookPurpose != BookPurpose.rent)
+                                    ZSInput(
+                                      label: 'Cijena*',
+                                      controller: _priceController,
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Unesite cijenu knjige';
+                                        }
+                                        if (double.tryParse(value) == null) {
+                                          return 'Cijena mora biti broj';
+                                        }
+                                        return null;
+                                      },
+                                    ),
                                   
-                                  const SizedBox(height: 20),
+                                  if (widget.book.bookPurpose != BookPurpose.rent)
+                                    const SizedBox(height: 20),
                                   
                                   // Date of publish field with datepicker
                                   ZSDatePicker(
@@ -226,7 +230,7 @@ class _BookEditScreenState extends State<BookEditScreen> {
                                   // Book purpose field
                                   ZSInput(
                                     label: 'Namjena knjige*',
-                                    controller: _bookPurposController,
+                                    controller: _bookPurposeController,
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return 'Unesite namjenu knjige';
@@ -409,15 +413,19 @@ class _BookEditScreenState extends State<BookEditScreen> {
     if (_formKey.currentState!.validate()) {
       final bookProvider = Provider.of<BookProvider>(context, listen: false);
       
+      double? price = widget.book.bookPurpose == BookPurpose.rent 
+          ? null 
+          : double.parse(_priceController.text);
+      
       bookProvider.updateBook(
         widget.book.id,
         _titleController.text,
         _descriptionController.text.isEmpty ? null : _descriptionController.text,
-        double.parse(_priceController.text),
+        price,
         _dateOfPublishController.text.isEmpty ? null : _dateOfPublishController.text,
         _editionController.text.isEmpty ? null : int.parse(_editionController.text),
         _publisherController.text.isEmpty ? null : _publisherController.text,
-        _bookPurposController.text,
+        _bookPurposeController.text == 'sell' ? BookPurpose.sell : BookPurpose.rent,
         int.parse(_numberOfPagesController.text),
         _weightController.text.isEmpty ? null : double.parse(_weightController.text),
         _dimensionsController.text.isEmpty ? null : _dimensionsController.text,

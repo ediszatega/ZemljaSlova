@@ -6,6 +6,8 @@ namespace ZemljaSlova.Model.SearchObjects
 {
     public class BookSearchObject : BaseSearchObject
     {
+        public BookPurpose? BookPurpose { get; set; }
+        
         // Include
         public bool IsAuthorIncluded { get; set; }
 

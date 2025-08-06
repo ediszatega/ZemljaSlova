@@ -11,7 +11,7 @@ public partial class Book
 
     public string? Description { get; set; }
 
-    public decimal Price { get; set; }
+    public decimal? Price { get; set; }
 
     public DateTime? DateOfPublish { get; set; }
 
@@ -19,7 +19,7 @@ public partial class Book
 
     public string? Publisher { get; set; }
 
-    public string BookPurpos { get; set; } = null!;
+    public int BookPurpose { get; set; }
 
     public int NumberOfPages { get; set; }
 

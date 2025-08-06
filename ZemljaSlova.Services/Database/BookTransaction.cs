@@ -11,7 +11,7 @@ public partial class BookTransaction
 
     public int BookId { get; set; }
 
-    public int Qantity { get; set; }
+    public int Quantity { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
