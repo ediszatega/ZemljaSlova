@@ -19,6 +19,7 @@ class InventoryScreen<T extends InventoryTransaction> extends StatefulWidget {
   final String sellButtonText;
   final String sellSuccessMessage;
   final String insufficientStockMessage;
+  final bool isForRent;
   
   const InventoryScreen({
     super.key,
@@ -29,6 +30,7 @@ class InventoryScreen<T extends InventoryTransaction> extends StatefulWidget {
     required this.sellButtonText,
     required this.sellSuccessMessage,
     required this.insufficientStockMessage,
+    this.isForRent = false,
   });
 
   @override
@@ -197,11 +199,20 @@ class _InventoryScreenState<T extends InventoryTransaction> extends State<Invent
     });
     
     try {
-      final success = await widget.inventoryService.sellItems(
-        id: widget.itemId,
-        quantity: quantity,
-        data: _sellDataController.text.isNotEmpty ? _sellDataController.text : null,
-      );
+      bool success;
+      if (widget.isForRent) {
+        success = await widget.inventoryService.removeItems(
+          id: widget.itemId,
+          quantity: quantity,
+          data: _sellDataController.text.isNotEmpty ? _sellDataController.text : null,
+        );
+      } else {
+        success = await widget.inventoryService.sellItems(
+          id: widget.itemId,
+          quantity: quantity,
+          data: _sellDataController.text.isNotEmpty ? _sellDataController.text : null,
+        );
+      }
       
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -218,9 +229,17 @@ class _InventoryScreenState<T extends InventoryTransaction> extends State<Invent
         // Reload data
         await _loadInventoryData();
       } else {
+        String errorMesage = "";
+        if(widget.isForRent) {
+          errorMesage = "uklanjanja knjiga";
+        } else if (!widget.isForRent && widget.itemLabel == "knjiga") {
+          errorMesage = "prodaje knjigu";
+        } else if (!widget.isForRent && widget.itemLabel == "ulaznica") {
+          errorMesage = "prodaje ulaznicu";
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Greška prilikom ${widget.itemLabel == 'knjiga' ? 'prodaje knjiga' : 'prodaje ulaznica'}'),
+            content: Text('Greška prilikom $errorMesage'),
             backgroundColor: Colors.red,
           ),
         );
@@ -400,7 +419,7 @@ class _InventoryScreenState<T extends InventoryTransaction> extends State<Invent
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Prodaj ${widget.itemLabel}',
+                  widget.isForRent ? 'Ukloni knjigu' : 'Prodaj ${widget.itemLabel}',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
@@ -426,7 +445,7 @@ class _InventoryScreenState<T extends InventoryTransaction> extends State<Invent
                 SizedBox(
                   width: double.infinity,
                   child: ZSButton(
-                    text: _isSellingItems ? 'Prodaja...' : widget.sellButtonText,
+                    text: _isSellingItems ? 'Prodaja...' : (widget.isForRent ? 'Ukloni knjigu' : widget.sellButtonText),
                     backgroundColor: Colors.green.shade50,
                     foregroundColor: Colors.green,
                     onPressed: _isSellingItems ? () {} : () => _sellItems(),
@@ -498,7 +517,7 @@ class _InventoryScreenState<T extends InventoryTransaction> extends State<Invent
                           color: isStock ? Colors.green : Colors.red,
                         ),
                         title: Text(
-                          isStock ? 'Dodavanje količine' : 'Prodaja ${widget.itemLabel}',
+                          isStock ? 'Dodavanje količine' : (transaction.activityTypeId == 3 ? 'Uklanjanje količine' : 'Prodaja ${widget.itemLabel}'),
                           style: const TextStyle(fontWeight: FontWeight.w500),
                         ),
                         subtitle: Column(

@@ -338,11 +338,13 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
                               width: 410,
                               topPadding: 5,
                               onPressed: () async {
+                                final isForRent = book.bookPurpose == BookPurpose.rent;
                                 await Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (context) => BookInventoryScreen(
                                       bookId: book.id,
                                       bookTitle: book.title,
+                                      isForRent: isForRent,
                                     ),
                                   ),
                                 );

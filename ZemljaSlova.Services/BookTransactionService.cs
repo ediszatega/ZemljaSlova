@@ -54,6 +54,24 @@ namespace ZemljaSlova.Services
             return Mapper.Map<Model.BookTransaction>(transaction);
         }
 
+        public async Task<Model.BookTransaction> CreateRemoveTransactionAsync(int bookId, int quantity, int userId, string? data = null)
+        {
+            var transaction = new Database.BookTransaction
+            {
+                ActivityTypeId = (byte)ActivityType.Remove,
+                BookId = bookId,
+                Quantity = quantity,
+                CreatedAt = DateTime.Now,
+                UserId = userId,
+                Data = data
+            };
+
+            Context.BookTransactions.Add(transaction);
+            await Context.SaveChangesAsync();
+
+            return Mapper.Map<Model.BookTransaction>(transaction);
+        }
+
         public async Task<List<Model.BookTransaction>> GetTransactionsByBookAsync(int bookId)
         {
             var transactions = await Context.BookTransactions

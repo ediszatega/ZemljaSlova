@@ -332,7 +332,7 @@ namespace ZemljaSlova.Services
                 {
                     currentQuantity += transaction.Quantity;
                 }
-                else if (transaction.ActivityTypeId == (byte)ActivityType.Sold)
+                else if (transaction.ActivityTypeId == (byte)ActivityType.Sold || transaction.ActivityTypeId == (byte)ActivityType.Remove)
                 {
                     currentQuantity -= transaction.Quantity;
                 }
@@ -397,6 +397,37 @@ namespace ZemljaSlova.Services
             try
             {
                 await _transactionService.CreateSoldTransactionAsync(bookId, quantity, userId, data);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> RemoveBooksAsync(int bookId, int quantity, int userId, string? data = null)
+        {
+            if (quantity <= 0)
+            {
+                return false;
+            }
+
+            var userExists = await Context.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
+            {
+                return false;
+            }
+
+            // Check if there are enough books in stock
+            var isAvailable = await IsAvailableForPurchaseAsync(bookId, quantity);
+            if (!isAvailable)
+            {
+                return false;
+            }
+
+            try
+            {
+                await _transactionService.CreateRemoveTransactionAsync(bookId, quantity, userId, data);
                 return true;
             }
             catch (Exception)

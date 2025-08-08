@@ -54,6 +54,13 @@ namespace ZemljaSlova.API.Controllers
             var success = await _bookService.SellBooksAsync(bookId, request.Quantity, request.UserId, request.Data);
             return Ok(success);
         }
+
+        [HttpPost("book/{bookId}/remove")]
+        public async Task<ActionResult<bool>> RemoveBooks(int bookId, [FromBody] BookAddSellRequest request)
+        {
+            var success = await _bookService.RemoveBooksAsync(bookId, request.Quantity, request.UserId, request.Data);
+            return Ok(success);
+        }
     }
 
     // TODO: Move to Models.Requests

@@ -7,11 +7,13 @@ import '../widgets/inventory_screen.dart';
 class BookInventoryScreen extends StatelessWidget {
   final int bookId;
   final String bookTitle;
+  final bool isForRent;
   
   const BookInventoryScreen({
     super.key,
     required this.bookId,
     required this.bookTitle,
+    this.isForRent = false,
   });
 
   @override
@@ -25,9 +27,10 @@ class BookInventoryScreen extends StatelessWidget {
         BookTransaction.fromJson,
       ),
       itemLabel: 'knjiga',
-      sellButtonText: 'Prodaj knjige',
-      sellSuccessMessage: 'Knjige uspješno prodane',
+      sellButtonText: isForRent ? 'Ukloni knjigu' : 'Prodaj knjige',
+      sellSuccessMessage: isForRent ? 'Knjige uspješno uklonjene' : 'Knjige uspješno prodane',
       insufficientStockMessage: 'Nema dovoljno knjiga na stanju',
+      isForRent: isForRent,
     );
   }
 } 

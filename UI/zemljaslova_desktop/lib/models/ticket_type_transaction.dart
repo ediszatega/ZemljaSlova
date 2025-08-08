@@ -34,7 +34,8 @@ class TicketTypeTransaction implements InventoryTransaction {
 
 enum ActivityType {
   stock(1),
-  sold(2);
+  sold(2),
+  remove(3);
 
   const ActivityType(this.value);
   final int value;

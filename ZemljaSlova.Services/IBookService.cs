@@ -17,5 +17,6 @@ namespace ZemljaSlova.Services
         Task<bool> IsAvailableForPurchaseAsync(int bookId, int requestedQuantity);
         Task<bool> AddStockAsync(int bookId, int quantity, int userId, string? data = null);
         Task<bool> SellBooksAsync(int bookId, int quantity, int userId, string? data = null);
+        Task<bool> RemoveBooksAsync(int bookId, int quantity, int userId, string? data = null);
     }
 }

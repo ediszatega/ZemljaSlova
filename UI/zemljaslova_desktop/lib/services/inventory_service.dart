@@ -95,6 +95,32 @@ class InventoryService<T extends InventoryTransaction> {
       return false;
     }
   }
+
+  Future<bool> removeItems({
+    required int id,
+    required int quantity,
+    String? data,
+  }) async {
+    if (Authorization.userId == null) {
+      debugPrint('User not logged in. Cannot remove items.');
+      return false;
+    }
+    
+    try {
+      final requestData = {
+        'quantity': quantity,
+        'userId': Authorization.userId,
+        'data': data,
+      };
+      
+      final response = await _apiService.post('$_baseEndpoint/$id/remove', requestData);
+      
+      return response != null && response is bool && response;
+    } catch (e) {
+      debugPrint('Failed to remove items: $e');
+      return false;
+    }
+  }
   
   Future<List<T>> getTransactionsById(int id) async {
     try {
