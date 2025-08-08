@@ -28,10 +28,13 @@ class _BooksRentOverviewScreenState extends State<BooksRentOverviewScreen> with 
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<BookProvider>().clearSearch();
-      context.read<BookProvider>().clearFilters();
-      context.read<BookProvider>().fetchBooks(refresh: true);
-      context.read<BookProvider>().setSorting('title', 'asc');
+      // Initialize for rent books - this ensures we only see books for rent
+      final bookProvider = context.read<BookProvider>();
+      bookProvider.initializeForBookPurpose(BookPurpose.rent);
+      bookProvider.clearSearch();
+      bookProvider.clearFilters();
+      bookProvider.fetchBooks(refresh: true);
+      bookProvider.setSorting('title', 'asc');
     });
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/navigation_provider.dart';
+import '../providers/book_provider.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -98,6 +99,10 @@ class HomeScreen extends StatelessWidget {
           title: 'Pregled knjiga na prodaju',
           icon: Icons.shopping_cart_outlined,
           onTap: () {
+            // Clear any previous book purpose state when navigating to books
+            final bookProvider = Provider.of<BookProvider>(context, listen: false);
+            bookProvider.clearBookPurpose();
+            
             final navigationProvider = Provider.of<MobileNavigationProvider>(context, listen: false);
             navigationProvider.navigateTo(MobileNavigationItem.booksSellOverview);
           },
@@ -108,6 +113,10 @@ class HomeScreen extends StatelessWidget {
           title: 'Pregled knjiga za iznajmljivanje',
           icon: Icons.book_outlined,
           onTap: () {
+            // Clear any previous book purpose state when navigating to books
+            final bookProvider = Provider.of<BookProvider>(context, listen: false);
+            bookProvider.clearBookPurpose();
+            
             final navigationProvider = Provider.of<MobileNavigationProvider>(context, listen: false);
             navigationProvider.navigateTo(MobileNavigationItem.booksRentOverview);
           },

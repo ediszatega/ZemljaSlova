@@ -84,9 +84,10 @@ class _BooksContentState extends State<BooksContent> with WidgetsBindingObserver
     // Load books data using pagination
     Future.microtask(() {
       final bookProvider = Provider.of<BookProvider>(context, listen: false);
+      // Initialize for sell books
+      bookProvider.initializeForBookPurpose(BookPurpose.sell);
       bookProvider.clearFilters();
-      
-      bookProvider.refresh(isAuthorIncluded: true, bookPurpose: BookPurpose.sell);
+      bookProvider.refresh(isAuthorIncluded: true);
     });
   }
   

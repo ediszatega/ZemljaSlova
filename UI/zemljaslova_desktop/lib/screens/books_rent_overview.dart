@@ -83,10 +83,11 @@ class _BooksRentContentState extends State<BooksRentContent> with WidgetsBinding
     // Load books data using pagination
     Future.microtask(() {
       final bookProvider = Provider.of<BookProvider>(context, listen: false);
+      // Initialize for rent books
+      bookProvider.initializeForBookPurpose(BookPurpose.rent);
       bookProvider.clearFilters();
       bookProvider.clearSearch();
-      
-      bookProvider.refresh(isAuthorIncluded: true, bookPurpose: BookPurpose.rent);
+      bookProvider.refresh(isAuthorIncluded: true);
     });
   }
 

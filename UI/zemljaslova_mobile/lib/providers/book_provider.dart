@@ -29,6 +29,9 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
   
   // Filters state
   BookFilters _filters = const BookFilters();
+  
+  // Current book purpose - this is the key to reliable filtering
+  BookPurpose? _currentBookPurpose;
 
   List<Book> get books => [..._books];
   
@@ -55,6 +58,34 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
   String get sortBy => _sortBy;
   String get sortOrder => _sortOrder;
   BookFilters get filters => _filters;
+  BookPurpose? get currentBookPurpose => _currentBookPurpose;
+
+  // Initialize the provider for a specific book purpose
+  void initializeForBookPurpose(BookPurpose bookPurpose) {
+    if (_currentBookPurpose != bookPurpose) {
+      _currentBookPurpose = bookPurpose;
+      // Clear existing data when switching purposes
+      _books.clear();
+      _currentPage = 0;
+      _hasMoreData = true;
+      _error = null;
+      clearSearch();
+      clearFilters();
+      notifyListeners();
+    }
+  }
+
+  // Clear the book purpose and reset state
+  void clearBookPurpose() {
+    _currentBookPurpose = null;
+    _books.clear();
+    _currentPage = 0;
+    _hasMoreData = true;
+    _error = null;
+    clearSearch();
+    clearFilters();
+    notifyListeners();
+  }
 
   Future<void> fetchBooks({bool isAuthorIncluded = true, bool refresh = false}) async {
     if (refresh) {
@@ -82,6 +113,7 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
         sortBy: _sortBy,
         sortOrder: _sortOrder,
         filters: _filters.hasActiveFilters ? _filters.toQueryParams() : null,
+        bookPurpose: _currentBookPurpose, // Always use the current book purpose
       );
       
       final List<Book> newBooks = result['books'] as List<Book>;
@@ -176,4 +208,4 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
       return null;
     }
   }
-} 
+}

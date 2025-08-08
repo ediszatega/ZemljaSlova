@@ -28,11 +28,13 @@ class _BooksSellOverviewScreenState extends State<BooksSellOverviewScreen> with 
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Clear any existing search and reset to default state
-      context.read<BookProvider>().clearSearch();
-      context.read<BookProvider>().clearFilters();
-      context.read<BookProvider>().fetchBooks(refresh: true);
-      context.read<BookProvider>().setSorting('title', 'asc');
+      // Initialize for sell books - this ensures we only see books for sale
+      final bookProvider = context.read<BookProvider>();
+      bookProvider.initializeForBookPurpose(BookPurpose.sell);
+      bookProvider.clearSearch();
+      bookProvider.clearFilters();
+      bookProvider.fetchBooks(refresh: true);
+      bookProvider.setSorting('title', 'asc');
     });
   }
 

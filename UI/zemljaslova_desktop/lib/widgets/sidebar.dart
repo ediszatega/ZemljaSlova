@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/book_provider.dart';
 import '../screens/books_sell_overview.dart';
 import '../screens/books_rent_overview.dart';
 import '../screens/events_overview.dart';
@@ -138,6 +139,12 @@ class SidebarWidget extends StatelessWidget {
   void _navigateToScreen(BuildContext context, NavigationItem item) {
     // First update the navigation provider
     Provider.of<NavigationProvider>(context, listen: false).setCurrentItem(item);
+    
+    // Clear book purpose when navigating away from book screens
+    if (item != NavigationItem.booksSell && item != NavigationItem.bookRent) {
+      final bookProvider = Provider.of<BookProvider>(context, listen: false);
+      bookProvider.clearBookPurpose();
+    }
     
     // Then navigate to the new screen using named routes
     String routeName;
