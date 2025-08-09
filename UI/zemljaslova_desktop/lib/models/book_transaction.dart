@@ -36,7 +36,8 @@ class BookTransaction implements InventoryTransaction {
 enum BookActivityType {
   stock(1),
   sold(2),
-  remove(3);
+  remove(3),
+  rent(4);
 
   const BookActivityType(this.value);
   final int value;

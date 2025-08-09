@@ -61,6 +61,20 @@ namespace ZemljaSlova.API.Controllers
             var success = await _bookService.RemoveBooksAsync(bookId, request.Quantity, request.UserId, request.Data);
             return Ok(success);
         }
+
+        [HttpPost("book/{bookId}/rent")]
+        public async Task<ActionResult<bool>> RentBooks(int bookId, [FromBody] BookAddSellRequest request)
+        {
+            var success = await _bookService.RentBooksAsync(bookId, request.Quantity, request.UserId, request.Data);
+            return Ok(success);
+        }
+
+        [HttpPost("book/{bookId}/return")]
+        public async Task<ActionResult<bool>> ReturnBooks(int bookId, [FromBody] BookAddSellRequest request)
+        {
+            var success = await _bookService.ReturnBooksAsync(bookId, request.Quantity, request.UserId, request.Data);
+            return Ok(success);
+        }
     }
 
     // TODO: Move to Models.Requests

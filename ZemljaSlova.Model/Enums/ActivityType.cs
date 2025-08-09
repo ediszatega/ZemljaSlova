@@ -4,6 +4,7 @@ namespace ZemljaSlova.Model.Enums
     {
         Stock = 1,
         Sold = 2,
-        Remove = 3
+        Remove = 3,
+        Rent = 4
     }
 } 

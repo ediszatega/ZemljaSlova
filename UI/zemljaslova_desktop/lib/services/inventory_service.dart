@@ -121,6 +121,63 @@ class InventoryService<T extends InventoryTransaction> {
       return false;
     }
   }
+
+  Future<bool> rentItems({
+    required int id,
+    required int quantity,
+    String? data,
+  }) async {
+    if (Authorization.userId == null) {
+      debugPrint('User not logged in. Cannot rent items.');
+      return false;
+    }
+    
+    try {
+      final requestData = {
+        'quantity': quantity,
+        'userId': Authorization.userId,
+        'data': data,
+      };
+      
+      final endpoint = '$_baseEndpoint/$id/rent';
+      debugPrint('Calling rental endpoint: $endpoint');
+      debugPrint('Request data: $requestData');
+      
+      final response = await _apiService.post(endpoint, requestData);
+      
+      debugPrint('Rental response: $response');
+      return response != null && response is bool && response;
+    } catch (e) {
+      debugPrint('Failed to rent items: $e');
+      return false;
+    }
+  }
+
+  Future<bool> returnItems({
+    required int id,
+    required int quantity,
+    String? data,
+  }) async {
+    if (Authorization.userId == null) {
+      debugPrint('User not logged in. Cannot return items.');
+      return false;
+    }
+    
+    try {
+      final requestData = {
+        'quantity': quantity,
+        'userId': Authorization.userId,
+        'data': data,
+      };
+      
+      final response = await _apiService.post('$_baseEndpoint/$id/return', requestData);
+      
+      return response != null && response is bool && response;
+    } catch (e) {
+      debugPrint('Failed to return items: $e');
+      return false;
+    }
+  }
   
   Future<List<T>> getTransactionsById(int id) async {
     try {

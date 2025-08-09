@@ -496,53 +496,86 @@ class _InventoryScreenState<T extends InventoryTransaction> extends State<Invent
         const SizedBox(height: 16),
         
         Expanded(
-          child: _transactions.isEmpty
-              ? const Center(
-                  child: Text(
-                    'Nema transakcija za prikaz',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: _transactions.length,
-                  itemBuilder: (context, index) {
-                    final transaction = _transactions[index];
-                    final isStock = transaction.activityTypeId == 1;
-                    
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        leading: Icon(
-                          isStock ? Icons.add_circle : Icons.remove_circle,
-                          color: isStock ? Colors.green : Colors.red,
-                        ),
-                        title: Text(
-                          isStock ? 'Dodavanje količine' : (transaction.activityTypeId == 3 ? 'Uklanjanje količine' : 'Prodaja ${widget.itemLabel}'),
-                          style: const TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Količina: ${transaction.quantity}'),
-                            if (transaction.data != null && transaction.data!.isNotEmpty)
-                              Text('Napomena: ${transaction.data}'),
-                              Text(
-                               'Datum: ${_formatDate(transaction.createdAt)}',
-                               style: const TextStyle(fontSize: 12),
-                             ),
-                          ],
-                        ),
-                        trailing: Text(
-                          '${isStock ? '+' : '-'}${transaction.quantity}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: isStock ? Colors.green : Colors.red,
+          child: () {
+            // Filter transactions to show only inventory activities (exclude rental)
+            final inventoryTransactions = _transactions.where((transaction) => 
+              transaction.activityTypeId == 1 ||
+              transaction.activityTypeId == 2 ||
+              transaction.activityTypeId == 3
+            ).toList();
+            
+            return inventoryTransactions.isEmpty
+                ? const Center(
+                    child: Text(
+                      'Nema transakcija za prikaz',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: inventoryTransactions.length,
+                    itemBuilder: (context, index) {
+                      final transaction = inventoryTransactions[index];
+                      final isStock = transaction.activityTypeId == 1;
+                      final isRemove = transaction.activityTypeId == 3;
+                      final isSold = transaction.activityTypeId == 2;
+                      
+                      String activityTitle;
+                      IconData activityIcon;
+                      Color activityColor;
+                      
+                      if (isStock) {
+                        activityTitle = 'Dodavanje količine';
+                        activityIcon = Icons.add_circle;
+                        activityColor = Colors.green;
+                      } else if (isRemove) {
+                        activityTitle = 'Uklanjanje količine';
+                        activityIcon = Icons.remove_circle;
+                        activityColor = Colors.red;
+                      } else if (isSold) {
+                        activityTitle = 'Prodaja ${widget.itemLabel}';
+                        activityIcon = Icons.remove_circle;
+                        activityColor = Colors.red;
+                      } else {
+                        activityTitle = 'Ostala aktivnost';
+                        activityIcon = Icons.help;
+                        activityColor = Colors.grey;
+                      }
+                      
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: ListTile(
+                          leading: Icon(
+                            activityIcon,
+                            color: activityColor,
+                          ),
+                          title: Text(
+                            activityTitle,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Količina: ${transaction.quantity}'),
+                              if (transaction.data != null && transaction.data!.isNotEmpty)
+                                Text('Napomena: ${transaction.data}'),
+                                Text(
+                                 'Datum: ${_formatDate(transaction.createdAt)}',
+                                 style: const TextStyle(fontSize: 12),
+                               ),
+                            ],
+                          ),
+                          trailing: Text(
+                            '${isStock ? '+' : '-'}${transaction.quantity}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: isStock ? Colors.green : activityColor,
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  );
+          }(),
         ),
       ],
     );

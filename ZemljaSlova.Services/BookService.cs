@@ -332,7 +332,9 @@ namespace ZemljaSlova.Services
                 {
                     currentQuantity += transaction.Quantity;
                 }
-                else if (transaction.ActivityTypeId == (byte)ActivityType.Sold || transaction.ActivityTypeId == (byte)ActivityType.Remove)
+                else if (transaction.ActivityTypeId == (byte)ActivityType.Sold || 
+                         transaction.ActivityTypeId == (byte)ActivityType.Remove || 
+                         transaction.ActivityTypeId == (byte)ActivityType.Rent)
                 {
                     currentQuantity -= transaction.Quantity;
                 }
@@ -428,6 +430,61 @@ namespace ZemljaSlova.Services
             try
             {
                 await _transactionService.CreateRemoveTransactionAsync(bookId, quantity, userId, data);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> RentBooksAsync(int bookId, int quantity, int userId, string? data = null)
+        {
+            if (quantity <= 0)
+            {
+                return false;
+            }
+
+            var userExists = await Context.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
+            {
+                return false;
+            }
+
+            // Check if there are enough books in stock
+            var isAvailable = await IsAvailableForPurchaseAsync(bookId, quantity);
+            if (!isAvailable)
+            {
+                return false;
+            }
+
+            try
+            {
+                await _transactionService.CreateRentTransactionAsync(bookId, quantity, userId, data);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> ReturnBooksAsync(int bookId, int quantity, int userId, string? data = null)
+        {
+            if (quantity <= 0)
+            {
+                return false;
+            }
+
+            var userExists = await Context.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
+            {
+                return false;
+            }
+
+            try
+            {
+                await _transactionService.CreateStockTransactionAsync(bookId, quantity, userId, data);
                 return true;
             }
             catch (Exception)

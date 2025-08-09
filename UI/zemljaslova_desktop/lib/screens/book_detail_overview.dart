@@ -7,6 +7,7 @@ import '../widgets/zs_button.dart';
 import '../widgets/permission_guard.dart';
 import 'book_edit.dart';
 import 'book_inventory_screen.dart';
+import 'book_rental_screen.dart';
 import '../services/inventory_service.dart';
 import '../services/api_service.dart';
 import '../models/book_transaction.dart';
@@ -338,13 +339,12 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
                               width: 410,
                               topPadding: 5,
                               onPressed: () async {
-                                final isForRent = book.bookPurpose == BookPurpose.rent;
                                 await Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (context) => BookInventoryScreen(
                                       bookId: book.id,
                                       bookTitle: book.title,
-                                      isForRent: isForRent,
+                                      isForRent: false,
                                     ),
                                   ),
                                 );
@@ -353,6 +353,30 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
                                 });
                               },
                             ),
+                            
+                            // Show rental management button only for rental books
+                            if (book.bookPurpose == BookPurpose.rent)
+                              ZSButton(
+                                text: 'Upravljanje iznajmljivanjem',
+                                backgroundColor: Colors.purple.shade50,
+                                foregroundColor: Colors.purple,
+                                borderColor: Colors.grey.shade300,
+                                width: 410,
+                                topPadding: 5,
+                                onPressed: () async {
+                                  await Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => BookRentalScreen(
+                                        bookId: book.id,
+                                        bookTitle: book.title,
+                                      ),
+                                    ),
+                                  );
+                                  setState(() {
+                                    _loadInventoryData();
+                                  });
+                                },
+                              ),
                             
                             CanDeleteBooks(
                               child: ZSButton(
