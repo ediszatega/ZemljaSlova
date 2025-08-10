@@ -99,5 +99,17 @@ namespace ZemljaSlova.Services
 
             return Mapper.Map<List<Model.BookTransaction>>(transactions);
         }
+
+        public async Task<List<Model.BookTransaction>> GetActiveRentalsAsync()
+        {
+            var activeRentals = await Context.BookTransactions
+                .Include(t => t.Book)
+                .Include(t => t.User)
+                .Where(t => t.ActivityTypeId == (byte)ActivityType.Rent)
+                .OrderByDescending(t => t.CreatedAt)
+                .ToListAsync();
+
+            return Mapper.Map<List<Model.BookTransaction>>(activeRentals);
+        }
     }
 } 

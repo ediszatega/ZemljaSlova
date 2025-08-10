@@ -75,6 +75,13 @@ namespace ZemljaSlova.API.Controllers
             var success = await _bookService.ReturnBooksAsync(bookId, request.Quantity, request.UserId, request.Data);
             return Ok(success);
         }
+
+        [HttpGet("active-rentals")]
+        public async Task<ActionResult<List<BookTransaction>>> GetActiveRentals()
+        {
+            var activeRentals = await _transactionService.GetActiveRentalsAsync();
+            return Ok(activeRentals);
+        }
     }
 
     // TODO: Move to Models.Requests

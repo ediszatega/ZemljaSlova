@@ -3,14 +3,6 @@ import 'package:provider/provider.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/book_provider.dart';
-import '../screens/books_sell_overview.dart';
-import '../screens/books_rent_overview.dart';
-import '../screens/events_overview.dart';
-import '../screens/members_overview.dart';
-import '../screens/reports_overview.dart';
-import '../screens/profile_overview.dart';
-import '../screens/authors_overview.dart';
-import '../screens/employees_overview.dart';
 import '../screens/login_screen.dart';
 
 class SidebarWidget extends StatelessWidget {

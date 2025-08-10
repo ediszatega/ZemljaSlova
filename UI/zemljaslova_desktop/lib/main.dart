@@ -190,8 +190,6 @@ class NavigationScreen extends StatelessWidget {
         return const VouchersOverview();
       case NavigationItem.discounts:
         return const DiscountsOverview();
-      default:
-        return const MembersOverview();
     }
   }
 }

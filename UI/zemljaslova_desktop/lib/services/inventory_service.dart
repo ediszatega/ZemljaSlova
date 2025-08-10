@@ -193,4 +193,19 @@ class InventoryService<T extends InventoryTransaction> {
       return [];
     }
   }
+
+  Future<List<T>> getActiveRentals() async {
+    try {
+      final response = await _apiService.get('${_baseEndpoint.split('/').first}/active-rentals');
+      
+      if (response != null && response is List) {
+        return response.map((json) => _fromJson(json)).toList();
+      }
+      
+      return [];
+    } catch (e) {
+      debugPrint('Failed to get active rentals: $e');
+      return [];
+    }
+  }
 } 
