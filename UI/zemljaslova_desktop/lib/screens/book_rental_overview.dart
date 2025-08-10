@@ -5,6 +5,13 @@ import '../services/api_service.dart';
 import '../widgets/search_loading_indicator.dart';
 import '../widgets/empty_state.dart';
 
+class DateRange {
+  final DateTime start;
+  final DateTime end;
+  
+  DateRange(this.start, this.end);
+}
+
 class BookRentalOverview extends StatefulWidget {
   final int bookId;
   final String bookTitle;
@@ -24,6 +31,7 @@ class _BookRentalOverviewState extends State<BookRentalOverview> {
   List<BookTransaction> _activeRentals = [];
   String? _error;
   bool _showExpiredRentals = false;
+  String? _selectedDateInfo;
   
   final InventoryService<BookTransaction> _inventoryService = InventoryService<BookTransaction>(
     ApiService(),
@@ -351,6 +359,12 @@ class _BookRentalOverviewState extends State<BookRentalOverview> {
         
         const SizedBox(height: 16),
         
+        // Availability Timeline
+        if (!_showExpiredRentals && _activeRentals.isNotEmpty)
+          _buildAvailabilityTimeline(),
+        
+        const SizedBox(height: 16),
+        
         // Rentals list
         Expanded(
           child: ListView.builder(
@@ -363,6 +377,289 @@ class _BookRentalOverviewState extends State<BookRentalOverview> {
         ),
       ],
     );
+  }
+
+  Widget _buildAvailabilityTimeline() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Dostupnost knjige',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Prikaz dostupnosti u narednih 60 dana',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                if (_selectedDateInfo != null)
+                  Text(
+                    _selectedDateInfo!,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.blue.shade700,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildTimelineVisualization(),
+            const SizedBox(height: 12),
+            _buildTimelineLegend(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimelineVisualization() {
+    final today = DateTime.now();
+    const timelineDays = 60;
+    final startDate = today;
+    final endDate = today.add(const Duration(days: timelineDays));
+    
+    // Get all rental periods from active rentals
+    List<DateRange> rentalPeriods = [];
+    DateTime? earliestAvailable;
+    
+    for (var rental in _activeRentals) {
+      final returnDateStr = _extractReturnDate(rental);
+      if (returnDateStr != null) {
+        try {
+          final returnDate = _parseDate(returnDateStr);
+          if (returnDate != null) {
+            // Rental period from today to return date
+            rentalPeriods.add(DateRange(today, returnDate));
+            
+            // Track earliest available date
+            if (earliestAvailable == null || returnDate.isBefore(earliestAvailable)) {
+              earliestAvailable = returnDate;
+            }
+          }
+        } catch (e) {
+        }
+      }
+    }
+    
+    return Container(
+      height: 40,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: _buildTimelineSegments(startDate, endDate, rentalPeriods, earliestAvailable),
+      ),
+    );
+  }
+
+  List<Widget> _buildTimelineSegments(DateTime startDate, DateTime endDate, 
+      List<DateRange> rentalPeriods, DateTime? earliestAvailable) {
+    
+    List<Widget> segments = [];
+    final totalDays = endDate.difference(startDate).inDays;
+    final today = DateTime.now();
+    
+    for (int day = 0; day < totalDays; day++) {
+      final currentDate = startDate.add(Duration(days: day));
+      final isToday = _isSameDay(currentDate, today);
+      
+      // Check if this day falls within any rental period
+      bool isRented = false;
+      for (var period in rentalPeriods) {
+        if (_isDateInRange(currentDate, period)) {
+          isRented = true;
+          break;
+        }
+      }
+      
+      Color segmentColor;
+      if (isRented) {
+        segmentColor = Colors.red.shade400;
+      } else if (earliestAvailable != null && currentDate.isAfter(earliestAvailable)) {
+        segmentColor = Colors.green.shade400;
+      } else {
+        segmentColor = Colors.green.shade400;
+      }
+      
+      // Check if this day should show a day marker (every 5 days)
+      bool showDayMarker = day > 0 && (day + 1) % 5 == 0;
+      
+      Widget? childWidget;
+      if (isToday) {
+        childWidget = const Center(
+          child: Icon(
+            Icons.today,
+            size: 16,
+            color: Colors.white,
+          ),
+        );
+      } else if (showDayMarker) {
+        childWidget = Center(
+          child: Text(
+            '${day + 1}',
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        );
+      }
+      
+      segments.add(
+        Expanded(
+          child: MouseRegion(
+            onEnter: (_) => _showDateInfo(currentDate, isRented),
+            onExit: (_) => _hideDateInfo(),
+            child: Container(
+              height: 40,
+              decoration: BoxDecoration(
+                color: segmentColor,
+                border: isToday ? Border.all(color: Colors.blue, width: 2) : null,
+              ),
+              child: childWidget,
+            ),
+          ),
+        ),
+      );
+    }
+    
+    return segments;
+  }
+
+  Widget _buildTimelineLegend() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            _buildLegendItem(Colors.red.shade400, 'Nedostupno (iznajmljeno)'),
+            const SizedBox(width: 16),
+            _buildLegendItem(Colors.green.shade400, 'Dostupno'),
+            const SizedBox(width: 16),
+            _buildLegendItem(Colors.blue, 'Danas', Icons.today),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Postavite miš na bilo koji dan za prikaz datuma',
+          style: TextStyle(
+            fontSize: 11,
+            color: Colors.grey.shade500,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLegendItem(Color color, String label, [IconData? icon]) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(2),
+            border: icon != null ? Border.all(color: color, width: 2) : null,
+          ),
+          child: icon != null 
+            ? Icon(icon, size: 12, color: Colors.white)
+            : null,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.black87,
+          ),
+        ),
+      ],
+    );
+  }
+
+  DateTime? _parseDate(String dateStr) {
+    try {
+      final parts = dateStr.split('-');
+      if (parts.length == 3) {
+        return DateTime(
+          int.parse(parts[2]), // year
+          int.parse(parts[1]), // month
+          int.parse(parts[0]), // day
+        );
+      }
+    } catch (e) {
+      // Parsing error
+    }
+    return null;
+  }
+
+  bool _isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+           date1.month == date2.month &&
+           date1.day == date2.day;
+  }
+
+  bool _isDateInRange(DateTime date, DateRange range) {
+    final dateOnly = DateTime(date.year, date.month, date.day);
+    final startOnly = DateTime(range.start.year, range.start.month, range.start.day);
+    final endOnly = DateTime(range.end.year, range.end.month, range.end.day);
+    
+    return (dateOnly.isAfter(startOnly) || dateOnly.isAtSameMomentAs(startOnly)) &&
+           (dateOnly.isBefore(endOnly) || dateOnly.isAtSameMomentAs(endOnly));
+  }
+
+  void _showDateInfo(DateTime date, bool isRented) {
+    setState(() {
+      _selectedDateInfo = _formatDateInfo(date, isRented);
+    });
+  }
+
+  void _hideDateInfo() {
+    setState(() {
+      _selectedDateInfo = null;
+    });
+  }
+
+  String _formatDateInfo(DateTime date, bool isRented) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year.toString();
+    final dayName = _getDayName(date.weekday);
+    
+    final status = isRented ? 'Nedostupno (iznajmljeno)' : 'Dostupno';
+    
+    return '$dayName, $day-$month-$year - $status';
+  }
+
+  String _getDayName(int weekday) {
+    switch (weekday) {
+      case 1: return 'Ponedjeljak';
+      case 2: return 'Utorak';
+      case 3: return 'Srijeda';
+      case 4: return 'Četvrtak';
+      case 5: return 'Petak';
+      case 6: return 'Subota';
+      case 7: return 'Nedjelja';
+      default: return '';
+    }
   }
 
   String? _extractReturnDate(BookTransaction rental) {
