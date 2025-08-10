@@ -70,7 +70,10 @@ class _InventoryScreenState<T extends InventoryTransaction> extends State<Invent
     });
     
     try {
-      final quantity = await widget.inventoryService.getCurrentQuantity(widget.itemId);
+      // For rental books, use physical stock instead of current quantity
+      final quantity = widget.isForRent 
+        ? await widget.inventoryService.getPhysicalStock(widget.itemId)
+        : await widget.inventoryService.getCurrentQuantity(widget.itemId);
       final transactions = await widget.inventoryService.getTransactionsById(widget.itemId);
       
       setState(() {

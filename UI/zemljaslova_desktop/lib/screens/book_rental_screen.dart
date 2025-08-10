@@ -69,7 +69,8 @@ class _BookRentalScreenState extends State<BookRentalScreen> {
     });
     
     try {
-      final quantity = await _inventoryService.getCurrentQuantity(widget.bookId);
+      // For rental books, use physical stock instead of current quantity
+      final quantity = await _inventoryService.getPhysicalStock(widget.bookId);
       final transactions = await _inventoryService.getTransactionsById(widget.bookId);
       
       setState(() {
@@ -151,7 +152,7 @@ class _BookRentalScreenState extends State<BookRentalScreen> {
     }
     
     // Check availability
-    final isAvailable = await _inventoryService.isAvailableForPurchase(widget.bookId, quantity);
+    final isAvailable = await _inventoryService.isAvailableForRental(widget.bookId, quantity);
     if (!isAvailable) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

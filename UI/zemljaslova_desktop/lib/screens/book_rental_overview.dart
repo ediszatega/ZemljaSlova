@@ -44,18 +44,16 @@ class _BookRentalOverviewState extends State<BookRentalOverview> {
     });
 
     try {
-      // Get all transactions for this book and filter for active rentals
+      // Get all transactions for this book
       final allTransactions = await _inventoryService.getTransactionsById(widget.bookId);
       
-      // Filter rental transactions (activityTypeId == 4)
-      final allRentals = allTransactions.where((transaction) => 
-        transaction.activityTypeId == 4
-      ).toList();
+      // Calculate active rentals by checking the rental balance
+      final activeRentals = _calculateActiveRentals(allTransactions);
       
       // Filter based on toggle: show only active or include expired
       final rentals = _showExpiredRentals 
-        ? allRentals 
-        : allRentals.where((transaction) => _isRentalActive(transaction)).toList();
+        ? allTransactions.where((t) => t.activityTypeId == 4).toList()
+        : activeRentals;
       
       setState(() {
         _activeRentals = rentals;
@@ -67,6 +65,41 @@ class _BookRentalOverviewState extends State<BookRentalOverview> {
         _isLoading = false;
       });
     }
+  }
+
+  List<BookTransaction> _calculateActiveRentals(List<BookTransaction> allTransactions) {
+    final rentalTransactions = allTransactions.where((t) => t.activityTypeId == 4).toList();
+    
+    // Get all return transactions (stock transactions with "Vraćeno:" in data)
+    final returnTransactions = allTransactions.where((t) => 
+      t.activityTypeId == 1 && 
+      t.data != null && 
+      t.data!.contains('Vraćeno:')
+    ).toList();
+    
+    // Calculate net rented quantity for each rental transaction
+    List<BookTransaction> activeRentals = [];
+    
+    for (var rental in rentalTransactions) {
+      // Calculate how many books from this rental have been returned
+      int returnedFromThisRental = 0;
+      
+      // If this rental hasn't been fully returned and the rental period hasn't expired
+      if (rental.quantity > returnedFromThisRental && _isRentalNotExpired(rental)) {
+        activeRentals.add(rental);
+      }
+    }
+    
+    // Ensure we have net positive rentals
+    int totalRented = rentalTransactions.fold(0, (sum, t) => sum + t.quantity);
+    int totalReturned = returnTransactions.fold(0, (sum, t) => sum + t.quantity);
+    
+    if (totalRented <= totalReturned) {
+      // All books have been returned, no active rentals
+      return [];
+    }
+    
+    return activeRentals;
   }
 
   String _formatDate(DateTime date) {
@@ -81,6 +114,14 @@ class _BookRentalOverviewState extends State<BookRentalOverview> {
   }
 
   bool _isRentalActive(BookTransaction transaction) {
+    if (transaction.activityTypeId != 4) {
+      return false;
+    }
+
+    return _isRentalNotExpired(transaction);
+  }
+
+  bool _isRentalNotExpired(BookTransaction transaction) {
     if (transaction.data == null || transaction.data!.isEmpty) {
       return true; // Consider as active if no data available
     }

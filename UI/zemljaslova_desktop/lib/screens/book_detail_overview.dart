@@ -28,6 +28,7 @@ class BookDetailOverview extends StatefulWidget {
 class _BookDetailOverviewState extends State<BookDetailOverview> {
   late Future<Book?> _bookFuture;
   late Future<int> _currentQuantityFuture;
+  late Future<int> _currentlyRentedFuture;
   final InventoryService<BookTransaction> _inventoryService = InventoryService<BookTransaction>(
     ApiService(),
     'BookTransaction/book',
@@ -47,7 +48,14 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
   }
   
   void _loadInventoryData() {
-    _currentQuantityFuture = _inventoryService.getCurrentQuantity(widget.book.id);
+    // For rental books, use physical stock instead of current quantity
+    if (widget.book.bookPurpose == BookPurpose.rent) {
+      _currentQuantityFuture = _inventoryService.getPhysicalStock(widget.book.id);
+      _currentlyRentedFuture = _inventoryService.getCurrentlyRented(widget.book.id);
+    } else {
+      _currentQuantityFuture = _inventoryService.getCurrentQuantity(widget.book.id);
+      _currentlyRentedFuture = Future.value(0); // Not needed for sale books
+    }
   }
 
   @override
@@ -220,49 +228,147 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
                                   
                                   const SizedBox(height: 10),
                                   
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.shade100,
-                                          borderRadius: BorderRadius.circular(8),
-                                          border: Border.all(color: Colors.grey.shade300),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
+                                  // Show rental-specific quantities for rental books
+                                  if (book.bookPurpose == BookPurpose.rent)
+                                    FutureBuilder<int>(
+                                      future: _currentlyRentedFuture,
+                                      builder: (context, rentedSnapshot) {
+                                        final currentlyRented = rentedSnapshot.data ?? 0;
+                                        
+                                        return Row(
                                           children: [
-                                            Icon(
-                                              Icons.inventory_2_outlined,
-                                              color: Colors.black87,
-                                              size: 20,
+                                            // Physical stock (Na stanju)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey.shade100,
+                                                borderRadius: BorderRadius.circular(8),
+                                                border: Border.all(color: Colors.grey.shade300),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    Icons.inventory_2_outlined,
+                                                    color: Colors.black87,
+                                                    size: 20,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      const Text(
+                                                        'Na stanju',
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          color: Colors.black54,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        '$currentQuantity komada',
+                                                        style: const TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                            const SizedBox(width: 8),
-                                            Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                const Text(
-                                                  'Na stanju',
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.black54,
+                                            
+                                            const SizedBox(width: 16),
+                                            
+                                            // Currently rented (Trenutno iznajmljeno)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey.shade100,
+                                                borderRadius: BorderRadius.circular(8),
+                                                border: Border.all(color: Colors.grey.shade300),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    Icons.book_outlined,
+                                                    color: Colors.black87,
+                                                    size: 20,
                                                   ),
-                                                ),
-                                                Text(
-                                                  '$currentQuantity komada',
-                                                  style: const TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold,
+                                                  const SizedBox(width: 8),
+                                                  Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      const Text(
+                                                        'Trenutno iznajmljeno',
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          color: Colors.black54,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        '$currentlyRented komada',
+                                                        style: const TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
-                                                ),
-                                              ],
+                                                ],
+                                              ),
                                             ),
                                           ],
+                                        );
+                                      },
+                                    )
+                                  else
+                                    // Regular quantity display for sale books
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.shade100,
+                                            borderRadius: BorderRadius.circular(8),
+                                            border: Border.all(color: Colors.grey.shade300),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.inventory_2_outlined,
+                                                color: Colors.black87,
+                                                size: 20,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Text(
+                                                    'Na stanju',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.black54,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    '$currentQuantity komada',
+                                                    style: const TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
+                                      ],
+                                    ),
 
                                   const SizedBox(height: 20),
                                   
@@ -345,7 +451,7 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
                                     builder: (context) => BookInventoryScreen(
                                       bookId: book.id,
                                       bookTitle: book.title,
-                                      isForRent: false,
+                                      isForRent: book.bookPurpose == BookPurpose.rent,
                                     ),
                                   ),
                                 );

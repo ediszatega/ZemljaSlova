@@ -34,10 +34,31 @@ namespace ZemljaSlova.API.Controllers
             return Ok(quantity);
         }
 
+        [HttpGet("book/{bookId}/physical-stock")]
+        public async Task<ActionResult<int>> GetPhysicalStock(int bookId)
+        {
+            var quantity = await _bookService.GetPhysicalStockAsync(bookId);
+            return Ok(quantity);
+        }
+
+        [HttpGet("book/{bookId}/currently-rented")]
+        public async Task<ActionResult<int>> GetCurrentlyRented(int bookId)
+        {
+            var quantity = await _bookService.GetCurrentlyRentedQuantityAsync(bookId);
+            return Ok(quantity);
+        }
+
         [HttpGet("book/{bookId}/available")]
         public async Task<ActionResult<bool>> IsAvailableForPurchase(int bookId, [FromQuery] int quantity)
         {
             var isAvailable = await _bookService.IsAvailableForPurchaseAsync(bookId, quantity);
+            return Ok(isAvailable);
+        }
+
+        [HttpGet("book/{bookId}/available-for-rental")]
+        public async Task<ActionResult<bool>> IsAvailableForRental(int bookId, [FromQuery] int quantity)
+        {
+            var isAvailable = await _bookService.IsAvailableForRentalAsync(bookId, quantity);
             return Ok(isAvailable);
         }
 

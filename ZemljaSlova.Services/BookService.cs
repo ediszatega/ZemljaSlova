@@ -343,6 +343,53 @@ namespace ZemljaSlova.Services
             return currentQuantity;
         }
 
+        public async Task<int> GetPhysicalStockAsync(int bookId)
+        {
+            // For rental books - only consider Stock and Remove transactions
+            // Rented books are still physically present, just rented out
+            var transactions = await Context.BookTransactions
+                .Where(t => t.BookId == bookId)
+                .ToListAsync();
+
+            int physicalStock = 0;
+
+            foreach (var transaction in transactions)
+            {
+                if (transaction.ActivityTypeId == (byte)ActivityType.Stock)
+                {
+                    physicalStock += transaction.Quantity;
+                }
+                else if (transaction.ActivityTypeId == (byte)ActivityType.Sold || 
+                         transaction.ActivityTypeId == (byte)ActivityType.Remove)
+                {
+                    physicalStock -= transaction.Quantity;
+                }
+            }
+
+            return physicalStock;
+        }
+
+        public async Task<int> GetCurrentlyRentedQuantityAsync(int bookId)
+        {
+            var transactions = await Context.BookTransactions
+                .Where(t => t.BookId == bookId)
+                .ToListAsync();
+
+            // Get rental transactions
+            var rentTransactions = transactions.Where(t => t.ActivityTypeId == (byte)ActivityType.Rent);
+            
+            // Get return transactions (Stock transactions with "Vraćeno:" in data)
+            var returnTransactions = transactions.Where(t => 
+                t.ActivityTypeId == (byte)ActivityType.Stock && 
+                t.Data != null && 
+                t.Data.Contains("Vraćeno:"));
+
+            int totalRented = rentTransactions.Sum(t => t.Quantity);
+            int totalReturned = returnTransactions.Sum(t => t.Quantity);
+
+            return Math.Max(0, totalRented - totalReturned);
+        }
+
         public async Task<bool> IsAvailableForPurchaseAsync(int bookId, int requestedQuantity)
         {
             if (requestedQuantity <= 0)
@@ -350,6 +397,16 @@ namespace ZemljaSlova.Services
 
             var currentQuantity = await GetCurrentQuantityAsync(bookId);
             return currentQuantity >= requestedQuantity;
+        }
+
+        public async Task<bool> IsAvailableForRentalAsync(int bookId, int requestedQuantity)
+        {
+            if (requestedQuantity <= 0)
+                return false;
+
+            // For rental books, check physical stock instead of current quantity
+            var physicalStock = await GetPhysicalStockAsync(bookId);
+            return physicalStock >= requestedQuantity;
         }
 
         public async Task<bool> AddStockAsync(int bookId, int quantity, int userId, string? data = null)
@@ -451,8 +508,8 @@ namespace ZemljaSlova.Services
                 return false;
             }
 
-            // Check if there are enough books in stock
-            var isAvailable = await IsAvailableForPurchaseAsync(bookId, quantity);
+            // Check if there are enough books in physical stock for rental
+            var isAvailable = await IsAvailableForRentalAsync(bookId, quantity);
             if (!isAvailable)
             {
                 return false;

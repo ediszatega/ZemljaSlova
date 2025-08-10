@@ -28,6 +28,36 @@ class InventoryService<T extends InventoryTransaction> {
       return 0;
     }
   }
+
+  Future<int> getPhysicalStock(int id) async {
+    try {
+      final response = await _apiService.get('$_baseEndpoint/$id/physical-stock');
+      
+      if (response != null && response is int) {
+        return response;
+      }
+      
+      return 0;
+    } catch (e) {
+      debugPrint('Failed to get physical stock: $e');
+      return 0;
+    }
+  }
+
+  Future<int> getCurrentlyRented(int id) async {
+    try {
+      final response = await _apiService.get('$_baseEndpoint/$id/currently-rented');
+      
+      if (response != null && response is int) {
+        return response;
+      }
+      
+      return 0;
+    } catch (e) {
+      debugPrint('Failed to get currently rented quantity: $e');
+      return 0;
+    }
+  }
   
   Future<bool> isAvailableForPurchase(int id, int quantity) async {
     try {
@@ -40,6 +70,21 @@ class InventoryService<T extends InventoryTransaction> {
       return false;
     } catch (e) {
       debugPrint('Failed to check availability: $e');
+      return false;
+    }
+  }
+
+  Future<bool> isAvailableForRental(int id, int quantity) async {
+    try {
+      final response = await _apiService.get('$_baseEndpoint/$id/available-for-rental?quantity=$quantity');
+      
+      if (response != null && response is bool) {
+        return response;
+      }
+      
+      return false;
+    } catch (e) {
+      debugPrint('Failed to check rental availability: $e');
       return false;
     }
   }
