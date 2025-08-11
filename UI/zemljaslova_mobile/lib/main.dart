@@ -30,6 +30,7 @@ class ZemljaSlova extends StatelessWidget {
     
     return MultiProvider(
       providers: [
+        Provider<ApiService>(create: (_) => apiService),
         ChangeNotifierProvider(create: (_) => AuthProvider(
           apiService: apiService, 
           isAdmin: false, // Mobile app is for members

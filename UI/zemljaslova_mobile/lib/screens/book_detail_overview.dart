@@ -11,6 +11,7 @@ import '../widgets/top_branding.dart';
 import '../widgets/bottom_navigation.dart';
 import '../utils/snackbar_util.dart';
 import '../utils/authorization.dart';
+import 'book_availability.dart';
 
 class BookDetailOverviewScreen extends StatefulWidget {
   final Book book;
@@ -192,16 +193,15 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  book.price != null 
-                    ? '${book.price!.toStringAsFixed(2)} KM'
-                    : 'Knjiga za iznajmljivanje',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                if (book.bookPurpose != BookPurpose.rent && book.price != null) 
+                  Text(
+                    '${book.price!.toStringAsFixed(2)} KM',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -277,7 +277,7 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
   }
   
   Widget _buildActionButtons(Book book) {
-    final isRentBook = book.price == null;
+    final isRentBook = book.bookPurpose == BookPurpose.rent;
     
     return Column(
         children: [
@@ -303,12 +303,20 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
             ),
           ] else ...[
             ZSButton(
-              text: 'Iznajmi knjigu',
+              text: 'Provjeri dostupnost',
               backgroundColor: const Color(0xFF007BFF),
               foregroundColor: Colors.white,
               borderColor: const Color(0xFF007BFF),
               onPressed: () {
-                // TODO: Implement rent book functionality
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BookAvailabilityScreen(
+                      bookId: book.id,
+                      bookTitle: book.title,
+                    ),
+                  ),
+                );
               },
             ),
           ],
@@ -328,7 +336,7 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
   }
 
   void _addBookToCart(Book book) {
-    if (book.price == null) {
+    if (book.bookPurpose == BookPurpose.rent || book.price == null) {
       SnackBarUtil.showTopSnackBar(context, 'Knjige za iznajmljivanje se ne mogu dodati u korpu!');
       return;
     }
