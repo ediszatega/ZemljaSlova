@@ -88,6 +88,36 @@ class InventoryService<T extends InventoryTransaction> {
       return false;
     }
   }
+
+  Future<Map<String, dynamic>?> reserveBook({required int memberId, required int bookId}) async {
+    try {
+      final payload = {
+        'memberId': memberId,
+        'bookId': bookId,
+      };
+      final response = await _apiService.post('BookReservation/reserve', payload);
+      if (response != null && response is Map<String, dynamic>) {
+        return response;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Failed to reserve book: $e');
+      return null;
+    }
+  }
+
+  Future<int?> getReservationPosition(int reservationId) async {
+    try {
+      final response = await _apiService.get('BookReservation/$reservationId/position');
+      if (response != null && response is int) {
+        return response;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Failed to get reservation position: $e');
+      return null;
+    }
+  }
   
   Future<bool> addStock({
     required int id,

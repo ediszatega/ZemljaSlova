@@ -12,6 +12,8 @@ import '../widgets/bottom_navigation.dart';
 import '../utils/snackbar_util.dart';
 import '../utils/authorization.dart';
 import 'book_availability.dart';
+import '../services/book_rental_service.dart';
+import '../services/api_service.dart';
 
 class BookDetailOverviewScreen extends StatefulWidget {
   final Book book;
@@ -27,6 +29,11 @@ class BookDetailOverviewScreen extends StatefulWidget {
 
 class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
   late Future<Book?> _bookFuture;
+  late BookRentalService _bookRentalService;
+  bool _isCheckingAvailability = false;
+  bool _canReserve = false;
+  int? _reservationPosition;
+  int? _reservationId;
   
   @override
   void initState() {
@@ -35,6 +42,10 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
     _loadBookData();
     // Load favourites for the current user
     _loadFavouriteStatus();
+    _bookRentalService = BookRentalService(Provider.of<ApiService>(context, listen: false));
+    if (widget.book.bookPurpose == BookPurpose.rent) {
+      _loadExistingReservationAndPosition();
+    }
   }
   
   void _loadBookData() {
@@ -319,9 +330,229 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
                 );
               },
             ),
+            const SizedBox(height: 12),
+            if (_canReserve)
+              ZSButton(
+                text: _isCheckingAvailability ? 'Provjera...' : 'Rezerviši knjigu',
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+                borderColor: Colors.orange,
+                onPressed: _isCheckingAvailability ? null : () => _reserveBook(book),
+              ),
+                         if (_reservationPosition != null) ...[
+               const SizedBox(height: 8),
+               Text(
+                 'Rezervisali ste ovu knjigu. Vaša pozicija u redu: $_reservationPosition',
+                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+               ),
+               const SizedBox(height: 8),
+               ZSButton(
+                 text: 'Otkaži rezervaciju',
+                 backgroundColor: Colors.red,
+                 foregroundColor: Colors.white,
+                 borderColor: Colors.red,
+                 onPressed: () => _cancelReservation(book),
+               ),
+             ],
           ],
         ],
       );
+  }
+
+  Future<void> _reserveBook(Book book) async {
+    final memberProvider = Provider.of<MemberProvider>(context, listen: false);
+    if (memberProvider.currentMember == null) {
+      SnackBarUtil.showTopSnackBar(context, 'Morate biti prijavljeni kao član.');
+      return;
+    }
+    
+    // Show confirmation dialog
+     final shouldReserve = await showDialog<bool>(
+       context: context,
+       builder: (BuildContext context) {
+         return AlertDialog(
+           title: const Text('Rezerviši knjigu'),
+           content: Column(
+             mainAxisSize: MainAxisSize.min,
+             crossAxisAlignment: CrossAxisAlignment.start,
+             children: const [
+               Text(
+                 'Trenutno su sve kopije ove knjige već iznajmljene, te vaša rezervacija vas stavlja na listu čekanja za iznajmljivanje ove knjige po povratku na stanje.',
+               ),
+               SizedBox(height: 8),
+               Text(
+                 'Kada rezervišete knjigu bit će vam prikazan broj na kojoj ste poziciji na listi čekanja.',
+               ),
+               SizedBox(height: 8),
+               Text(
+                 'Sama rezervacija vam daje prednost za iznajmljivanje knjige, ali ne i potpunu sigurnost, u slučaju da niste u mogućnosti da lično preuzmete knjigu u razumnom roku nakon što ona ponovo bude na stanju',
+                 style: TextStyle(fontWeight: FontWeight.bold),
+               ),
+             ],
+           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Odustani'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.orange,
+              ),
+              child: const Text('Rezerviši'),
+            ),
+          ],
+        );
+      },
+    );
+    
+    // If user cancelled the dialog, return early
+    if (shouldReserve != true) {
+      return;
+    }
+    
+    setState(() { _isCheckingAvailability = true; });
+    try {
+      final res = await _bookRentalService.reserveBook(
+        memberId: memberProvider.currentMember!.id,
+        bookId: book.id,
+      );
+      if (res != null) {
+        _reservationId = res['id'] as int?;
+        if (_reservationId != null) {
+          final pos = await _bookRentalService.getReservationPosition(_reservationId!);
+          setState(() { 
+            _reservationPosition = pos;
+            _canReserve = false;
+          });
+          if (mounted) {
+            SnackBarUtil.showTopSnackBar(context, 'Knjiga je rezervisana.');
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        SnackBarUtil.showTopSnackBar(context, 'Rezervacija nije uspjela.');
+      }
+    } finally {
+      setState(() { _isCheckingAvailability = false; });
+    }
+  }
+
+  Future<void> _cancelReservation(Book book) async {
+    final memberProvider = Provider.of<MemberProvider>(context, listen: false);
+    if (memberProvider.currentMember == null) {
+      SnackBarUtil.showTopSnackBar(context, 'Morate biti prijavljeni kao član.');
+      return;
+    }
+    
+    if (_reservationId == null) {
+      SnackBarUtil.showTopSnackBar(context, 'Nema aktivne rezervacije za otkazivanje.');
+      return;
+    }
+    
+    // Show confirmation dialog
+    final shouldCancel = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Otkaži rezervaciju'),
+          content: const Text(
+            'Jeste li sigurni da želite otkazati rezervaciju ove knjige? U slučaju otkazivanja gubite svoju poziciju na listi čekanja, te ponovnom rezervacijom bivate stavljeni na posljednju poziciju',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Odustani'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Otkaži'),
+            ),
+          ],
+        );
+      },
+    );
+    
+    // If user cancelled the dialog, return early
+    if (shouldCancel != true) {
+      return;
+    }
+    
+    setState(() { _isCheckingAvailability = true; });
+    try {
+      final success = await _bookRentalService.cancelReservation(
+        _reservationId!,
+        memberProvider.currentMember!.id,
+      );
+      
+      if (success) {
+        setState(() { 
+          _reservationPosition = null;
+          _reservationId = null;
+        });
+        // Recheck availability after cancellation
+        await _loadExistingReservationAndPosition();
+        if (mounted) {
+          SnackBarUtil.showTopSnackBar(context, 'Rezervacija je otkazana.');
+        }
+      } else {
+        if (mounted) {
+          SnackBarUtil.showTopSnackBar(context, 'Otkazivanje rezervacije nije uspjelo.');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        SnackBarUtil.showTopSnackBar(context, 'Greška pri otkazivanju rezervacije.');
+      }
+    } finally {
+      setState(() { _isCheckingAvailability = false; });
+    }
+  }
+
+    Future<void> _loadExistingReservationAndPosition() async {
+    final memberProvider = Provider.of<MemberProvider>(context, listen: false);
+    if (memberProvider.currentMember == null) {
+      return;
+    }
+    
+    setState(() { _isCheckingAvailability = true; });
+    
+    try {
+      final queue = await _bookRentalService.getBookQueue(widget.book.id);
+      final idx = queue.indexWhere((e) => (e['memberId'] as int?) == memberProvider.currentMember!.id);
+      
+      if (idx >= 0) {
+        // User has a reservation
+        final userReservation = queue[idx];
+        _reservationId = userReservation['id'] as int?;
+        setState(() {
+          _reservationPosition = idx + 1;
+          _canReserve = false;
+        });
+      } else {
+        // User doesn't have a reservation, check availability
+        final physical = await _bookRentalService.getPhysicalStock(widget.book.id);
+        final rented = await _bookRentalService.getCurrentlyRented(widget.book.id);
+        final available = physical - rented;
+        
+        // Only show reserve button if there are physical copies and all are rented out
+        final shouldShowReserveButton = physical > 0 && available <= 0;
+        
+        setState(() { _canReserve = shouldShowReserveButton; });
+      }
+    } catch (e) {
+      // If we can't load the queue, don't show reserve button to be safe
+      setState(() {
+        _canReserve = false;
+      });
+    } finally {
+      setState(() { _isCheckingAvailability = false; });
+    }
   }
   
   Widget _buildFallbackImage() {

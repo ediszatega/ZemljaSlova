@@ -66,4 +66,64 @@ class BookRentalService {
       return 0;
     }
   }
+
+  Future<Map<String, dynamic>?> reserveBook({required int memberId, required int bookId}) async {
+    try {
+      final payload = {
+        'memberId': memberId,
+        'bookId': bookId,
+      };
+      final response = await _apiService.post('BookReservation/reserve', payload);
+      if (response != null && response is Map<String, dynamic>) {
+        return response;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Failed to reserve book: $e');
+      return null;
+    }
+  }
+
+  Future<int?> getReservationPosition(int reservationId) async {
+    try {
+      final response = await _apiService.get('BookReservation/$reservationId/position');
+      if (response != null && response is int) {
+        return response;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Failed to get reservation position: $e');
+      return null;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getBookQueue(int bookId) async {
+    try {
+      final response = await _apiService.get('BookReservation/book/$bookId/queue');
+      
+      if (response != null && response is List) {
+        return response.cast<Map<String, dynamic>>();
+      }
+      
+      return [];
+    } catch (e) {
+      debugPrint('Failed to get book queue: $e');
+      return [];
+    }
+  }
+
+  Future<bool> cancelReservation(int reservationId, int memberId) async {
+    try {
+      final response = await _apiService.delete('BookReservation/$reservationId/cancel/$memberId');
+      
+      if (response != null && response is bool) {
+        return response;
+      }
+      
+      return false;
+    } catch (e) {
+      debugPrint('Failed to cancel reservation: $e');
+      return false;
+    }
+  }
 }

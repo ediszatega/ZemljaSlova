@@ -11,5 +11,9 @@ namespace ZemljaSlova.Services
 {
     public interface IBookReservationService : ICRUDService<BookReservation, BookReservationSearchObject, BookReservationUpsertRequest, BookReservationUpsertRequest>
     {
+        Task<Model.BookReservation> ReserveAsync(int memberId, int bookId);
+        Task<bool> CancelAsync(int reservationId, int memberId);
+        Task<int> GetQueuePositionAsync(int reservationId);
+        Task<List<Model.BookReservation>> GetQueueForBookAsync(int bookId);
     }
 }
