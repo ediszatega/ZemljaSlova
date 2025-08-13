@@ -32,6 +32,8 @@ class _BookAvailabilityScreenState extends State<BookAvailabilityScreen> {
   List<BookTransaction> _activeRentals = [];
   String? _error;
   String? _selectedDateInfo;
+  int _physicalStock = 0;
+  int _currentlyRented = 0;
   
   late BookRentalService _bookRentalService;
 
@@ -56,9 +58,14 @@ class _BookAvailabilityScreenState extends State<BookAvailabilityScreen> {
       
       // Filter only rental transactions (activityTypeId = 4)
       _activeRentals = transactions.where((t) => t.activityTypeId == BookActivityType.rent.value).toList();
-      
+      // Fetch stock information
+      final physical = await _bookRentalService.getPhysicalStock(widget.bookId);
+      final rented = await _bookRentalService.getCurrentlyRented(widget.bookId);
+
       setState(() {
         _isLoading = false;
+        _physicalStock = physical;
+        _currentlyRented = rented;
       });
     } catch (e) {
       setState(() {
@@ -155,11 +162,11 @@ class _BookAvailabilityScreenState extends State<BookAvailabilityScreen> {
           
           const SizedBox(height: 20),
           
-          // Availability Timeline
-          if (_activeRentals.isNotEmpty) ...[
-            _buildAvailabilityTimeline(),
-            const SizedBox(height: 20),
-          ],
+          // Availability timeline
+           if (_physicalStock > 0) ...[
+             _buildAvailabilityTimeline(),
+             const SizedBox(height: 20),
+           ],
           
           // Current status
           _buildCurrentStatus(),
@@ -298,8 +305,33 @@ class _BookAvailabilityScreenState extends State<BookAvailabilityScreen> {
 
   Widget _buildRangeBasedTimeline(DateTime today, DateTime? latestReturnDate) {
     List<Widget> segments = [];
+    final bool hasPhysicalStock = _physicalStock > 0;
+    final bool allCopiesRented = hasPhysicalStock && _currentlyRented >= _physicalStock;
     
-    if (latestReturnDate == null || _activeRentals.isEmpty) {
+    if (!hasPhysicalStock) {
+      return const SizedBox.shrink();
+    }
+
+    if (!allCopiesRented) {
+      // Some copies are available now
+      segments.addAll([
+        // Today marker
+        _buildTimelineSegment(
+          color: Colors.blue,
+          fixedWidth: 60,
+          label: 'Danas',
+          icon: Icons.today,
+          onTap: () => _showDateInfo(today, false),
+        ),
+        // Available period
+        _buildTimelineSegment(
+          color: Colors.green.shade400,
+          flex: 8,
+          label: 'Dostupno',
+          onTap: () => _showRangeInfo('Dostupno za iznajmljivanje'),
+        ),
+      ]);
+    } else if (latestReturnDate == null || _activeRentals.isEmpty) {
       // Book is available - show only today marker and available period
       segments.addAll([
         // Today marker
@@ -425,7 +457,35 @@ class _BookAvailabilityScreenState extends State<BookAvailabilityScreen> {
   }
 
   Widget _buildCurrentStatus() {
-    final hasActiveRentals = _activeRentals.isNotEmpty;
+    final bool hasPhysicalStock = _physicalStock > 0;
+    final bool hasRentedCopies = _currentlyRented > 0;
+    final bool allCopiesRented = hasPhysicalStock && _currentlyRented >= _physicalStock;
+    
+    String statusMessage;
+    Color statusColor;
+    IconData statusIcon;
+    
+    if (!hasPhysicalStock) {
+      // No physical copies
+       statusMessage = 'Knjiga nije dostupna za iznajmljivanje jer trenutno nije na stanju';
+       statusColor = Colors.red.shade600;
+       statusIcon = Icons.error_outline;
+    } else if (allCopiesRented) {
+      // All copies are rented out
+      statusMessage = 'Knjiga trenutno nije dostupna za iznajmljivanje jer su sve kopije trenutno iznajmljene. Knjigu možete rezervisati kako biste bili na listi čekanja kada knjiga ponovo bude dostupna.';
+      statusColor = Colors.orange.shade600;
+      statusIcon = Icons.schedule;
+    } else if (hasRentedCopies) {
+      // Some copies are rented but some are still available
+      statusMessage = 'Knjiga trenutno ima iznajmljenih kopija, ali je još uvijek dostupna za iznajmljivanje.';
+      statusColor = Colors.green.shade600;
+      statusIcon = Icons.check_circle;
+    } else {
+      // No copies are rented, all are available
+      statusMessage = 'Knjiga je trenutno dostupna za iznajmljivanje';
+      statusColor = Colors.green.shade600;
+      statusIcon = Icons.check_circle;
+    }
     
     return Card(
       elevation: 2,
@@ -437,8 +497,8 @@ class _BookAvailabilityScreenState extends State<BookAvailabilityScreen> {
             Row(
               children: [
                 Icon(
-                  hasActiveRentals ? Icons.schedule : Icons.check_circle,
-                  color: hasActiveRentals ? Colors.orange : Colors.green,
+                  statusIcon,
+                  color: statusColor,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -455,19 +515,17 @@ class _BookAvailabilityScreenState extends State<BookAvailabilityScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: hasActiveRentals ? Colors.orange.shade50 : Colors.green.shade50,
+                color: _getStatusBackgroundColor(statusColor),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: hasActiveRentals ? Colors.orange.shade200 : Colors.green.shade200,
+                  color: _getStatusBorderColor(statusColor),
                 ),
               ),
               child: Text(
-                hasActiveRentals 
-                  ? 'Knjiga je trenutno iznajmljena. Provjerite kalendar dostupnosti za buduće termine.'
-                  : 'Knjiga je trenutno dostupna za iznajmljivanje.',
+                statusMessage,
                 style: TextStyle(
                   fontSize: 14,
-                  color: hasActiveRentals ? Colors.orange.shade800 : Colors.green.shade800,
+                  color: _getStatusTextColor(statusColor),
                 ),
               ),
             ),
@@ -604,5 +662,38 @@ class _BookAvailabilityScreenState extends State<BookAvailabilityScreen> {
     }
 
     return null;
+  }
+
+  Color _getStatusBackgroundColor(Color statusColor) {
+    if (statusColor == Colors.red.shade600) {
+      return Colors.red.shade50;
+    } else if (statusColor == Colors.orange.shade600) {
+      return Colors.orange.shade50;
+    } else if (statusColor == Colors.green.shade600) {
+      return Colors.green.shade50;
+    }
+    return Colors.grey.shade50;
+  }
+
+  Color _getStatusBorderColor(Color statusColor) {
+    if (statusColor == Colors.red.shade600) {
+      return Colors.red.shade200;
+    } else if (statusColor == Colors.orange.shade600) {
+      return Colors.orange.shade200;
+    } else if (statusColor == Colors.green.shade600) {
+      return Colors.green.shade200;
+    }
+    return Colors.grey.shade200;
+  }
+
+  Color _getStatusTextColor(Color statusColor) {
+    if (statusColor == Colors.red.shade600) {
+      return Colors.red.shade800;
+    } else if (statusColor == Colors.orange.shade600) {
+      return Colors.orange.shade800;
+    } else if (statusColor == Colors.green.shade600) {
+      return Colors.green.shade800;
+    }
+    return Colors.grey.shade800;
   }
 }
