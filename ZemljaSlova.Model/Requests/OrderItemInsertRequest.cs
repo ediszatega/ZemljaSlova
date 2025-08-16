@@ -12,11 +12,11 @@ namespace ZemljaSlova.Model.Requests
 
         public int? MembershipId { get; set; }
 
+        public int? VoucherId { get; set; }
+
         public int Quantity { get; set; }
 
         public int? DiscountId { get; set; }
-
-        public int? VoucherId { get; set; }
 
         public int OrderId { get; set; }
     }

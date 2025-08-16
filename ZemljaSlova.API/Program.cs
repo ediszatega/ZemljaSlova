@@ -57,6 +57,9 @@ builder.Services.AddMapster();
 TypeAdapterConfig.GlobalSettings.Default.PreserveReference(true);
 TypeAdapterConfig.GlobalSettings.Default.IgnoreNullValues(true);
 
+// Configure Stripe globally
+Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

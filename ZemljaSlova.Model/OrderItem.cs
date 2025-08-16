@@ -15,6 +15,8 @@ namespace ZemljaSlova.Model
 
         public int? MembershipId { get; set; }
 
+        public int? VoucherId { get; set; }
+
         public int Quantity { get; set; }
 
         public int? DiscountId { get; set; }
@@ -30,6 +32,8 @@ namespace ZemljaSlova.Model
         public virtual Order Order { get; set; } = null!;
 
         public virtual TicketType? TicketType { get; set; }
+
+        public virtual Voucher? Voucher { get; set; }
 
         public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 

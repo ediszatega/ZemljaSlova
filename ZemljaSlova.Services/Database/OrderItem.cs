@@ -19,6 +19,8 @@ public partial class OrderItem
 
     public int OrderId { get; set; }
 
+    public int? VoucherId { get; set; }
+
     public virtual Book? Book { get; set; }
 
     public virtual Discount? Discount { get; set; }
@@ -32,4 +34,6 @@ public partial class OrderItem
     public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 
     public virtual ICollection<UserBookClubTransaction> UserBookClubTransactions { get; set; } = new List<UserBookClubTransaction>();
+
+    public virtual Voucher? Voucher { get; set; }
 }

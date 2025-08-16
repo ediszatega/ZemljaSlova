@@ -255,7 +255,15 @@ public partial class _200036Context : DbContext
             entity.ToTable("Order");
 
             entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PaymentIntentId).HasMaxLength(255);
+            entity.Property(e => e.PaymentStatus).HasMaxLength(50);
             entity.Property(e => e.PurchasedAt).HasColumnType("datetime");
+            entity.Property(e => e.ShippingAddress).HasMaxLength(255);
+            entity.Property(e => e.ShippingCity).HasMaxLength(50);
+            entity.Property(e => e.ShippingCountry).HasMaxLength(100);
+            entity.Property(e => e.ShippingEmail).HasMaxLength(100);
+            entity.Property(e => e.ShippingPhoneNumber).HasMaxLength(50);
+            entity.Property(e => e.ShippingPostalCode).HasMaxLength(20);
 
             entity.HasOne(d => d.Discount).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.DiscountId)
@@ -295,6 +303,10 @@ public partial class _200036Context : DbContext
             entity.HasOne(d => d.TicketType).WithMany(p => p.OrderItems)
                 .HasForeignKey(d => d.TicketTypeId)
                 .HasConstraintName("FK_OrderItem_TicketType");
+
+            entity.HasOne(d => d.Voucher).WithMany(p => p.OrderItems)
+                .HasForeignKey(d => d.VoucherId)
+                .HasConstraintName("FK_OrderItem_Voucher");
         });
 
         modelBuilder.Entity<Ticket>(entity =>

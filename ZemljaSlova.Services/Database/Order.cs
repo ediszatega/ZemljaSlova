@@ -17,6 +17,22 @@ public partial class Order
 
     public int? VoucherId { get; set; }
 
+    public string? PaymentIntentId { get; set; }
+
+    public string? PaymentStatus { get; set; }
+
+    public string? ShippingAddress { get; set; }
+
+    public string? ShippingCity { get; set; }
+
+    public string? ShippingPostalCode { get; set; }
+
+    public string? ShippingCountry { get; set; }
+
+    public string? ShippingPhoneNumber { get; set; }
+
+    public string? ShippingEmail { get; set; }
+
     public virtual Discount? Discount { get; set; }
 
     public virtual Member Member { get; set; } = null!;
