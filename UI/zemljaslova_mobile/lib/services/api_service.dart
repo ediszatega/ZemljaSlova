@@ -46,10 +46,12 @@ class ApiService {
   Future<dynamic> post(String endpoint, dynamic data) async {
     try {
       final url = Uri.parse('$baseUrl/$endpoint');
+      final headers = await this.headers;
+      
       
       final response = await http.post(
         url,
-        headers: await headers,
+        headers: headers,
         body: json.encode(data),
       );
       

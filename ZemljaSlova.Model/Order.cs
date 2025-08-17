@@ -22,12 +22,16 @@ namespace ZemljaSlova.Model
 
         public string? PaymentStatus { get; set; }
 
-        // Shipping Address Fields
         public string? ShippingAddress { get; set; }
+
         public string? ShippingCity { get; set; }
+
         public string? ShippingPostalCode { get; set; }
+
         public string? ShippingCountry { get; set; }
+
         public string? ShippingPhoneNumber { get; set; }
+        
         public string? ShippingEmail { get; set; }
 
         public virtual Discount? Discount { get; set; }
@@ -35,8 +39,6 @@ namespace ZemljaSlova.Model
         public virtual Member Member { get; set; } = null!;
 
         public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
-
-        public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 
         public virtual Voucher? Voucher { get; set; }
     }

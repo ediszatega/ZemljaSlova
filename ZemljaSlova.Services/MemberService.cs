@@ -217,6 +217,17 @@ namespace ZemljaSlova.Services
 
             return _mapper.Map<Model.Member>(entity);
         }
+
+        public Model.Member GetByEmail(string email)
+        {
+            var entity = _context.Members
+                .Include(m => m.User)
+                .FirstOrDefault(m => m.User.Email == email);
+
+            if (entity == null) return null;
+
+            return _mapper.Map<Model.Member>(entity);
+        }
         
         public override async Task<Model.Member> Delete(int id)
         {
@@ -237,17 +248,13 @@ namespace ZemljaSlova.Services
                             .ThenInclude(br => br.Notifications)
                         .Include(m => m.Orders)
                             .ThenInclude(o => o.Notifications)
-                        .Include(m => m.Orders)
-                            .ThenInclude(o => o.OrderItems)
-                                .ThenInclude(oi => oi.Tickets)
                         .Include(m => m.Tickets)
                         .Include(m => m.UserBookClubs)
                             .ThenInclude(ubc => ubc.UserBookClubTransactions)
                         .Include(m => m.Favourites)
                         .Include(m => m.Memberships)
                             .ThenInclude(ms => ms.Notifications)
-                        .Include(m => m.Memberships)
-                            .ThenInclude(ms => ms.OrderItems)
+
                         .Include(m => m.Vouchers)
                         .FirstOrDefaultAsync(m => m.Id == id);
 
@@ -272,12 +279,14 @@ namespace ZemljaSlova.Services
                     {
                         _context.Notifications.RemoveRange(order.Notifications);
                         
-                        foreach (var orderItem in order.OrderItems)
+                        // Get order items directly from context
+                        var orderItems = _context.OrderItems.Where(oi => oi.OrderId == order.Id).ToList();
+                        foreach (var orderItem in orderItems)
                         {
                             _context.Tickets.RemoveRange(orderItem.Tickets);
                         }
                         
-                        _context.OrderItems.RemoveRange(order.OrderItems);
+                        _context.OrderItems.RemoveRange(orderItems);
                     }
                     _context.Orders.RemoveRange(member.Orders);
                     

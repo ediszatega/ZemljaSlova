@@ -22,9 +22,9 @@ namespace ZemljaSlova.Services
             var entity = new Database.Voucher
             {
                 Value = request.Value,
-                Code = GenerateUniqueVoucherCode(),
+                Code = GenerateVoucherCodeWithTimestamp(request.Value),
                 IsUsed = false,
-                ExpirationDate = DateTime.Now.AddDays(60), 
+                ExpirationDate = DateTime.Now.AddDays(365), // Changed to 1 year for purchased vouchers
                 PurchasedByMemberId = request.MemberId,
                 PurchasedAt = DateTime.Now
             };
@@ -40,7 +40,7 @@ namespace ZemljaSlova.Services
             var entity = new Database.Voucher
             {
                 Value = request.Value,
-                Code = string.IsNullOrWhiteSpace(request.Code) ? GenerateUniqueVoucherCode() : request.Code,
+                Code = string.IsNullOrWhiteSpace(request.Code) ? GenerateVoucherCodeWithTimestamp(request.Value) : request.Code,
                 IsUsed = false,
                 ExpirationDate = request.ExpirationDate,
                 PurchasedByMemberId = null, // Admin created - no member
@@ -163,28 +163,19 @@ namespace ZemljaSlova.Services
             return voucher != null ? Mapper.Map<Model.Voucher>(voucher) : null;
         }
 
-        private string GenerateUniqueVoucherCode()
+        private string GenerateVoucherCodeWithTimestamp(decimal value)
         {
-            string code;
-            bool exists;
-
-            do
-            {
-                code = GenerateVoucherCode();
-                exists = Context.Vouchers.Any(v => v.Code == code);
-            } 
-            while (exists);
-
-            return code;
-        }
-
-        private string GenerateVoucherCode()
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            var random = new Random();
+            var timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            var code = $"{value:0}_{timestamp}";
             
-            return new string(Enumerable.Repeat(chars, 8)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
+            // Ensure it's unique (in case of simultaneous requests)
+            while (Context.Vouchers.Any(v => v.Code == code))
+            {
+                timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                code = $"{value:0}_{timestamp}";
+            }
+            
+            return code;
         }
     }
 }

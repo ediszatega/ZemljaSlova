@@ -4,6 +4,7 @@ using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace ZemljaSlova.API.Controllers
 {
@@ -60,6 +61,33 @@ namespace ZemljaSlova.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, "An error occurred while retrieving the member.");
+            }
+        }
+
+        [HttpGet("current")]
+        [Authorize]
+        public ActionResult<Model.Member> GetCurrentMember()
+        {
+            try
+            {
+                // Get email from JWT token
+                var emailClaim = User.FindFirst(ClaimTypes.Email)?.Value;
+                if (string.IsNullOrEmpty(emailClaim))
+                {
+                    return Unauthorized("Invalid token");
+                }
+
+                var member = _memberService.GetByEmail(emailClaim);
+                if (member == null)
+                {
+                    return NotFound("Member not found");
+                }
+
+                return Ok(member);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while retrieving current member.");
             }
         }
 

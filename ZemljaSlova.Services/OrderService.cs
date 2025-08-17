@@ -16,10 +16,12 @@ namespace ZemljaSlova.Services
     public class OrderService : BaseCRUDService<Model.Order, OrderSearchObject, Database.Order, OrderInsertRequest, OrderUpdateRequest>, IOrderService
     {
         private readonly IConfiguration _configuration;
+        private readonly IVoucherService _voucherService;
 
-        public OrderService(_200036Context context, IMapper mapper, IConfiguration configuration) : base(context, mapper)
+        public OrderService(_200036Context context, IMapper mapper, IConfiguration configuration, IVoucherService voucherService) : base(context, mapper)
         {
             _configuration = configuration;
+            _voucherService = voucherService;
         }
 
         public async Task<PaymentIntentResponse> CreatePaymentIntentAsync(decimal amount, string currency = "bam")
@@ -58,11 +60,11 @@ namespace ZemljaSlova.Services
         {
             try
             {
-                // Confirm the payment intent if provided
-                if (!string.IsNullOrEmpty(request.PaymentMethodId))
+                // Retrieve the payment intent if provided to verify it was successful
+                if (!string.IsNullOrEmpty(request.PaymentIntentId))
                 {
                     var paymentIntentService = new PaymentIntentService();
-                    var paymentIntent = await paymentIntentService.ConfirmAsync(request.PaymentMethodId);
+                    var paymentIntent = await paymentIntentService.GetAsync(request.PaymentIntentId);
 
                     if (paymentIntent.Status != "succeeded")
                     {
@@ -70,7 +72,6 @@ namespace ZemljaSlova.Services
                     }
 
                     // Update payment info
-                    request.PaymentIntentId = paymentIntent.Id;
                     request.PaymentStatus = paymentIntent.Status;
                 }
 
@@ -85,8 +86,38 @@ namespace ZemljaSlova.Services
                 foreach (var itemRequest in orderItems)
                 {
                     itemRequest.OrderId = order.Id;
-                    var orderItem = Mapper.Map<Database.OrderItem>(itemRequest);
-                    Context.OrderItems.Add(orderItem);
+                    
+                    // Create new vouchers when purchasing
+                    if (itemRequest.VoucherId.HasValue)
+                    {
+                        var voucherValue = itemRequest.VoucherId.Value;
+                        
+                        for (int i = 0; i < itemRequest.Quantity; i++)
+                        {
+                            var voucherRequest = new VoucherMemberInsertRequest
+                            {
+                                Value = voucherValue,
+                                MemberId = order.MemberId
+                            };
+                            
+                            var newVoucher = _voucherService.InsertMemberVoucher(voucherRequest);
+                            
+                            var orderItem = new Database.OrderItem
+                            {
+                                OrderId = order.Id,
+                                VoucherId = newVoucher.Id,
+                                Quantity = 1, // Each voucher is individual
+                                DiscountId = itemRequest.DiscountId
+                            };
+                            
+                            Context.OrderItems.Add(orderItem);
+                        }
+                    }
+                    else
+                    {
+                        var orderItem = Mapper.Map<Database.OrderItem>(itemRequest);
+                        Context.OrderItems.Add(orderItem);
+                    }
                 }
 
                 await Context.SaveChangesAsync();

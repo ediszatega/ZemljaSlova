@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
 import '../models/cart_item.dart';
 import '../widgets/zs_button.dart';
+import 'shipping_address_screen.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -263,7 +264,7 @@ class CartScreen extends StatelessWidget {
                     foregroundColor: Colors.green,
                     borderColor: Colors.green.shade200,
                     onPressed: () {
-                      // TODO: Implement checkout functionality
+                      _handleCheckout(context, cartProvider);
                     },
                   ),
                 ),
@@ -323,6 +324,24 @@ class CartScreen extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  void _handleCheckout(BuildContext context, CartProvider cartProvider) {
+    final totalAmount = cartProvider.items.fold<double>(
+      0.0,
+      (sum, item) => sum + (item.price * item.quantity),
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ShippingAddressScreen(
+          totalAmount: totalAmount,
+          onAddressSubmitted: () {
+          },
+        ),
+      ),
     );
   }
 

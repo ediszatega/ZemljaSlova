@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'providers/navigation_provider.dart';
 import 'providers/cart_provider.dart';
 import 'providers/book_provider.dart';
@@ -17,7 +18,17 @@ import 'services/author_service.dart';
 import 'widgets/mobile_layout.dart';
 import 'screens/login_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Stripe
+  try {
+    Stripe.publishableKey = 'pk_test_51Rw80WA3p6s4oP6TdNagoydnF5ZnZ6tIGmRxLa0vez2IAFtRsByBsYQ9r17xZxTzCoLQ9xRLdnuuVa4w9MGmc0cV00IXyYyA65';
+    await Stripe.instance.applySettings();
+  } catch (e) {
+    debugPrint('Stripe initialization error in main.dart: $e');
+  }
+  
   runApp(const ZemljaSlova());
 }
 
