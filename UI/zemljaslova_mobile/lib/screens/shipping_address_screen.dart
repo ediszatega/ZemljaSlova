@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:provider/provider.dart';
 import '../models/shipping_address.dart';
 import '../widgets/zs_button.dart';
+import '../widgets/top_branding.dart';
+import '../widgets/bottom_navigation.dart';
+import '../providers/member_provider.dart';
 import 'payment_screen.dart';
 
 class ShippingAddressScreen extends StatefulWidget {
@@ -22,77 +26,77 @@ class ShippingAddressScreen extends StatefulWidget {
 class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
   final _formKey = GlobalKey<FormBuilderState>();
   bool _isLoading = false;
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeForm();
+  }
+
+  Future<void> _initializeForm() async {
+    final memberProvider = Provider.of<MemberProvider>(context, listen: false);
+    final currentMember = memberProvider.currentMember;
+    
+    if (currentMember != null && !_isInitialized) {
+      setState(() {
+        _isInitialized = true;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final memberProvider = Provider.of<MemberProvider>(context);
+    final currentMember = memberProvider.currentMember;
+    
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Informacije o dostavi'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 0,
-      ),
-      body: FormBuilder(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeaderSection(),
-              const SizedBox(height: 24),
-              _buildAddressForm(),
-              const SizedBox(height: 32),
-              _buildPaymentSummary(),
-              const SizedBox(height: 24),
-              _buildSubmitButton(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeaderSection() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: Colors.grey.shade50,
+      body: Column(
         children: [
-          Row(
-            children: [
-              Icon(Icons.location_on, color: Colors.blue.shade600),
-              const SizedBox(width: 8),
-              Text(
-                'Adresa za dostavu',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.blue.shade800,
+          const TopBranding(),
+          Expanded(
+            child: FormBuilder(
+              key: _formKey,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                   crossAxisAlignment: CrossAxisAlignment.start,
+                   children: [
+                     _buildTitle(),
+                     const SizedBox(height: 24),
+                     _buildAddressForm(),
+                    const SizedBox(height: 32),
+                    _buildPaymentSummary(),
+                    const SizedBox(height: 24),
+                    _buildSubmitButton(),
+                    const SizedBox(height: 24), // Extra padding for bottom navigation
+                  ],
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Unesite informacije o adresi na koju želite da dostavimo vašu porudžbinu.',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.blue.shade700,
             ),
           ),
+          const BottomNavigation(),
         ],
       ),
     );
   }
 
+  Widget _buildTitle() {
+    return const Text(
+      'Podaci o dostavi',
+      style: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: Colors.black87,
+      ),
+    );
+  }
+
   Widget _buildAddressForm() {
+    final memberProvider = Provider.of<MemberProvider>(context);
+    final currentMember = memberProvider.currentMember;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -107,31 +111,33 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(
-              child: FormBuilderTextField(
-                name: 'firstName',
-                decoration: const InputDecoration(
-                  labelText: 'Ime *',
-                  border: OutlineInputBorder(),
-                ),
-                validator: FormBuilderValidators.compose([
-                  FormBuilderValidators.required(errorText: 'Ime je obavezno'),
-                ]),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: FormBuilderTextField(
-                name: 'lastName',
-                decoration: const InputDecoration(
-                  labelText: 'Prezime *',
-                  border: OutlineInputBorder(),
-                ),
-                validator: FormBuilderValidators.compose([
-                  FormBuilderValidators.required(errorText: 'Prezime je obavezno'),
-                ]),
-              ),
-            ),
+                         Expanded(
+               child: FormBuilderTextField(
+                 name: 'firstName',
+                 initialValue: currentMember?.firstName,
+                 decoration: const InputDecoration(
+                   labelText: 'Ime *',
+                   border: OutlineInputBorder(),
+                 ),
+                 validator: FormBuilderValidators.compose([
+                   FormBuilderValidators.required(errorText: 'Ime je obavezno'),
+                 ]),
+               ),
+             ),
+             const SizedBox(width: 12),
+             Expanded(
+               child: FormBuilderTextField(
+                 name: 'lastName',
+                 initialValue: currentMember?.lastName,
+                 decoration: const InputDecoration(
+                   labelText: 'Prezime *',
+                   border: OutlineInputBorder(),
+                 ),
+                 validator: FormBuilderValidators.compose([
+                   FormBuilderValidators.required(errorText: 'Prezime je obavezno'),
+                 ]),
+               ),
+             ),
           ],
         ),
         const SizedBox(height: 16),
@@ -227,16 +233,17 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
           ]),
         ),
         const SizedBox(height: 16),
-        FormBuilderTextField(
-          name: 'email',
-          decoration: const InputDecoration(
-            labelText: 'Email adresa (opciono)',
-            border: OutlineInputBorder(),
-          ),
-          validator: FormBuilderValidators.compose([
-            FormBuilderValidators.email(errorText: 'Unesite validnu email adresu'),
-          ]),
-        ),
+                 FormBuilderTextField(
+           name: 'email',
+           initialValue: currentMember?.email,
+           decoration: const InputDecoration(
+             labelText: 'Email adresa (opciono)',
+             border: OutlineInputBorder(),
+           ),
+           validator: FormBuilderValidators.compose([
+             FormBuilderValidators.email(errorText: 'Unesite validnu email adresu'),
+           ]),
+         ),
       ],
     );
   }

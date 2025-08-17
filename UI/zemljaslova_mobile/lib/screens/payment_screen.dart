@@ -6,6 +6,8 @@ import '../services/payment_service.dart';
 import '../providers/cart_provider.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/zs_button.dart';
+import '../widgets/top_branding.dart';
+import '../widgets/bottom_navigation.dart';
 
 class PaymentScreen extends StatefulWidget {
   final double totalAmount;
@@ -34,83 +36,85 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Plaćanje'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 0,
+      backgroundColor: Colors.grey.shade50,
+      body: Column(
+        children: [
+          const TopBranding(),
+          Expanded(
+            child: _errorMessage != null
+                ? _buildErrorView()
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildPaymentSummary(),
+                        const SizedBox(height: 24),
+                        _buildShippingInfo(),
+                        const SizedBox(height: 32),
+                        _buildPaymentButton(),
+                        const SizedBox(height: 24), // Extra padding for bottom navigation
+                      ],
+                    ),
+                  ),
+          ),
+          const BottomNavigation(),
+        ],
       ),
-      body: _errorMessage != null
-          ? _buildErrorView()
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildPaymentSummary(),
-                  const SizedBox(height: 24),
-                  _buildShippingInfo(),
-                  const SizedBox(height: 32),
-                  _buildPaymentButton(),
-                ],
-              ),
-            ),
     );
   }
 
   Widget _buildErrorView() {
-    return SingleChildScrollView(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 64,
-                color: Colors.red.shade400,
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Colors.red.shade400,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Greška',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Colors.red.shade600,
               ),
-              const SizedBox(height: 16),
-              Text(
-                'Greška',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.red.shade600,
-                ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _errorMessage!,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
               ),
-              const SizedBox(height: 8),
-              Text(
-                _errorMessage!,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              ZSButton(
-                text: 'Pokušaj ponovo',
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                onPressed: () {
-                  setState(() {
-                    _errorMessage = null;
-                  });
-                  // Reload the page to reinitialize
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) => PaymentScreen(
-                        totalAmount: widget.totalAmount,
-                        shippingAddress: widget.shippingAddress,
-                      ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ZSButton(
+              text: 'Pokušaj ponovo',
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              onPressed: () {
+                setState(() {
+                  _errorMessage = null;
+                });
+                // Reload the page to reinitialize
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => PaymentScreen(
+                      totalAmount: widget.totalAmount,
+                      shippingAddress: widget.shippingAddress,
                     ),
-                  );
-                },
-              ),
-            ],
-          ),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -169,7 +173,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Sigurno plaćanje putem Stripe-a',
+            'Sigurno plaćanje putem platforme Stripe',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey.shade600,
@@ -261,7 +265,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Vaši podaci su sigurni. Koristimo Stripe za obradu plaćanja.',
+                  'Vaši podaci su sigurni uz platformu za plaćanje Stripe',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.blue.shade700,
