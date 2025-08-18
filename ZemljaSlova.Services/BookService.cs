@@ -55,16 +55,35 @@ namespace ZemljaSlova.Services
             {
                 if (search.IsAvailable.Value)
                 {
+                    // Available books: current quantity > 0
                     query = query.Where(b => 
-                        !Context.OrderItems.Any(oi => oi.BookId == b.Id) || 
-                        Context.OrderItems.Where(oi => oi.BookId == b.Id).Sum(oi => oi.Quantity) < 10
+                        Context.BookTransactions
+                            .Where(t => t.BookId == b.Id)
+                            .GroupBy(t => t.BookId)
+                            .Select(g => g.Sum(t => 
+                                t.ActivityTypeId == (byte)ActivityType.Stock ? t.Quantity :
+                                (t.ActivityTypeId == (byte)ActivityType.Sold || 
+                                 t.ActivityTypeId == (byte)ActivityType.Remove || 
+                                 t.ActivityTypeId == (byte)ActivityType.Rent) ? -t.Quantity : 0
+                            ))
+                            .FirstOrDefault() > 0
                     );
                 }
                 else
                 {
+                    // Unavailable books: current quantity <= 0
                     query = query.Where(b => 
-                        Context.OrderItems.Any(oi => oi.BookId == b.Id) && 
-                        Context.OrderItems.Where(oi => oi.BookId == b.Id).Sum(oi => oi.Quantity) >= 10
+                        !Context.BookTransactions.Any(t => t.BookId == b.Id) ||
+                        Context.BookTransactions
+                            .Where(t => t.BookId == b.Id)
+                            .GroupBy(t => t.BookId)
+                            .Select(g => g.Sum(t => 
+                                t.ActivityTypeId == (byte)ActivityType.Stock ? t.Quantity :
+                                (t.ActivityTypeId == (byte)ActivityType.Sold || 
+                                 t.ActivityTypeId == (byte)ActivityType.Remove || 
+                                 t.ActivityTypeId == (byte)ActivityType.Rent) ? -t.Quantity : 0
+                            ))
+                            .FirstOrDefault() <= 0
                     );
                 }
             }

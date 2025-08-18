@@ -293,25 +293,36 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
     return Column(
         children: [
           if (!isRentBook) ...[
-            ZSButton(
-              text: 'Dodaj u korpu',
-              backgroundColor: const Color(0xFF28A745),
-              foregroundColor: Colors.white,
-              borderColor: const Color(0xFF28A745),
-              onPressed: () {
-                _addBookToCart(book);
-              },
-            ),
-            const SizedBox(height: 12),
-            ZSButton(
-              text: 'Pokloni knjigu',
-              backgroundColor: Colors.blue.shade50,
-              foregroundColor: Colors.blue.shade700,
-              borderColor: Colors.blue.shade300,
-              onPressed: () {
-                // TODO: Implement gift a book
-              },
-            ),
+            if (book.quantityInStock > 0) ...[
+              ZSButton(
+                text: 'Dodaj u korpu',
+                backgroundColor: const Color(0xFF28A745),
+                foregroundColor: Colors.white,
+                borderColor: const Color(0xFF28A745),
+                onPressed: () {
+                  _addBookToCart(book);
+                },
+              ),
+            ] else ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'Knjiga nije na stanju',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
           ] else ...[
             ZSButton(
               text: 'Provjeri dostupnost',
@@ -569,6 +580,11 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
   void _addBookToCart(Book book) {
     if (book.bookPurpose == BookPurpose.rent || book.price == null) {
       SnackBarUtil.showTopSnackBar(context, 'Knjige za iznajmljivanje se ne mogu dodati u korpu!');
+      return;
+    }
+    
+    if (book.quantityInStock <= 0) {
+      SnackBarUtil.showTopSnackBar(context, 'Knjiga nije na stanju!');
       return;
     }
     

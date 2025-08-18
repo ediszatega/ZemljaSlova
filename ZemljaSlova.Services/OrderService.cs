@@ -17,11 +17,13 @@ namespace ZemljaSlova.Services
     {
         private readonly IConfiguration _configuration;
         private readonly IVoucherService _voucherService;
+        private readonly IBookService _bookService;
 
-        public OrderService(_200036Context context, IMapper mapper, IConfiguration configuration, IVoucherService voucherService) : base(context, mapper)
+        public OrderService(_200036Context context, IMapper mapper, IConfiguration configuration, IVoucherService voucherService, IBookService bookService) : base(context, mapper)
         {
             _configuration = configuration;
             _voucherService = voucherService;
+            _bookService = bookService;
         }
 
         public async Task<PaymentIntentResponse> CreatePaymentIntentAsync(decimal amount, string currency = "bam")
@@ -112,6 +114,40 @@ namespace ZemljaSlova.Services
                             
                             Context.OrderItems.Add(orderItem);
                         }
+                    }
+                    else if (itemRequest.BookId.HasValue)
+                    {
+                        // Get the member to access the userId
+                        var member = await Context.Members.FindAsync(order.MemberId);
+                        if (member == null)
+                        {
+                            throw new Exception($"Member not found for ID {order.MemberId}");
+                        }
+                        
+                        // Check current stock before attempting to sell
+                        var currentStock = await _bookService.GetCurrentQuantityAsync(itemRequest.BookId.Value);
+                        var isAvailable = await _bookService.IsAvailableForPurchaseAsync(itemRequest.BookId.Value, itemRequest.Quantity);
+                        
+                        if (!isAvailable)
+                        {
+                            throw new Exception($"Book {itemRequest.BookId.Value} is not available for purchase. Current stock: {currentStock}, Requested: {itemRequest.Quantity}");
+                        }
+                        
+                        // Sell the books (reduce stock)
+                        var success = await _bookService.SellBooksAsync(
+                            itemRequest.BookId.Value, 
+                            itemRequest.Quantity, 
+                            member.UserId, 
+                            $"Order {order.Id}"
+                        );
+                        
+                        if (!success)
+                        {
+                            throw new Exception($"Failed to sell books for book ID {itemRequest.BookId.Value}. Current stock: {currentStock}, Requested: {itemRequest.Quantity}");
+                        }
+                        
+                        var orderItem = Mapper.Map<Database.OrderItem>(itemRequest);
+                        Context.OrderItems.Add(orderItem);
                     }
                     else
                     {

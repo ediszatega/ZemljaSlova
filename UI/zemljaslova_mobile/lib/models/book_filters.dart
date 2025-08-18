@@ -68,7 +68,7 @@ class BookFilters {
       minPrice: map['minPrice']?.toDouble(),
       maxPrice: map['maxPrice']?.toDouble(),
       authorId: map['authorId']?.toInt(),
-      isAvailable: map['isAvailable']?.toBool(),
+      isAvailable: map['isAvailable'] as bool?,
     );
   }
 
