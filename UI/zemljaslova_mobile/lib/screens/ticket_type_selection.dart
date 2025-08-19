@@ -149,11 +149,16 @@ class _TicketTypeSelectionScreenState extends State<TicketTypeSelectionScreen> {
 
   Widget _buildTicketTypeCard(TicketType ticketType) {
     final isSelected = _selectedTicketType?.id == ticketType.id;
+    final currentQty = ticketType.currentQuantity ?? ticketType.initialQuantity;
+    final cartProvider = Provider.of<CartProvider>(context, listen: true);
+    final inCartQty = cartProvider.getTicketTypeQuantityInCart(ticketType.id);
+    final availableQty = currentQty != null ? currentQty - inCartQty : null;
+    final isAvailable = availableQty != null && availableQty > 0;
     
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isAvailable ? Colors.white : Colors.grey.shade100,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isSelected ? const Color(0xFF28A745) : Colors.grey.shade300,
@@ -161,12 +166,12 @@ class _TicketTypeSelectionScreenState extends State<TicketTypeSelectionScreen> {
         ),
       ),
       child: InkWell(
-        onTap: () {
+        onTap: isAvailable ? () {
           setState(() {
-            _selectedTicketType = ticketType;
-            _quantity = 1; // Reset quantity when selecting new ticket type
-          });
-        },
+             _selectedTicketType = ticketType;
+             _resetQuantityForSelectedTicket();
+           });
+         } : null,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -178,12 +183,12 @@ class _TicketTypeSelectionScreenState extends State<TicketTypeSelectionScreen> {
                   Radio<TicketType>(
                     value: ticketType,
                     groupValue: _selectedTicketType,
-                    onChanged: (TicketType? value) {
+                    onChanged: isAvailable ? (TicketType? value) {
                       setState(() {
-                        _selectedTicketType = value;
-                        _quantity = 1;
-                      });
-                    },
+                         _selectedTicketType = value;
+                         _resetQuantityForSelectedTicket();
+                       });
+                     } : null,
                     activeColor: const Color(0xFF28A745),
                   ),
                   const SizedBox(width: 8),
@@ -208,6 +213,19 @@ class _TicketTypeSelectionScreenState extends State<TicketTypeSelectionScreen> {
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: isSelected ? const Color(0xFF28A745) : Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          availableQty != null
+                              ? (isAvailable 
+                                  ? 'Dostupno: $availableQty'
+                                  : 'Nema na stanju (0)')
+                              : 'Dostupno: ${currentQty ?? 0}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isAvailable ? Colors.green : Colors.red,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -292,7 +310,7 @@ class _TicketTypeSelectionScreenState extends State<TicketTypeSelectionScreen> {
                 width: 36,
                 height: 36,
                 child: IconButton(
-                  onPressed: _quantity < 10 ? () { // Max quantity limit of 10
+                  onPressed: _canIncreaseQuantity() ? () {
                     setState(() {
                       _quantity++;
                     });
@@ -300,7 +318,7 @@ class _TicketTypeSelectionScreenState extends State<TicketTypeSelectionScreen> {
                   icon: Icon(
                     Icons.add,
                     size: 18,
-                    color: _quantity < 10 ? Colors.black : Colors.grey.shade400,
+                    color: _canIncreaseQuantity() ? Colors.black : Colors.grey.shade400,
                   ),
                   padding: EdgeInsets.zero,
                 ),
@@ -377,12 +395,26 @@ class _TicketTypeSelectionScreenState extends State<TicketTypeSelectionScreen> {
   }
 
   Widget _buildAddToCartButton() {
-    return ZSButton(
-      text: 'Dodaj u korpu',
-      backgroundColor: const Color(0xFF28A745),
+    if (_selectedTicketType == null) return ZSButton(
+      text: 'Nema na stanju',
+      backgroundColor: Colors.grey,
       foregroundColor: Colors.white,
-      borderColor: const Color(0xFF28A745),
-      onPressed: _selectedTicketType != null ? () {
+      borderColor: Colors.grey,
+      onPressed: null,
+    );
+
+    final currentQty = _selectedTicketType!.currentQuantity ?? _selectedTicketType!.initialQuantity;
+    final cartProvider = Provider.of<CartProvider>(context, listen: true);
+    final inCartQty = cartProvider.getTicketTypeQuantityInCart(_selectedTicketType!.id);
+    final availableQty = currentQty != null ? currentQty - inCartQty : null;
+    final isAvailable = availableQty != null && availableQty > 0;
+    
+    return ZSButton(
+      text: isAvailable ? 'Dodaj u korpu' : 'Nema na stanju',
+      backgroundColor: isAvailable ? const Color(0xFF28A745) : Colors.grey,
+      foregroundColor: Colors.white,
+      borderColor: isAvailable ? const Color(0xFF28A745) : Colors.grey,
+      onPressed: isAvailable ? () {
         _addToCart();
       } : null,
     );
@@ -392,8 +424,60 @@ class _TicketTypeSelectionScreenState extends State<TicketTypeSelectionScreen> {
     return '${date.day}.${date.month}.${date.year} u ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 
+  bool _canIncreaseQuantity() {
+    if (_selectedTicketType == null) return false;
+    
+    // Check if we have enough stock
+    final currentQty = _selectedTicketType!.currentQuantity ?? _selectedTicketType!.initialQuantity;
+    final cartProvider = Provider.of<CartProvider>(context, listen: true);
+    final inCartQty = cartProvider.getTicketTypeQuantityInCart(_selectedTicketType!.id);
+    final availableQty = currentQty != null ? currentQty - inCartQty : null;
+    
+    if (availableQty != null) {
+      return _quantity < availableQty && _quantity < 10;
+    }
+    
+    // If no stock info, limit to 10
+    return _quantity < 10;
+  }
+
+  void _resetQuantityForSelectedTicket() {
+    if (_selectedTicketType == null) {
+      _quantity = 1;
+      return;
+    }
+
+    final currentQty = _selectedTicketType!.currentQuantity ?? _selectedTicketType!.initialQuantity;
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    final inCartQty = cartProvider.getTicketTypeQuantityInCart(_selectedTicketType!.id);
+    final availableQty = currentQty != null ? currentQty - inCartQty : null;
+    
+    if (availableQty != null && availableQty > 0) {
+      _quantity = availableQty < 10 ? availableQty : 10;
+    } else {
+      _quantity = 1;
+    }
+  }
+
   void _addToCart() {
     if (_selectedTicketType == null) return;
+
+    // Check stock availability before adding to cart
+    final currentQty = _selectedTicketType!.currentQuantity ?? _selectedTicketType!.initialQuantity;
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    final inCartQty = cartProvider.getTicketTypeQuantityInCart(_selectedTicketType!.id);
+    final availableQty = currentQty != null ? currentQty - inCartQty : null;
+    
+    if (availableQty != null && availableQty <= 0) {
+      SnackBarUtil.showTopSnackBar(context, 'Ulaznica nije na stanju!');
+      return;
+    }
+
+    // Check if we have enough stock for the requested quantity
+    if (availableQty != null && _quantity > availableQty) {
+      SnackBarUtil.showTopSnackBar(context, 'Nema dovoljno ulaznica na stanju!');
+      return;
+    }
 
     // Create unique ID for the cart item
     final cartItemId = 'ticket_${_selectedTicketType!.id}_${widget.event.id}';
@@ -407,7 +491,6 @@ class _TicketTypeSelectionScreenState extends State<TicketTypeSelectionScreen> {
       type: CartItemType.ticket,
     );
 
-    final cartProvider = Provider.of<CartProvider>(context, listen: false);
     cartProvider.addItem(cartItem);
 
     if (_quantity == 1) {

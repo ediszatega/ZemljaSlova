@@ -18,12 +18,14 @@ namespace ZemljaSlova.Services
         private readonly IConfiguration _configuration;
         private readonly IVoucherService _voucherService;
         private readonly IBookService _bookService;
+        private readonly ITicketTypeService _ticketTypeService;
 
-        public OrderService(_200036Context context, IMapper mapper, IConfiguration configuration, IVoucherService voucherService, IBookService bookService) : base(context, mapper)
+        public OrderService(_200036Context context, IMapper mapper, IConfiguration configuration, IVoucherService voucherService, IBookService bookService, ITicketTypeService ticketTypeService) : base(context, mapper)
         {
             _configuration = configuration;
             _voucherService = voucherService;
             _bookService = bookService;
+            _ticketTypeService = ticketTypeService;
         }
 
         public async Task<PaymentIntentResponse> CreatePaymentIntentAsync(decimal amount, string currency = "bam")
@@ -148,6 +150,66 @@ namespace ZemljaSlova.Services
                         
                         var orderItem = Mapper.Map<Database.OrderItem>(itemRequest);
                         Context.OrderItems.Add(orderItem);
+                    }
+                    else if (itemRequest.TicketTypeId.HasValue)
+                    {
+                        // Get the member to access the userId
+                        var member = await Context.Members.FindAsync(order.MemberId);
+                        if (member == null)
+                        {
+                            throw new Exception($"Member not found for ID {order.MemberId}");
+                        }
+                        
+                        // Check current stock before attempting to sell
+                        var currentStock = await _ticketTypeService.GetCurrentQuantityAsync(itemRequest.TicketTypeId.Value);
+                        var isAvailable = await _ticketTypeService.IsAvailableForPurchaseAsync(itemRequest.TicketTypeId.Value, itemRequest.Quantity);
+                        
+                        if (!isAvailable)
+                        {
+                            throw new Exception($"Ticket type {itemRequest.TicketTypeId.Value} is not available for purchase. Current stock: {currentStock}, Requested: {itemRequest.Quantity}");
+                        }
+                        
+                        // Sell the tickets (reduce stock)
+                        var success = await _ticketTypeService.SellTicketsAsync(
+                            itemRequest.TicketTypeId.Value, 
+                            itemRequest.Quantity, 
+                            member.UserId, 
+                            $"Order {order.Id}"
+                        );
+                        
+                        if (!success)
+                        {
+                            throw new Exception($"Failed to sell tickets for ticket type ID {itemRequest.TicketTypeId.Value}. Current stock: {currentStock}, Requested: {itemRequest.Quantity}");
+                        }
+                        
+                        var orderItem = Mapper.Map<Database.OrderItem>(itemRequest);
+                        Context.OrderItems.Add(orderItem);
+                        
+                        // Create individual tickets for each purchased ticket
+                        var ticketsToCreate = new List<Database.Ticket>();
+                        for (int i = 0; i < itemRequest.Quantity; i++)
+                        {
+                            var ticket = new Database.Ticket
+                            {
+                                MemberId = order.MemberId,
+                                TicketTypeId = itemRequest.TicketTypeId.Value,
+                                OrderItemId = 0, // Will be set after OrderItem is saved
+                                PurchasedAt = DateTime.Now,
+                                IsUsed = false
+                            };
+                            
+                            ticketsToCreate.Add(ticket);
+                        }
+                        
+                        // Save the OrderItem first to get its ID
+                        await Context.SaveChangesAsync();
+                        
+                        // Set the OrderItemId for all tickets and add them
+                        foreach (var ticket in ticketsToCreate)
+                        {
+                            ticket.OrderItemId = orderItem.Id;
+                            Context.Tickets.Add(ticket);
+                        }
                     }
                     else
                     {

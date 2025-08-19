@@ -63,4 +63,11 @@ class CartProvider with ChangeNotifier {
     final index = _items.indexWhere((item) => item.id == itemId);
     return index >= 0 ? _items[index] : null;
   }
+
+  int getTicketTypeQuantityInCart(int ticketTypeId) {
+    return _items
+        .where((item) => item.type == CartItemType.ticket && 
+                        item.id.startsWith('ticket_${ticketTypeId}_'))
+        .fold(0, (sum, item) => sum + item.quantity);
+  }
 } 

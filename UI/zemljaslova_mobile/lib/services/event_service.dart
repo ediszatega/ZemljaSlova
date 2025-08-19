@@ -130,6 +130,8 @@ class EventService {
           var price = ticketTypeJson['price'];
           var name = ticketTypeJson['name'];
           var description = ticketTypeJson['description'];
+          var initialQuantity = ticketTypeJson['initialQuantity'];
+          var currentQuantity = ticketTypeJson['currentQuantity'];
           
           return TicketType(
             id: id,
@@ -137,6 +139,8 @@ class EventService {
             price: (price as num).toDouble(),
             name: name,
             description: description,
+            initialQuantity: initialQuantity,
+            currentQuantity: currentQuantity,
           );
         }).toList();
       }

@@ -248,13 +248,13 @@ namespace ZemljaSlova.Services
                             .ThenInclude(br => br.Notifications)
                         .Include(m => m.Orders)
                             .ThenInclude(o => o.Notifications)
-                        .Include(m => m.Tickets)
                         .Include(m => m.UserBookClubs)
                             .ThenInclude(ubc => ubc.UserBookClubTransactions)
                         .Include(m => m.Favourites)
                         .Include(m => m.Memberships)
                             .ThenInclude(ms => ms.Notifications)
 
+                        .Include(m => m.Tickets)
                         .Include(m => m.Vouchers)
                         .FirstOrDefaultAsync(m => m.Id == id);
 

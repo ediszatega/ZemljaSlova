@@ -12,6 +12,8 @@ TicketType _$TicketTypeFromJson(Map<String, dynamic> json) => TicketType(
   name: json['name'] as String,
   price: (json['price'] as num).toDouble(),
   description: json['description'] as String,
+  initialQuantity: (json['initialQuantity'] as num?)?.toInt(),
+  currentQuantity: (json['currentQuantity'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$TicketTypeToJson(TicketType instance) =>
@@ -21,4 +23,6 @@ Map<String, dynamic> _$TicketTypeToJson(TicketType instance) =>
       'name': instance.name,
       'price': instance.price,
       'description': instance.description,
+      'initialQuantity': instance.initialQuantity,
+      'currentQuantity': instance.currentQuantity,
     };
