@@ -3,10 +3,13 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/member_provider.dart';
+import '../providers/membership_provider.dart';
 import '../utils/authorization.dart';
 import '../widgets/mobile_layout.dart';
 import '../widgets/zs_button.dart';
 import 'register_screen.dart';
+import 'membership_purchase_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -163,14 +166,9 @@ class _LoginScreenState extends State<LoginScreen> {
       final loginResponse = await authProvider.login();
 
       if (loginResponse.isSuccess) {
-        // Login successful
+        // Login successful and check for active membership
         if (mounted) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) => const MobileLayout(),
-            ),
-            (route) => false,
-          );
+          await _checkMembershipAndNavigate();
         }
       } else {
         // Handle login failure based on result code
@@ -193,6 +191,57 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  Future<void> _checkMembershipAndNavigate() async {
+    try {
+      // Get member data first
+      final memberProvider = context.read<MemberProvider>();
+      await memberProvider.getMemberByUserId(Authorization.userId!);
+      
+      if (memberProvider.currentMember != null) {
+        // Check for active membership
+        final membershipProvider = context.read<MembershipProvider>();
+        final hasActiveMembership = await membershipProvider.getActiveMembership(memberProvider.currentMember!.id);
+        
+        if (hasActiveMembership && membershipProvider.hasActiveMembership) {
+          // User has active membership - go to main app
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => const MobileLayout(),
+            ),
+            (route) => false,
+          );
+        } else {
+          // User doesn't have active membership - show membership purchase screen
+           Navigator.of(context).pushAndRemoveUntil(
+             MaterialPageRoute(
+               builder: (context) => const MembershipPurchaseScreen(
+                 isFromRegistration: false,
+                 isFromLogin: true,
+               ),
+             ),
+             (route) => false,
+           );
+        }
+      } else {
+        // Fallback - go to main app if member data couldn't be loaded
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => const MobileLayout(),
+          ),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      // Fallback - go to main app if there's an error
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => const MobileLayout(),
+        ),
+        (route) => false,
+      );
     }
   }
 

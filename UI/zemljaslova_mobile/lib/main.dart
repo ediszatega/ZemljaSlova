@@ -8,12 +8,14 @@ import 'providers/event_provider.dart';
 import 'providers/favourite_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/member_provider.dart';
+import 'providers/membership_provider.dart';
 import 'providers/author_provider.dart';
 import 'services/api_service.dart';
 import 'services/book_service.dart';
 import 'services/event_service.dart';
 import 'services/favourite_service.dart';
 import 'services/member_service.dart';
+import 'services/membership_service.dart';
 import 'services/author_service.dart';
 import 'widgets/mobile_layout.dart';
 import 'screens/login_screen.dart';
@@ -66,6 +68,11 @@ class ZemljaSlova extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => MemberProvider(
             memberService: MemberService(apiService: apiService),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => MembershipProvider(
+            membershipService: MembershipService(apiService: apiService),
           ),
         ),
         ChangeNotifierProvider(

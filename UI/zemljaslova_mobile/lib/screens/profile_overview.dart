@@ -3,10 +3,12 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/member_provider.dart';
+import '../providers/membership_provider.dart';
 import '../models/member.dart';
 import '../utils/authorization.dart';
 import '../screens/login_screen.dart';
 import '../screens/change_password_screen.dart';
+import '../screens/membership_purchase_screen.dart';
 import '../widgets/zs_button.dart';
 import '../services/user_service.dart';
 
@@ -26,11 +28,31 @@ class _ProfileOverviewState extends State<ProfileOverview> {
     });
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Load membership data when member data is available
+    final memberProvider = context.read<MemberProvider>();
+    if (memberProvider.currentMember != null) {
+      _loadMembershipData();
+    }
+  }
+
   void _loadMemberData() {
     final memberProvider = context.read<MemberProvider>();
+    final membershipProvider = context.read<MembershipProvider>();
     
     if (Authorization.userId != null) {
       memberProvider.getMemberByUserId(Authorization.userId!);
+    }
+  }
+
+  void _loadMembershipData() {
+    final memberProvider = context.read<MemberProvider>();
+    final membershipProvider = context.read<MembershipProvider>();
+    
+    if (memberProvider.currentMember != null) {
+      membershipProvider.getActiveMembership(memberProvider.currentMember!.id);
     }
   }
 
@@ -87,6 +109,8 @@ class _ProfileOverviewState extends State<ProfileOverview> {
               _buildHeader(context),
               const SizedBox(height: 16),
               _buildProfileCard(context, member),
+              const SizedBox(height: 24),
+              _buildMembershipCard(context, member),
               const SizedBox(height: 24),
               _buildPersonalInfoCard(context, member),
               const SizedBox(height: 24),
@@ -193,6 +217,117 @@ class _ProfileOverviewState extends State<ProfileOverview> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMembershipCard(BuildContext context, Member member) {
+    return Consumer<MembershipProvider>(
+      builder: (context, membershipProvider, child) {
+        final activeMembership = membershipProvider.activeMembership;
+        
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Članstvo',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  if (activeMembership != null && activeMembership.isActive)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Aktivno',
+                        style: TextStyle(
+                          color: Colors.green.shade700,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Neaktivno',
+                        style: TextStyle(
+                          color: Colors.red.shade700,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (activeMembership != null && activeMembership.isActive) ...[
+                _buildInfoRow('Status', 'Aktivno'),
+                _buildInfoRow('Početak', _formatDate(activeMembership.startDate)),
+                _buildInfoRow('Kraj', _formatDate(activeMembership.endDate)),
+                _buildInfoRow('Preostalo dana', '${activeMembership.daysRemaining}'),
+              ] else ...[
+                const Text(
+                  'Nemate aktivno članstvo',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ZSButton(
+                  text: 'Aktiviraj članstvo',
+                  onPressed: () => _navigateToMembershipPurchase(context),
+                  backgroundColor: const Color(0xFF28A745),
+                  foregroundColor: Colors.white,
+                  borderColor: const Color(0xFF28A745),
+                  borderRadius: 8,
+                  paddingVertical: 12,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  topPadding: 0,
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _navigateToMembershipPurchase(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const MembershipPurchaseScreen(),
       ),
     );
   }

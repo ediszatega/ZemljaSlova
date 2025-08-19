@@ -19,13 +19,15 @@ namespace ZemljaSlova.Services
         private readonly IVoucherService _voucherService;
         private readonly IBookService _bookService;
         private readonly ITicketTypeService _ticketTypeService;
+        private readonly IMembershipService _membershipService;
 
-        public OrderService(_200036Context context, IMapper mapper, IConfiguration configuration, IVoucherService voucherService, IBookService bookService, ITicketTypeService ticketTypeService) : base(context, mapper)
+        public OrderService(_200036Context context, IMapper mapper, IConfiguration configuration, IVoucherService voucherService, IBookService bookService, ITicketTypeService ticketTypeService, IMembershipService membershipService) : base(context, mapper)
         {
             _configuration = configuration;
             _voucherService = voucherService;
             _bookService = bookService;
             _ticketTypeService = ticketTypeService;
+            _membershipService = membershipService;
         }
 
         public async Task<PaymentIntentResponse> CreatePaymentIntentAsync(decimal amount, string currency = "bam")
@@ -210,6 +212,27 @@ namespace ZemljaSlova.Services
                             ticket.OrderItemId = orderItem.Id;
                             Context.Tickets.Add(ticket);
                         }
+                    }
+                    else if (itemRequest.MembershipId.HasValue || (itemRequest.BookId == null && itemRequest.TicketTypeId == null && itemRequest.VoucherId == null))
+                    {
+                        var membershipRequest = new MembershipInsertRequest
+                        {
+                            MemberId = order.MemberId,
+                            StartDate = DateTime.Now,
+                            EndDate = DateTime.Now.AddDays(30)
+                        };
+                        
+                        var membership = _membershipService.CreateMembershipByMember(membershipRequest);
+                        
+                        var orderItem = new Database.OrderItem
+                        {
+                            OrderId = order.Id,
+                            MembershipId = membership.Id,
+                            Quantity = 1,
+                            DiscountId = itemRequest.DiscountId
+                        };
+                        
+                        Context.OrderItems.Add(orderItem);
                     }
                     else
                     {

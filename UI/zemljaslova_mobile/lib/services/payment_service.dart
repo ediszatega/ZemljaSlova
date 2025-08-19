@@ -100,4 +100,48 @@ class PaymentService {
       throw Exception('Failed to process order: $e');
     }
   }
+
+  Future<Map<String, dynamic>> processMembershipPayment({
+    required int memberId,
+    required String paymentIntentId,
+    required String paymentMethodId,
+  }) async {
+    try {
+      // Create order request for membership
+      final orderRequest = {
+        'memberId': memberId,
+        'discountId': null,
+        'amount': 15.00,
+        'paymentIntentId': paymentIntentId,
+        'paymentStatus': 'pending',
+        'paymentMethodId': paymentMethodId,
+        'shippingAddress': null,
+        'shippingCity': null,
+        'shippingPostalCode': null,
+        'shippingCountry': null,
+        'shippingPhoneNumber': null,
+        'shippingEmail': null,
+      };
+
+      // Create order item for membership
+      final orderItems = [{
+        'bookId': null,
+        'ticketTypeId': null,
+        'membershipId': null, // Will be created in the backend
+        'voucherId': null,
+        'quantity': 1,
+        'discountId': null,
+      }];
+
+      final request = {
+        'order': orderRequest,
+        'orderItems': orderItems,
+      };
+
+      final response = await _apiService.post('Order/process-order', request);
+      return response;
+    } catch (e) {
+      throw Exception('Failed to process membership payment: $e');
+    }
+  }
 }
