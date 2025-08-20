@@ -52,6 +52,10 @@ namespace ZemljaSlova.Model
 
         public virtual Discount? Discount { get; set; }
         
+        public int QuantityInStock { get; set; }
+        
+        public bool IsAvailable { get; set; }
+        
         public decimal? DiscountedPrice 
         { 
             get 

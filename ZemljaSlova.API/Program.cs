@@ -28,6 +28,7 @@ builder.Services.AddTransient<ITicketTypeService, TicketTypeService>();
 builder.Services.AddTransient<ITicketTypeTransactionService, TicketTypeTransactionService>();
 builder.Services.AddTransient<IUserBookClubService, UserBookClubService>();
 builder.Services.AddTransient<IUserBookClubTransactionService, UserBookClubTransactionService>();
+builder.Services.AddTransient<IBookClubPointsService, BookClubPointsService>();
 builder.Services.AddTransient<IVoucherService, VoucherService>();
 
 builder.Services.AddAuthentication(

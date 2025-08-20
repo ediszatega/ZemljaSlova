@@ -16,10 +16,12 @@ namespace ZemljaSlova.Services
     public class BookService : BaseCRUDService<Model.Book, BookSearchObject, Database.Book, BookInsertRequest, BookUpdateRequest>, IBookService
     {
         private readonly IBookTransactionService _transactionService;
+        private readonly IBookClubPointsService _bookClubPointsService;
 
-        public BookService(_200036Context context, IMapper mapper, IBookTransactionService transactionService) : base(context, mapper)
+        public BookService(_200036Context context, IMapper mapper, IBookTransactionService transactionService, IBookClubPointsService bookClubPointsService) : base(context, mapper)
         {
             _transactionService = transactionService;
+            _bookClubPointsService = bookClubPointsService;
         }
 
         public override IQueryable<Database.Book> AddFilter(BookSearchObject search, IQueryable<Database.Book> query)
@@ -125,7 +127,17 @@ namespace ZemljaSlova.Services
             // Proactively clean up expired discounts when loading books for display
             CleanupExpiredDiscountsFromBooks();
             
-            return base.GetPaged(search);
+            var pagedResult = base.GetPaged(search);
+            
+            // Calculate stock quantities for all books in the result
+            foreach (var book in pagedResult.ResultList)
+            {
+                var currentQuantity = GetCurrentQuantityAsync(book.Id).Result;
+                book.QuantityInStock = currentQuantity;
+                book.IsAvailable = currentQuantity > 0;
+            }
+            
+            return pagedResult;
         }
 
         public override Model.Book GetById(int id)
@@ -155,6 +167,11 @@ namespace ZemljaSlova.Services
             {
                 result.Discount = Mapper.Map<Model.Discount>(entity.Discount);
             }
+
+            // Calculate current stock quantity
+            var currentQuantity = GetCurrentQuantityAsync(id).Result;
+            result.QuantityInStock = currentQuantity;
+            result.IsAvailable = currentQuantity > 0;
 
             return result;
         }
@@ -536,7 +553,19 @@ namespace ZemljaSlova.Services
 
             try
             {
-                await _transactionService.CreateRentTransactionAsync(bookId, quantity, userId, data);
+                var bookTransaction = await _transactionService.CreateRentTransactionAsync(bookId, quantity, userId, data);
+                
+                var member = await Context.Members.FirstOrDefaultAsync(m => m.UserId == userId);
+                if (member != null)
+                {
+                    await _bookClubPointsService.AwardPointsAsync(
+                        member.Id, 
+                        ActivityType.BookRental, 
+                        20 * quantity, 
+                        bookTransactionId: bookTransaction.Id
+                    );
+                }
+                
                 return true;
             }
             catch (Exception)

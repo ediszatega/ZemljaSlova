@@ -11,5 +11,8 @@ namespace ZemljaSlova.Services
 {
     public interface IUserBookClubService : ICRUDService<UserBookClub, UserBookClubSearchObject, UserBookClubInsertRequest, UserBookClubUpdateRequest>
     {
+        Task<UserBookClub?> GetByMemberAndYearAsync(int memberId, int year);
+        Task<UserBookClub?> GetCurrentYearByMemberAsync(int memberId);
+        Task<List<UserBookClub>> GetByMemberAsync(int memberId);
     }
 }

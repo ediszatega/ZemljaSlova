@@ -11,6 +11,7 @@ import '../screens/change_password_screen.dart';
 import '../screens/membership_purchase_screen.dart';
 import '../screens/member_transaction_history.dart';
 import '../widgets/zs_button.dart';
+import '../widgets/book_club_section.dart';
 import '../services/user_service.dart';
 
 class ProfileOverview extends StatefulWidget {
@@ -112,6 +113,8 @@ class _ProfileOverviewState extends State<ProfileOverview> {
               _buildProfileCard(context, member),
               const SizedBox(height: 24),
               _buildMembershipCard(context, member),
+              const SizedBox(height: 24),
+              const BookClubSection(),
               const SizedBox(height: 24),
               _buildPersonalInfoCard(context, member),
               const SizedBox(height: 24),

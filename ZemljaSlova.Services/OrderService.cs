@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Stripe;
 using Stripe.Checkout;
 using ZemljaSlova.Model;
+using ZemljaSlova.Model.Enums;
 using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services.Database;
@@ -22,14 +23,16 @@ namespace ZemljaSlova.Services
         private readonly IBookService _bookService;
         private readonly ITicketTypeService _ticketTypeService;
         private readonly IMembershipService _membershipService;
+        private readonly IBookClubPointsService _bookClubPointsService;
 
-        public OrderService(_200036Context context, IMapper mapper, IConfiguration configuration, IVoucherService voucherService, IBookService bookService, ITicketTypeService ticketTypeService, IMembershipService membershipService) : base(context, mapper)
+        public OrderService(_200036Context context, IMapper mapper, IConfiguration configuration, IVoucherService voucherService, IBookService bookService, ITicketTypeService ticketTypeService, IMembershipService membershipService, IBookClubPointsService bookClubPointsService) : base(context, mapper)
         {
             _configuration = configuration;
             _voucherService = voucherService;
             _bookService = bookService;
             _ticketTypeService = ticketTypeService;
             _membershipService = membershipService;
+            _bookClubPointsService = bookClubPointsService;
         }
 
         public async Task<PaymentIntentResponse> CreatePaymentIntentAsync(decimal amount, string currency = "bam")
@@ -119,6 +122,14 @@ namespace ZemljaSlova.Services
                             };
                             
                             Context.OrderItems.Add(orderItem);
+                            await Context.SaveChangesAsync();
+                            
+                            await _bookClubPointsService.AwardPointsAsync(
+                                order.MemberId, 
+                                ActivityType.VoucherPurchase, 
+                                20, 
+                                orderItemId: orderItem.Id
+                            );
                         }
                     }
                     else if (itemRequest.BookId.HasValue)
@@ -154,6 +165,14 @@ namespace ZemljaSlova.Services
                         
                         var orderItem = Mapper.Map<Database.OrderItem>(itemRequest);
                         Context.OrderItems.Add(orderItem);
+                        await Context.SaveChangesAsync();
+                        
+                        await _bookClubPointsService.AwardPointsAsync(
+                            order.MemberId, 
+                            ActivityType.BookPurchase, 
+                            30 * itemRequest.Quantity, 
+                            orderItemId: orderItem.Id
+                        );
                     }
                     else if (itemRequest.TicketTypeId.HasValue)
                     {
@@ -188,6 +207,7 @@ namespace ZemljaSlova.Services
                         
                         var orderItem = Mapper.Map<Database.OrderItem>(itemRequest);
                         Context.OrderItems.Add(orderItem);
+                        await Context.SaveChangesAsync();
                         
                         // Create individual tickets for each purchased ticket
                         var ticketsToCreate = new List<Database.Ticket>();
@@ -197,7 +217,7 @@ namespace ZemljaSlova.Services
                             {
                                 MemberId = order.MemberId,
                                 TicketTypeId = itemRequest.TicketTypeId.Value,
-                                OrderItemId = 0, // Will be set after OrderItem is saved
+                                OrderItemId = orderItem.Id,
                                 PurchasedAt = DateTime.Now,
                                 IsUsed = false
                             };
@@ -205,15 +225,18 @@ namespace ZemljaSlova.Services
                             ticketsToCreate.Add(ticket);
                         }
                         
-                        // Save the OrderItem first to get its ID
-                        await Context.SaveChangesAsync();
-                        
-                        // Set the OrderItemId for all tickets and add them
+                        // Add all tickets
                         foreach (var ticket in ticketsToCreate)
                         {
-                            ticket.OrderItemId = orderItem.Id;
                             Context.Tickets.Add(ticket);
                         }
+                        
+                        await _bookClubPointsService.AwardPointsAsync(
+                            order.MemberId, 
+                            ActivityType.EventTicketPurchase, 
+                            20 * itemRequest.Quantity, 
+                            orderItemId: orderItem.Id
+                        );
                     }
                     else if (itemRequest.MembershipId.HasValue || (itemRequest.BookId == null && itemRequest.TicketTypeId == null && itemRequest.VoucherId == null))
                     {
@@ -235,6 +258,14 @@ namespace ZemljaSlova.Services
                         };
                         
                         Context.OrderItems.Add(orderItem);
+                        await Context.SaveChangesAsync();
+                        
+                        await _bookClubPointsService.AwardPointsAsync(
+                            order.MemberId, 
+                            ActivityType.MembershipPayment, 
+                            50, 
+                            orderItemId: orderItem.Id
+                        );
                     }
                     else
                     {

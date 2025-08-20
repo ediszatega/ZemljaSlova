@@ -32,7 +32,6 @@ class BookRentalService {
       
       return false;
     } catch (e) {
-      debugPrint('Failed to check rental availability: $e');
       return false;
     }
   }
