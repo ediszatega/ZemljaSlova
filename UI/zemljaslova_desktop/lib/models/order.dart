@@ -96,6 +96,7 @@ class OrderItem {
   final Voucher? voucher;
   final TicketType? ticketType;
   final Membership? membership;
+  final int? pointsEarned;
 
   OrderItem({
     required this.id,
@@ -110,6 +111,7 @@ class OrderItem {
     this.voucher,
     this.ticketType,
     this.membership,
+    this.pointsEarned,
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
@@ -126,6 +128,7 @@ class OrderItem {
       voucher: json['voucher'] != null ? Voucher.fromJson(json['voucher']) : null,
       ticketType: json['ticketType'] != null ? TicketType.fromJson(json['ticketType']) : null,
       membership: json['membership'] != null ? Membership.fromJson(json['membership']) : null,
+      pointsEarned: json['pointsEarned'],
     );
   }
 
@@ -143,6 +146,7 @@ class OrderItem {
       'voucher': voucher?.toJson(),
       'ticketType': ticketType?.toJson(),
       'membership': membership?.toJson(),
+      'pointsEarned': pointsEarned,
     };
   }
 }

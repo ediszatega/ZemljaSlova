@@ -15,6 +15,11 @@ BookTransaction _$BookTransactionFromJson(Map<String, dynamic> json) =>
       createdAt: DateTime.parse(json['createdAt'] as String),
       userId: (json['userId'] as num).toInt(),
       data: json['data'] as String?,
+      pointsEarned: (json['pointsEarned'] as num?)?.toInt(),
+      book:
+          json['book'] == null
+              ? null
+              : Book.fromJson(json['book'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$BookTransactionToJson(BookTransaction instance) =>
@@ -26,4 +31,6 @@ Map<String, dynamic> _$BookTransactionToJson(BookTransaction instance) =>
       'createdAt': instance.createdAt.toIso8601String(),
       'userId': instance.userId,
       'data': instance.data,
+      'pointsEarned': instance.pointsEarned,
+      'book': instance.book,
     };

@@ -5,6 +5,7 @@ import '../services/transaction_service.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/sidebar.dart';
 import '../models/order.dart';
+import '../models/book_transaction.dart';
 
 enum TransactionType {
   all,
@@ -12,6 +13,7 @@ enum TransactionType {
   books,
   tickets,
   memberships,
+  rentals,
 }
 
 class MemberTransactionHistory extends StatefulWidget {
@@ -30,6 +32,7 @@ class _MemberTransactionHistoryState extends State<MemberTransactionHistory> {
   TransactionType _selectedFilter = TransactionType.all;
   bool _isLoading = false;
   List<Order> _transactions = [];
+  List<BookTransaction> _rentalTransactions = [];
   String? _error;
   int _currentPage = 1;
   int _totalCount = 0;
@@ -53,6 +56,7 @@ class _MemberTransactionHistoryState extends State<MemberTransactionHistory> {
       setState(() {
         _currentPage = 1;
         _transactions.clear();
+        _rentalTransactions.clear();
         _hasMoreData = true;
         _orderItemsMap.clear(); // Clear order items when refreshing
       });
@@ -68,32 +72,59 @@ class _MemberTransactionHistoryState extends State<MemberTransactionHistory> {
     });
 
     try {
-      final response = await _transactionService.getMemberTransactions(
-        page: _currentPage,
-        pageSize: 20,
-        transactionType: _getTransactionTypeString(_selectedFilter),
-        memberId: widget.memberId,
-      );
+      List<Order> newTransactions = [];
+      List<BookTransaction> newRentalTransactions = [];
+      int totalCount = 0;
 
-      final newTransactions = _transactionService.mapOrdersFromResponse(response);
-      final totalCount = _transactionService.getTotalCount(response);
+      if (_selectedFilter == TransactionType.rentals) {
+        try {
+          if (widget.memberId != null) {
+            newRentalTransactions = await _transactionService.getMemberRentalTransactions(widget.memberId!);
+            totalCount = newRentalTransactions.length;
+          }
+        } catch (e) {
+          debugPrint('Failed to load rental transactions: $e');
+        }
+      } else {
+        final response = await _transactionService.getMemberTransactions(
+          page: _currentPage,
+          pageSize: 20,
+          transactionType: _getTransactionTypeString(_selectedFilter),
+          memberId: widget.memberId,
+        );
+
+        newTransactions = _transactionService.mapOrdersFromResponse(response);
+        totalCount = _transactionService.getTotalCount(response);
+
+        if (_selectedFilter == TransactionType.all) {
+          try {
+            if (widget.memberId != null) {
+              newRentalTransactions = await _transactionService.getMemberRentalTransactions(widget.memberId!);
+              totalCount += newRentalTransactions.length;
+            }
+          } catch (e) {
+            debugPrint('Failed to load rental transactions: $e');
+          }
+        }
+
+        for (final transaction in newTransactions) {
+          _fetchOrderItems(transaction);
+        }
+      }
 
       setState(() {
         if (refresh) {
           _transactions = newTransactions;
+          _rentalTransactions = newRentalTransactions;
         } else {
           _transactions.addAll(newTransactions);
+          _rentalTransactions.addAll(newRentalTransactions);
         }
         _totalCount = totalCount;
         _currentPage++;
-        _hasMoreData = _transactions.length < totalCount;
+        _hasMoreData = _transactions.length + _rentalTransactions.length < _totalCount;
         _isLoading = false;
       });
-
-      // Fetch order items for all new transactions
-      for (final transaction in newTransactions) {
-        _fetchOrderItems(transaction);
-      }
     } catch (e) {
       setState(() {
         _error = 'Greška pri učitavanju transakcija: $e';
@@ -120,8 +151,28 @@ class _MemberTransactionHistoryState extends State<MemberTransactionHistory> {
       case TransactionType.memberships:
         result = 'memberships';
         break;
+      case TransactionType.rentals:
+        result = 'rentals';
+        break;
     }
     return result;
+  }
+
+  String _getTransactionTypeDisplayName(TransactionType type) {
+    switch (type) {
+      case TransactionType.all:
+        return 'Sve';
+      case TransactionType.vouchers:
+        return 'Vaučeri';
+      case TransactionType.books:
+        return 'Knjige';
+      case TransactionType.tickets:
+        return 'Ulaznice';
+      case TransactionType.memberships:
+        return 'Članstva';
+      case TransactionType.rentals:
+        return 'Iznajmljivanja';
+    }
   }
 
   Future<void> _fetchOrderItems(Order order) async {
@@ -201,6 +252,22 @@ class _MemberTransactionHistoryState extends State<MemberTransactionHistory> {
 
   @override
   Widget build(BuildContext context) {
+    // Combined list of all transactions
+    final allTransactions = <dynamic>[];
+    
+    // Add order transactions
+    allTransactions.addAll(_transactions);
+    
+    // Add rental transactions
+    allTransactions.addAll(_rentalTransactions);
+    
+    // Sort by date (most recent first)
+    allTransactions.sort((a, b) {
+      DateTime dateA = a is Order ? a.purchasedAt : (a as BookTransaction).createdAt;
+      DateTime dateB = b is Order ? b.purchasedAt : (b as BookTransaction).createdAt;
+      return dateB.compareTo(dateA);
+    });
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Row(
@@ -250,7 +317,7 @@ class _MemberTransactionHistoryState extends State<MemberTransactionHistory> {
                     const SizedBox(height: 24),
                     
                     // Transaction list
-                    _buildTransactionList(),
+                    _buildTransactionList(allTransactions),
                   ],
                 ),
               ),
@@ -262,51 +329,28 @@ class _MemberTransactionHistoryState extends State<MemberTransactionHistory> {
   }
 
   Widget _buildFilterButtons() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 8,
-        children: TransactionType.values.map((type) {
-          final isSelected = _selectedFilter == type;
-          return ZSButton(
-            text: _getFilterText(type),
-            backgroundColor: isSelected ? const Color(0xFF28A745) : Colors.white,
-            foregroundColor: isSelected ? Colors.white : Colors.grey.shade700,
-            borderColor: isSelected ? const Color(0xFF28A745) : Colors.grey.shade300,
-            onPressed: () {
-              setState(() {
-                _selectedFilter = type;
-              });
-              _loadTransactions(refresh: true);
-            },
-            paddingVertical: 8,
-            paddingHorizontal: 16,
-            fontSize: 14,
-            width: 120,
-          );
-        }).toList(),
-      ),
+    return Wrap(
+      spacing: 12,
+      runSpacing: 8,
+      children: TransactionType.values.map((type) {
+        return ZSButton(
+          text: _getTransactionTypeDisplayName(type),
+          backgroundColor: _selectedFilter == type ? const Color(0xFF28A745) : Colors.grey.shade200,
+          foregroundColor: _selectedFilter == type ? Colors.white : Colors.black87,
+          onPressed: () {
+            setState(() {
+              _selectedFilter = type;
+            });
+            _loadTransactions(refresh: true);
+          },
+          width: null,
+        );
+      }).toList(),
     );
   }
 
-  String _getFilterText(TransactionType type) {
-    switch (type) {
-      case TransactionType.all:
-        return 'Sve';
-      case TransactionType.vouchers:
-        return 'Vaučeri';
-      case TransactionType.books:
-        return 'Knjige';
-      case TransactionType.tickets:
-        return 'Ulaznice';
-      case TransactionType.memberships:
-        return 'Članstva';
-    }
-  }
-
-  Widget _buildTransactionList() {
-    if (_isLoading && _transactions.isEmpty) {
+  Widget _buildTransactionList(List<dynamic> transactions) {
+    if (_isLoading && transactions.isEmpty) {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(32.0),
@@ -315,7 +359,7 @@ class _MemberTransactionHistoryState extends State<MemberTransactionHistory> {
       );
     }
 
-    if (_error != null && _transactions.isEmpty) {
+    if (_error != null && transactions.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32.0),
@@ -359,7 +403,7 @@ class _MemberTransactionHistoryState extends State<MemberTransactionHistory> {
       );
     }
 
-    if (_transactions.isEmpty) {
+    if (transactions.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32.0),
@@ -397,36 +441,45 @@ class _MemberTransactionHistoryState extends State<MemberTransactionHistory> {
     return Column(
       children: [
         // Transaction cards
-        ..._transactions.map((transaction) => _buildTransactionCard(transaction)).toList(),
+        ...transactions.map((transaction) => _buildTransactionCard(transaction)).toList(),
         
         // Loading indicator
         if (_hasMoreData)
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : ZSButton(
-                    text: 'Učitaj više',
-                    backgroundColor: Colors.grey.shade100,
-                    foregroundColor: Colors.grey.shade700,
-                    borderColor: Colors.grey.shade300,
-                    onPressed: _loadTransactions,
-                    width: 200,
-                  ),
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
           ),
       ],
     );
   }
 
-  Widget _buildTransactionCard(Order transaction) {
+  Widget _buildTransactionCard(dynamic transaction) {
+    if (transaction is Order) {
+      return _buildOrderTransactionCard(transaction);
+    } else if (transaction is BookTransaction) {
+      return _buildRentalTransactionCard(transaction);
+    }
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildOrderTransactionCard(Order transaction) {
     final isLoading = _loadingOrderItems[transaction.id] == true;
+    final orderItems = _orderItemsMap[transaction.id] ?? [];
+    
+    // Calculate total points earned for this order
+    int totalPointsEarned = 0;
+    for (final item in orderItems) {
+      totalPointsEarned += item.pointsEarned ?? 0;
+    }
     
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
           BoxShadow(
@@ -445,7 +498,7 @@ class _MemberTransactionHistoryState extends State<MemberTransactionHistory> {
             height: 56,
             decoration: BoxDecoration(
               color: const Color(0xFF28A745).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: isLoading 
               ? const CircularProgressIndicator(strokeWidth: 2)
@@ -468,7 +521,6 @@ class _MemberTransactionHistoryState extends State<MemberTransactionHistory> {
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -478,40 +530,133 @@ class _MemberTransactionHistoryState extends State<MemberTransactionHistory> {
                     color: Colors.grey.shade600,
                   ),
                 ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(
+                      '${transaction.amount.toStringAsFixed(2)} KM',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF28A745),
+                      ),
+                    ),
+                    if (totalPointsEarned > 0) ...[
+                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '+$totalPointsEarned bodova',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.amber.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRentalTransactionCard(BookTransaction transaction) {    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Transaction type icon
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.library_books,
+              color: Colors.blue,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 20),
           
-          // Amount and status
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '${transaction.amount.toStringAsFixed(2)} KM',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF28A745),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(transaction.paymentStatus).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  _getStatusText(transaction.paymentStatus),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: _getStatusColor(transaction.paymentStatus),
+          // Transaction details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Iznajmljeno: ${transaction.book?.title ?? 'Knjiga ID: ${transaction.bookId}'}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  _formatDate(transaction.createdAt),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(
+                      'Iznajmljeno',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.blue.shade600,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (transaction.pointsEarned != null && transaction.pointsEarned! > 0) ...[
+                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '+${transaction.pointsEarned} bodova',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.amber.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -519,41 +664,6 @@ class _MemberTransactionHistoryState extends State<MemberTransactionHistory> {
   }
 
   String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-  }
-
-  Color _getStatusColor(String? status) {
-    if (status == null) return Colors.grey;
-    
-    switch (status.toLowerCase()) {
-      case 'completed':
-      case 'succeeded':
-        return Colors.green;
-      case 'pending':
-        return Colors.orange;
-      case 'failed':
-      case 'cancelled':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _getStatusText(String? status) {
-    if (status == null) return 'Nepoznato';
-    
-    switch (status.toLowerCase()) {
-      case 'completed':
-      case 'succeeded':
-        return 'Uspješno';
-      case 'pending':
-        return 'Na čekanju';
-      case 'failed':
-        return 'Neuspješno';
-      case 'cancelled':
-        return 'Otkazano';
-      default:
-        return status;
-    }
+    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 }

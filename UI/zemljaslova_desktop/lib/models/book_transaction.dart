@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import '../widgets/inventory_screen.dart';
+import 'book.dart';
 
 part 'book_transaction.g.dart';
 
@@ -17,6 +18,8 @@ class BookTransaction implements InventoryTransaction {
   final int userId;
   @override
   final String? data;
+  final int? pointsEarned;
+  final Book? book;
 
   BookTransaction({
     this.id,
@@ -26,6 +29,8 @@ class BookTransaction implements InventoryTransaction {
     required this.createdAt,
     required this.userId,
     this.data,
+    this.pointsEarned,
+    this.book,
   });
 
   factory BookTransaction.fromJson(Map<String, dynamic> json) => _$BookTransactionFromJson(json);
