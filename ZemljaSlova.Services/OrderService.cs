@@ -361,9 +361,13 @@ namespace ZemljaSlova.Services
                     .Where(oi => oi.OrderId == orderId)
                     .ToListAsync();
 
-
-
                 var result = Mapper.Map<List<Model.OrderItem>>(orderItems);
+
+                // Get points earned for each order item
+                foreach (var orderItem in result)
+                {
+                    orderItem.PointsEarned = await _bookClubPointsService.GetPointsForOrderItemAsync(orderItem.Id);
+                }
 
                 return result;
             }

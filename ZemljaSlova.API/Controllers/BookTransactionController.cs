@@ -103,6 +103,13 @@ namespace ZemljaSlova.API.Controllers
             var activeRentals = await _transactionService.GetActiveRentalsAsync();
             return Ok(activeRentals);
         }
+
+        [HttpGet("member/{memberId}/rental-transactions")]
+        public async Task<ActionResult<List<BookTransaction>>> GetMemberRentalTransactions(int memberId)
+        {
+            var rentalTransactions = await _transactionService.GetMemberRentalTransactionsAsync(memberId);
+            return Ok(rentalTransactions);
+        }
     }
 
     // TODO: Move to Models.Requests

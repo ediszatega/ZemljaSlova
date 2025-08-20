@@ -555,11 +555,35 @@ namespace ZemljaSlova.Services
             {
                 var bookTransaction = await _transactionService.CreateRentTransactionAsync(bookId, quantity, userId, data);
                 
-                var member = await Context.Members.FirstOrDefaultAsync(m => m.UserId == userId);
-                if (member != null)
+                // Parse member ID from data if available
+                int? memberId = null;
+                if (!string.IsNullOrEmpty(data))
+                {
+                    var lines = data.Split('\n');
+                    foreach (var line in lines)
+                    {
+                        if (line.StartsWith("MemberId:"))
+                        {
+                            var memberIdStr = line.Substring("MemberId:".Length);
+                            if (int.TryParse(memberIdStr, out int parsedMemberId))
+                            {
+                                memberId = parsedMemberId;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                if (!memberId.HasValue)
+                {
+                    var member = await Context.Members.FirstOrDefaultAsync(m => m.UserId == userId);
+                    memberId = member?.Id;
+                }
+                
+                if (memberId.HasValue)
                 {
                     await _bookClubPointsService.AwardPointsAsync(
-                        member.Id, 
+                        memberId.Value, 
                         ActivityType.BookRental, 
                         20 * quantity, 
                         bookTransactionId: bookTransaction.Id

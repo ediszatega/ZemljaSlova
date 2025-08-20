@@ -60,6 +60,7 @@ class OrderItem {
   final Voucher? voucher;
   final TicketType? ticketType;
   final Membership? membership;
+  final int? pointsEarned;
 
   OrderItem({
     required this.id,
@@ -74,6 +75,7 @@ class OrderItem {
     this.voucher,
     this.ticketType,
     this.membership,
+    this.pointsEarned,
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) => _$OrderItemFromJson(json);

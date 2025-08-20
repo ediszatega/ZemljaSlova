@@ -1,3 +1,5 @@
+import 'book.dart';
+
 class BookTransaction {
   final int? id;
   final int activityTypeId;
@@ -6,6 +8,8 @@ class BookTransaction {
   final DateTime createdAt;
   final int userId;
   final String? data;
+  final int? pointsEarned;
+  final Book? book;
 
   BookTransaction({
     this.id,
@@ -15,6 +19,8 @@ class BookTransaction {
     required this.createdAt,
     required this.userId,
     this.data,
+    this.pointsEarned,
+    this.book,
   });
 
   factory BookTransaction.fromJson(Map<String, dynamic> json) {
@@ -26,6 +32,8 @@ class BookTransaction {
       createdAt: DateTime.parse(json['createdAt'] as String),
       userId: json['userId'] as int,
       data: json['data'] as String?,
+      pointsEarned: json['pointsEarned'] as int?,
+      book: json['book'] != null ? Book.fromJson(json['book']) : null,
     );
   }
 
@@ -38,6 +46,8 @@ class BookTransaction {
       'createdAt': createdAt.toIso8601String(),
       'userId': userId,
       'data': data,
+      'pointsEarned': pointsEarned,
+      'book': book?.toJson(),
     };
   }
 }

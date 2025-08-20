@@ -24,6 +24,6 @@ namespace ZemljaSlova.Model
 
         public virtual User User { get; set; } = null!;
 
-        public virtual ICollection<UserBookClubTransaction> UserBookClubTransactions { get; set; } = new List<UserBookClubTransaction>();
+        public int? PointsEarned { get; set; }
     }
 }

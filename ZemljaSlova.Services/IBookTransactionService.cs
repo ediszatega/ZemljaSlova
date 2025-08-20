@@ -17,5 +17,6 @@ namespace ZemljaSlova.Services
         Task<BookTransaction> CreateRentTransactionAsync(int bookId, int quantity, int userId, string? data = null);
         Task<List<BookTransaction>> GetTransactionsByBookAsync(int bookId);
         Task<List<BookTransaction>> GetActiveRentalsAsync();
+        Task<List<BookTransaction>> GetMemberRentalTransactionsAsync(int memberId);
     }
 } 

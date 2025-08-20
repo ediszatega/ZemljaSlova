@@ -143,5 +143,21 @@ namespace ZemljaSlova.Services
             return await _context.UserBookClubTransactions
                 .AnyAsync(ubct => ubct.BookTransactionId == bookTransactionId && ubct.ActivityTypeId == (byte)activityType);
         }
+
+        public async Task<int> GetPointsForBookTransactionAsync(int bookTransactionId)
+        {
+            var transaction = await _context.UserBookClubTransactions
+                .FirstOrDefaultAsync(ubct => ubct.BookTransactionId == bookTransactionId);
+            
+            return transaction?.Points ?? 0;
+        }
+
+        public async Task<int> GetPointsForOrderItemAsync(int orderItemId)
+        {
+            var transaction = await _context.UserBookClubTransactions
+                .FirstOrDefaultAsync(ubct => ubct.OrderItemId == orderItemId);
+            
+            return transaction?.Points ?? 0;
+        }
     }
 }

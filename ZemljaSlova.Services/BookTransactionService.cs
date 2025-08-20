@@ -104,12 +104,40 @@ namespace ZemljaSlova.Services
         {
             var activeRentals = await Context.BookTransactions
                 .Include(t => t.Book)
-                .Include(t => t.User)
                 .Where(t => t.ActivityTypeId == (byte)ActivityType.Rent)
                 .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
 
             return Mapper.Map<List<Model.BookTransaction>>(activeRentals);
+        }
+
+        public async Task<List<Model.BookTransaction>> GetMemberRentalTransactionsAsync(int memberId)
+        {            
+            var allRentals = await Context.BookTransactions
+                .Include(t => t.Book)
+                .Where(t => t.ActivityTypeId == (byte)ActivityType.Rent)
+                .ToListAsync();
+            
+            var memberRentals = await Context.BookTransactions
+                .Include(t => t.Book)
+                .Where(t => t.ActivityTypeId == (byte)ActivityType.Rent && 
+                           t.Data != null && 
+                           t.Data.Contains($"MemberId:{memberId}"))
+                .OrderByDescending(t => t.CreatedAt)
+                .ToListAsync();
+
+            var result = Mapper.Map<List<Model.BookTransaction>>(memberRentals);
+
+            // Get points for each transaction
+            foreach (var transaction in result)
+            {
+                var pointsTransaction = await Context.UserBookClubTransactions
+                    .FirstOrDefaultAsync(ubct => ubct.BookTransactionId == transaction.Id);
+                
+                transaction.PointsEarned = pointsTransaction?.Points ?? 0;
+            }
+
+            return result;
         }
     }
 } 

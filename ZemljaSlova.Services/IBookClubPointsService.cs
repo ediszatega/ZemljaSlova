@@ -18,5 +18,7 @@ namespace ZemljaSlova.Services
         Task<List<ModelUserBookClubTransaction>> GetTransactionsForYearAsync(int memberId, int year);
         Task<bool> HasTransactionForOrderItemAsync(int orderItemId, ActivityType activityType);
         Task<bool> HasTransactionForBookTransactionAsync(int bookTransactionId, ActivityType activityType);
+        Task<int> GetPointsForBookTransactionAsync(int bookTransactionId);
+        Task<int> GetPointsForOrderItemAsync(int orderItemId);
     }
 }

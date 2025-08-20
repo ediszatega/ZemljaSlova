@@ -172,7 +172,7 @@ class _BookRentalScreenState extends State<BookRentalScreen> {
       final formattedStartDate = _formatDateOnly(_startDate);
       final formattedEndDate = _formatDateOnly(_endDate);
       final employeeName = Authorization.email ?? 'Nepoznat zaposlenik'; // Placeholder until we have employee name service
-      final rentalDataText = 'Korisnik: ${_selectedMember!.fullName}\nUposlenik: $employeeName\nIzdato na period: $formattedStartDate - $formattedEndDate';
+      final rentalDataText = 'MemberId:${_selectedMember!.id}\nKorisnik: ${_selectedMember!.fullName}\nUposlenik: $employeeName\nIzdato na period: $formattedStartDate - $formattedEndDate';
       
       final success = await _inventoryService.rentItems(
         id: widget.bookId,

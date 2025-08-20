@@ -6,6 +6,7 @@ import '../models/voucher.dart';
 import '../models/ticket_type.dart';
 import '../models/event.dart';
 import '../models/membership.dart';
+import '../models/book_transaction.dart';
 import 'api_service.dart';
 
 class TransactionService {
@@ -51,6 +52,22 @@ class TransactionService {
       throw Exception('Failed to load order items');
     } catch (e) {
       throw Exception('Failed to get order items: $e');
+    }
+  }
+
+  Future<List<BookTransaction>> getMemberRentalTransactions(int memberId) async {
+    try {
+      final response = await _apiService.get('BookTransaction/member/$memberId/rental-transactions');
+      
+      if (response != null && response is List) {
+        final transactions = response.map((json) => BookTransaction.fromJson(json)).toList();
+        debugPrint('[TransactionService] Parsed ${transactions.length} rental transactions');
+        return transactions;
+      }
+      
+      return [];
+    } catch (e) {
+      throw Exception('Failed to get member rental transactions: $e');
     }
   }
 
@@ -103,6 +120,7 @@ class TransactionService {
       voucher: itemData['voucher'] != null ? _mapVoucherFromBackend(itemData['voucher']) : null,
       ticketType: itemData['ticketType'] != null ? _mapTicketTypeFromBackend(itemData['ticketType']) : null,
       membership: itemData['membership'] != null ? _mapMembershipFromBackend(itemData['membership']) : null,
+      pointsEarned: itemData['pointsEarned'],
     );
   }
 
