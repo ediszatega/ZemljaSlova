@@ -13,7 +13,5 @@ namespace ZemljaSlova.Model
         public int MemberId { get; set; }
 
         public virtual Member Member { get; set; } = null!;
-
-        public virtual ICollection<UserBookClubTransaction> UserBookClubTransactions { get; set; } = new List<UserBookClubTransaction>();
     }
 }

@@ -87,18 +87,12 @@ namespace ZemljaSlova.Services
 
         public async Task<int> GetTotalPointsForYearAsync(int memberId, int year)
         {
-            // First get the UserBookClub record for this member and year
-            var userBookClub = await _context.UserBookClubs
-                .FirstOrDefaultAsync(ubc => ubc.MemberId == memberId && ubc.Year == year);
-
-            if (userBookClub == null)
-            {
-                return 0;
-            }
-
+            // Ensure UserBookClub record exists for this member and year
+            var userBookClubId = await GetOrCreateUserBookClubAsync(memberId, year);
+            
             // Calculate total points by summing all transactions for this UserBookClub
             var totalPoints = await _context.UserBookClubTransactions
-                .Where(ubct => ubct.UserBookClubId == userBookClub.Id)
+                .Where(ubct => ubct.UserBookClubId == userBookClubId)
                 .SumAsync(ubct => ubct.Points);
 
             return totalPoints;
@@ -107,25 +101,28 @@ namespace ZemljaSlova.Services
         public async Task<int> GetCurrentYearPointsAsync(int memberId)
         {
             var currentYear = DateTime.Now.Year;
-            return await GetTotalPointsForYearAsync(memberId, currentYear);
+            
+            // Ensure UserBookClub record exists for current year
+            var userBookClubId = await GetOrCreateUserBookClubAsync(memberId, currentYear);
+            
+            // Calculate total points by summing all transactions for this UserBookClub
+            var totalPoints = await _context.UserBookClubTransactions
+                .Where(ubct => ubct.UserBookClubId == userBookClubId)
+                .SumAsync(ubct => ubct.Points);
+
+            return totalPoints;
         }
 
         public async Task<List<ModelUserBookClubTransaction>> GetTransactionsForYearAsync(int memberId, int year)
         {
-            // First get the UserBookClub record for this member and year
-            var userBookClub = await _context.UserBookClubs
-                .FirstOrDefaultAsync(ubc => ubc.MemberId == memberId && ubc.Year == year);
-
-            if (userBookClub == null)
-            {
-                return new List<ModelUserBookClubTransaction>();
-            }
-
+            // Ensure UserBookClub record exists for this member and year
+            var userBookClubId = await GetOrCreateUserBookClubAsync(memberId, year);
+            
             // Get all transactions for this UserBookClub with related data
             var transactions = await _context.UserBookClubTransactions
                 .Include(ubct => ubct.OrderItem)
                 .Include(ubct => ubct.BookTransaction)
-                .Where(ubct => ubct.UserBookClubId == userBookClub.Id)
+                .Where(ubct => ubct.UserBookClubId == userBookClubId)
                 .OrderByDescending(ubct => ubct.CreatedAt)
                 .ToListAsync();
 

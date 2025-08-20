@@ -4,9 +4,11 @@ import 'package:zemljaslova_desktop/widgets/zs_button.dart';
 import '../models/member.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/permission_guard.dart';
+import '../providers/auth_provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/member_provider.dart';
 import '../providers/membership_provider.dart';
+import '../services/book_club_service.dart';
 import 'member_edit.dart';
 import 'change_password_screen.dart';
 import 'membership_add.dart';
@@ -29,12 +31,18 @@ class _MembersDetailOverviewState extends State<MembersDetailOverview> {
   bool _loadingMembership = false;
   String? _membershipStatus;
   bool? _hasMembershipActive;
+  bool _loadingBookClubPoints = false;
+  int _bookClubPoints = 0;
+  late BookClubService _bookClubService;
   
   @override
   void initState() {
     super.initState();
     _member = widget.member;
+    final apiService = Provider.of<AuthProvider>(context, listen: false).apiService;
+    _bookClubService = BookClubService(apiService: apiService);
     _loadMembershipStatus();
+    _loadBookClubPoints();
   }
 
   Future<void> _loadMembershipStatus() async {
@@ -66,6 +74,25 @@ class _MembersDetailOverviewState extends State<MembersDetailOverview> {
         _hasMembershipActive = false;
         _membershipStatus = 'Greška pri učitavanju';
         _loadingMembership = false;
+      });
+    }
+  }
+
+  Future<void> _loadBookClubPoints() async {
+    setState(() {
+      _loadingBookClubPoints = true;
+    });
+
+    try {
+      final points = await _bookClubService.getCurrentYearPoints(_member.id);
+      setState(() {
+        _bookClubPoints = points;
+        _loadingBookClubPoints = false;
+      });
+    } catch (e) {
+      setState(() {
+        _bookClubPoints = 0;
+        _loadingBookClubPoints = false;
       });
     }
   }
@@ -275,9 +302,55 @@ class _MembersDetailOverviewState extends State<MembersDetailOverview> {
                                     ? 'Učitavam...' 
                                     : _membershipStatus ?? 'Nepoznato'
                               ),
-                              DetailRow(label: 'Broj aktivnih mjeseci', value: '3'),
-                              DetailRow(label: 'Broj kupljenih knjiga', value: '5'),
-                              DetailRow(label: 'Broj iznajmljenih knjiga', value: '2'),
+                              
+                              const SizedBox(height: 16),
+                              
+                              // Book Club Points Card
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.stars, color: Colors.amber, size: 20),
+                                    const SizedBox(width: 12),
+                                    const Text(
+                                      'Klub čitalaca',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Bodovi: ',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                    if (_loadingBookClubPoints)
+                                      const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      )
+                                    else
+                                      Text(
+                                        '$_bookClubPoints',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.amber,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                         ),
