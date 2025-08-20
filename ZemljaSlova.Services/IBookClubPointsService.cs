@@ -20,5 +20,6 @@ namespace ZemljaSlova.Services
         Task<bool> HasTransactionForBookTransactionAsync(int bookTransactionId, ActivityType activityType);
         Task<int> GetPointsForBookTransactionAsync(int bookTransactionId);
         Task<int> GetPointsForOrderItemAsync(int orderItemId);
+        Task<object> GetLeaderboardAsync(int year, int page, int pageSize);
     }
 }

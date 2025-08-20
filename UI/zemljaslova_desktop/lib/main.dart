@@ -42,6 +42,7 @@ import 'services/user_service.dart';
 import 'services/voucher_service.dart';
 import 'services/discount_service.dart';
 import 'services/membership_service.dart';
+import 'screens/book_club_leaderboard_screen.dart';
 
 void main() {
   final apiService = ApiService();
@@ -134,6 +135,7 @@ class ZemljaSlova extends StatelessWidget {
           '/events': (context) => const EventsOverview(),
           '/members': (context) => const MembersOverview(),
           '/memberships': (context) => const MembershipsOverview(),
+          '/book-club': (context) => const BookClubLeaderboardScreen(),
           '/reports': (context) => const ReportsOverview(),
           '/profile': (context) => const ProfileOverview(),
           '/authors': (context) => const AuthorsOverview(),
@@ -178,6 +180,8 @@ class NavigationScreen extends StatelessWidget {
         return const MembersOverview();
       case NavigationItem.memberships:
         return const MembershipsOverview();
+      case NavigationItem.bookClub:
+        return const BookClubLeaderboardScreen();
       case NavigationItem.reports:
         return const ReportsOverview();
       case NavigationItem.profile:

@@ -156,5 +156,51 @@ namespace ZemljaSlova.Services
             
             return transaction?.Points ?? 0;
         }
+
+        public async Task<object> GetLeaderboardAsync(int year, int page, int pageSize)
+        {
+            var skip = (page - 1) * pageSize;
+
+            // Get all members with their points for the specified year
+            var memberPoints = await (
+                from m in _context.Members
+                join u in _context.Users on m.UserId equals u.Id
+                join ubc in _context.UserBookClubs on m.Id equals ubc.MemberId into ubcJoin
+                from ubc in ubcJoin.DefaultIfEmpty()
+                join ubct in _context.UserBookClubTransactions on ubc.Id equals ubct.UserBookClubId into ubctJoin
+                from ubct in ubctJoin.DefaultIfEmpty()
+                where ubc == null || ubc.Year == year
+                group new { m, u, ubct } by new { m.Id, u.FirstName, u.LastName, u.Email } into g
+                select new
+                {
+                    MemberId = g.Key.Id,
+                    MemberName = $"{g.Key.FirstName} {g.Key.LastName}",
+                    Email = g.Key.Email,
+                    Points = g.Where(x => x.ubct != null).Sum(x => x.ubct.Points)
+                }
+            ).ToListAsync();
+
+            // Order by points descending and add rank
+            var rankedMembers = memberPoints
+                .OrderByDescending(mp => mp.Points)
+                .ThenBy(mp => mp.MemberName)
+                .Skip(skip)
+                .Take(pageSize)
+                .Select((mp, index) => new
+                {
+                    Rank = skip + index + 1,
+                    mp.MemberId,
+                    mp.MemberName,
+                    mp.Email,
+                    mp.Points
+                })
+                .ToList();
+
+            return new
+            {
+                Members = rankedMembers,
+                TotalCount = memberPoints.Count()
+            };
+        }
     }
 }

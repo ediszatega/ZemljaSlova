@@ -93,5 +93,22 @@ namespace ZemljaSlova.API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("leaderboard")]
+        public async Task<IActionResult> GetLeaderboard([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        {
+            try
+            {
+                var currentYear = DateTime.Now.Year;
+                var leaderboard = await _bookClubPointsService.GetLeaderboardAsync(currentYear, page, pageSize);
+                
+                // Anonymous object that we return directly
+                return Ok(leaderboard);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

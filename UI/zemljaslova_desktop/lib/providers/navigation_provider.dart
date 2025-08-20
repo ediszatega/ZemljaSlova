@@ -6,6 +6,7 @@ enum NavigationItem {
   events,
   members,
   memberships,
+  bookClub,
   reports,
   profile,
   authors,

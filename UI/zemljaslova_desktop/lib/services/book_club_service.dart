@@ -1,4 +1,5 @@
 import 'api_service.dart';
+import 'package:flutter/foundation.dart';
 
 class BookClubService {
   final ApiService _apiService;
@@ -49,6 +50,20 @@ class BookClubService {
   Future<Map<String, dynamic>?> getMemberBookClubData(int memberId) async {
     try {
       final response = await _apiService.get('BookClubPoints/member/$memberId');
+      
+      if (response != null && response is Map<String, dynamic>) {
+        return response;
+      }
+
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getLeaderboard({int page = 1, int pageSize = 20}) async {
+    try {
+      final response = await _apiService.get('BookClubPoints/leaderboard?page=$page&pageSize=$pageSize');
       
       if (response != null && response is Map<String, dynamic>) {
         return response;
