@@ -7,12 +7,10 @@ import '../widgets/permission_guard.dart';
 import '../providers/user_provider.dart';
 import '../providers/member_provider.dart';
 import '../providers/membership_provider.dart';
-import '../services/user_service.dart';
-import 'members_overview.dart';
 import 'member_edit.dart';
 import 'change_password_screen.dart';
 import 'membership_add.dart';
-import '../widgets/permission_guard.dart';
+import 'member_transaction_history.dart';
 
 class MembersDetailOverview extends StatefulWidget {
   final Member member;
@@ -311,6 +309,24 @@ class _MembersDetailOverviewState extends State<MembersDetailOverview> {
                             if (result == true) {
                               _loadMembershipStatus();
                             }
+                          },
+                        ),
+                        
+                        ZSButton(
+                          text: 'Historija transakcija',
+                          backgroundColor: Colors.purple.shade50,
+                          foregroundColor: Colors.purple,
+                          borderColor: Colors.grey.shade300,
+                          width: 410,
+                          topPadding: 5,
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => MemberTransactionHistory(
+                                  memberId: _member.id,
+                                ),
+                              ),
+                            );
                           },
                         ),
                         

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'dart:math' as math;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -36,7 +36,8 @@ class ApiService {
   Future<dynamic> get(String endpoint) async {
     try {
       final url = Uri.parse('$baseUrl/$endpoint');
-      final response = await http.get(url, headers: await headers);
+      final headers = await this.headers;
+      final response = await http.get(url, headers: headers);
       
       return _handleResponse(response);
     } catch (e) {

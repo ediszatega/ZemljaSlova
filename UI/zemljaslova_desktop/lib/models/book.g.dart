@@ -18,10 +18,7 @@ Book _$BookFromJson(Map<String, dynamic> json) => Book(
   dateOfPublish: json['dateOfPublish'] as String?,
   edition: (json['edition'] as num?)?.toInt(),
   publisher: json['publisher'] as String?,
-  bookPurpose: json['bookPurpose'] == null ? null : BookPurpose.values.firstWhere(
-    (e) => e.index + 1 == json['bookPurpose'] as int,
-    orElse: () => BookPurpose.sell,
-  ),
+  bookPurpose: $enumDecodeNullable(_$BookPurposeEnumMap, json['bookPurpose']),
   numberOfPages: (json['numberOfPages'] as num?)?.toInt() ?? 0,
   weight: (json['weight'] as num?)?.toDouble(),
   dimensions: json['dimensions'] as String?,
@@ -51,7 +48,7 @@ Map<String, dynamic> _$BookToJson(Book instance) => <String, dynamic>{
   'dateOfPublish': instance.dateOfPublish,
   'edition': instance.edition,
   'publisher': instance.publisher,
-  'bookPurpose': instance.bookPurpose?.index != null ? instance.bookPurpose!.index + 1 : null,
+  'bookPurpose': _$BookPurposeEnumMap[instance.bookPurpose],
   'numberOfPages': instance.numberOfPages,
   'weight': instance.weight,
   'dimensions': instance.dimensions,
@@ -61,3 +58,5 @@ Map<String, dynamic> _$BookToJson(Book instance) => <String, dynamic>{
   'authorIds': instance.authorIds,
   'authors': instance.authors,
 };
+
+const _$BookPurposeEnumMap = {BookPurpose.sell: 1, BookPurpose.rent: 2};
