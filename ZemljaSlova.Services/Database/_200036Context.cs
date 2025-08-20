@@ -110,6 +110,8 @@ public partial class _200036Context : DbContext
             entity.HasMany(d => d.Authors)
                 .WithMany(p => p.Books)
                 .UsingEntity<BookAuthor>();
+
+            entity.Ignore("OrderItems");
         });
 
         modelBuilder.Entity<BookReservation>(entity =>
@@ -157,6 +159,8 @@ public partial class _200036Context : DbContext
             entity.Property(e => e.EndDate).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.StartDate).HasColumnType("datetime");
+
+            entity.Ignore("OrderItems");
         });
 
         modelBuilder.Entity<Employee>(entity =>
@@ -223,6 +227,8 @@ public partial class _200036Context : DbContext
                 .HasForeignKey(d => d.MemberId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Membership_Member");
+
+            entity.Ignore("OrderItems");
         });
 
         modelBuilder.Entity<Notification>(entity =>
@@ -283,16 +289,19 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("OrderItem");
 
-            entity.HasOne(d => d.Book).WithMany(p => p.OrderItems)
+            entity.HasOne(d => d.Book).WithMany()
                 .HasForeignKey(d => d.BookId)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_OrderItem_Book");
 
-            entity.HasOne(d => d.Discount).WithMany(p => p.OrderItems)
+            entity.HasOne(d => d.Discount).WithMany()
                 .HasForeignKey(d => d.DiscountId)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_OrderItem_Discount");
 
-            entity.HasOne(d => d.Membership).WithMany(p => p.OrderItems)
+            entity.HasOne(d => d.Membership).WithMany()
                 .HasForeignKey(d => d.MembershipId)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_OrderItem_Membership");
 
             entity.HasOne(d => d.Order).WithMany(p => p.OrderItems)
@@ -302,10 +311,12 @@ public partial class _200036Context : DbContext
 
             entity.HasOne(d => d.TicketType).WithMany(p => p.OrderItems)
                 .HasForeignKey(d => d.TicketTypeId)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_OrderItem_TicketType");
 
             entity.HasOne(d => d.Voucher).WithMany(p => p.OrderItems)
                 .HasForeignKey(d => d.VoucherId)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_OrderItem_Voucher");
         });
 

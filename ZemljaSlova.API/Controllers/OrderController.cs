@@ -46,6 +46,40 @@ namespace ZemljaSlova.API.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        [HttpGet("member-transactions")]
+        public async Task<ActionResult<PagedResult<Model.Order>>> GetMemberTransactions([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? transactionType = null)
+        {
+            try
+            {
+                var emailClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+                if (string.IsNullOrEmpty(emailClaim))
+                {
+                    return Unauthorized("Invalid token");
+                }
+
+                var transactions = await _orderService.GetMemberTransactionsAsync(emailClaim, page, pageSize, transactionType);
+                return Ok(transactions);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("order-items/{orderId}")]
+        public async Task<ActionResult<List<Model.OrderItem>>> GetOrderItemsByOrderId(int orderId)
+        {
+            try
+            {
+                var orderItems = await _orderService.GetOrderItemsByOrderIdAsync(orderId);
+                return Ok(orderItems);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 
     public class ProcessOrderRequest

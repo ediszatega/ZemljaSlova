@@ -32,10 +32,10 @@ class ApiService {
     return headers;
   }
 
-  Future<dynamic> get(String endpoint) async {
+  Future<dynamic> get(String endpoint, {Map<String, String>? queryParams}) async {
     try {
-      final url = Uri.parse('$baseUrl/$endpoint');
-      final response = await http.get(url, headers: await headers);
+      final uri = Uri.parse('$baseUrl/$endpoint').replace(queryParameters: queryParams);
+      final response = await http.get(uri, headers: await headers);
       
       return _handleResponse(response);
     } catch (e) {

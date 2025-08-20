@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Stripe;
 using Stripe.Checkout;
+using ZemljaSlova.Model;
 using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services.Database;
@@ -248,6 +250,95 @@ namespace ZemljaSlova.Services
             catch (Exception ex)
             {
                 throw new Exception($"Order processing failed: {ex.Message}");
+            }
+        }
+
+        public async Task<PagedResult<Model.Order>> GetMemberTransactionsAsync(string email, int page, int pageSize, string? transactionType)
+        {
+            try
+            {
+                // Get member by email
+                var member = Context.Members
+                    .Include(m => m.User)
+                    .FirstOrDefault(m => m.User.Email == email);
+
+                if (member == null)
+                {
+                    throw new Exception("Member not found");
+                }
+
+                var query = Context.Orders
+                    .Where(o => o.MemberId == member.Id);
+
+                // Apply transaction type filter
+                if (!string.IsNullOrEmpty(transactionType) && transactionType.ToLower() != "all")
+                {
+                    switch (transactionType.ToLower())
+                    {
+                        case "vouchers":
+                            query = query.Where(o => o.OrderItems.Any(oi => oi.VoucherId != null));
+                            break;
+                        case "books":
+                            query = query.Where(o => o.OrderItems.Any(oi => oi.BookId != null));
+                            break;
+                        case "tickets":
+                            query = query.Where(o => o.OrderItems.Any(oi => oi.TicketTypeId != null));
+                            break;
+                        case "memberships":
+                            query = query.Where(o => o.OrderItems.Any(oi => oi.MembershipId != null));
+                            break;
+                    }
+                }
+                else
+                {
+                    query = query.Where(o => o.OrderItems.Any());
+                }
+
+                var totalCount = await query.CountAsync();
+
+                var orders = await query
+                    .OrderByDescending(o => o.PurchasedAt)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                var orderDtos = Mapper.Map<List<Model.Order>>(orders);
+
+                return new PagedResult<Model.Order>
+                {
+                    ResultList = orderDtos,
+                    Count = totalCount
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to get member transactions: {ex.Message}");
+            }
+        }
+
+        public async Task<List<Model.OrderItem>> GetOrderItemsByOrderIdAsync(int orderId)
+        {
+            try
+            {
+                var orderItems = await Context.OrderItems
+                    .Include(oi => oi.Book)
+                        .ThenInclude(b => b.Authors)
+                    .Include(oi => oi.Voucher)
+                    .Include(oi => oi.TicketType)
+                        .ThenInclude(tt => tt.Event)
+                    .Include(oi => oi.Membership)
+                    .Where(oi => oi.OrderId == orderId)
+                    .ToListAsync();
+
+
+
+                var result = Mapper.Map<List<Model.OrderItem>>(orderItems);
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to get order items: {ex.Message}");
             }
         }
     }

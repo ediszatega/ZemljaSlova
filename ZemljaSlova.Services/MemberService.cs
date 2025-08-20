@@ -307,7 +307,8 @@ namespace ZemljaSlova.Services
                     foreach (var membership in member.Memberships)
                     {
                         _context.Notifications.RemoveRange(membership.Notifications);
-                        _context.OrderItems.RemoveRange(membership.OrderItems);
+                        var membershipOrderItems = _context.OrderItems.Where(oi => oi.MembershipId == membership.Id).ToList();
+                        _context.OrderItems.RemoveRange(membershipOrderItems);
                     }
                     _context.Memberships.RemoveRange(member.Memberships);
                     

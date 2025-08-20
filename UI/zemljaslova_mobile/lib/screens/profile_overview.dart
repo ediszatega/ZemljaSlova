@@ -9,6 +9,7 @@ import '../utils/authorization.dart';
 import '../screens/login_screen.dart';
 import '../screens/change_password_screen.dart';
 import '../screens/membership_purchase_screen.dart';
+import '../screens/member_transaction_history.dart';
 import '../widgets/zs_button.dart';
 import '../services/user_service.dart';
 
@@ -428,6 +429,27 @@ class _ProfileOverviewState extends State<ProfileOverview> {
           fontSize: 16,
           fontWeight: FontWeight.w500,
           topPadding: 0,
+        ),
+        
+        // Transaction History Button
+        ZSButton(
+          text: 'Pregled historije transakcija',
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const MemberTransactionHistory(),
+              ),
+            );
+          },
+          backgroundColor: Colors.orange.shade50,
+          foregroundColor: Colors.orange,
+          borderColor: Colors.orange.shade200,
+          borderWidth: 1,
+          borderRadius: 8,
+          paddingVertical: 16,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          topPadding: 12,
         ),
         
         // Edit Profile Button

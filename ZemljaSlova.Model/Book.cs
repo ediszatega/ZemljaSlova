@@ -51,8 +51,6 @@ namespace ZemljaSlova.Model
         public virtual ICollection<BookTransaction> BookTransactions { get; set; } = new List<BookTransaction>();
 
         public virtual Discount? Discount { get; set; }
-
-        public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
         
         public decimal? DiscountedPrice 
         { 
