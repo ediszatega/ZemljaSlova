@@ -340,5 +340,167 @@ namespace ZemljaSlova.API.Controllers
                 return BadRequest($"Greška pri generiranju PDF izvještaja: {ex.Message}");
             }
         }
+
+        // Members and Memberships Reports
+        [HttpGet("members")]
+        public async Task<ActionResult<MembersReport>> GetMembersReport(
+            [FromQuery] DateTime startDate,
+            [FromQuery] DateTime endDate)
+        {
+            try
+            {
+                var report = await _reportingService.GetMembersReportAsync(startDate, endDate);
+                return Ok(report);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Greška pri generiranju izvještaja: {ex.Message}");
+            }
+        }
+
+        [HttpGet("members/month/{year}/{month}")]
+        public async Task<ActionResult<MembersReport>> GetMembersReportByMonth(
+            int year, int month)
+        {
+            try
+            {
+                if (month < 1 || month > 12)
+                    return BadRequest("Mjesec mora biti između 1 i 12");
+
+                var report = await _reportingService.GetMembersReportByMonthAsync(year, month);
+                return Ok(report);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Greška pri generiranju izvještaja: {ex.Message}");
+            }
+        }
+
+        [HttpGet("members/quarter/{year}/{quarter}")]
+        public async Task<ActionResult<MembersReport>> GetMembersReportByQuarter(
+            int year, int quarter)
+        {
+            try
+            {
+                if (quarter < 1 || quarter > 4)
+                    return BadRequest("Kvartal mora biti između 1 i 4");
+
+                var report = await _reportingService.GetMembersReportByQuarterAsync(year, quarter);
+                return Ok(report);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Greška pri generiranju izvještaja: {ex.Message}");
+            }
+        }
+
+        [HttpGet("members/year/{year}")]
+        public async Task<ActionResult<MembersReport>> GetMembersReportByYear(int year)
+        {
+            try
+            {
+                if (year < 2000 || year > 2100)
+                    return BadRequest("Godina mora biti između 2000 i 2100");
+
+                var report = await _reportingService.GetMembersReportByYearAsync(year);
+                return Ok(report);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Greška pri generiranju PDF izvještaja: {ex.Message}");
+            }
+        }
+
+        [HttpGet("members/pdf")]
+        public async Task<IActionResult> DownloadMembersPdfReport(
+            [FromQuery] DateTime startDate,
+            [FromQuery] DateTime endDate)
+        {
+            try
+            {
+                var pdfBytes = await _reportingService.GenerateMembersPdfReportAsync(startDate, endDate);
+                
+                var fileName = $"izvjestaj_clanovi_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}.pdf";
+                
+                return File(pdfBytes, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Greška pri generiranju PDF izvještaja: {ex.Message}");
+            }
+        }
+
+        [HttpGet("members/pdf/month/{year}/{month}")]
+        public async Task<IActionResult> DownloadMembersPdfReportByMonth(
+            int year, int month)
+        {
+            try
+            {
+                if (month < 1 || month > 12)
+                    return BadRequest("Mjesec mora biti između 1 i 12");
+
+                var startDate = new DateTime(year, month, 1);
+                var endDate = startDate.AddMonths(1).AddDays(-1);
+                
+                var pdfBytes = await _reportingService.GenerateMembersPdfReportAsync(startDate, endDate);
+                
+                var monthName = startDate.ToString("MMMM", new System.Globalization.CultureInfo("hr-HR"));
+                var fileName = $"izvjestaj_clanovi_{monthName}_{year}.pdf";
+                
+                return File(pdfBytes, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Greška pri generiranju PDF izvještaja: {ex.Message}");
+            }
+        }
+
+        [HttpGet("members/pdf/quarter/{year}/{quarter}")]
+        public async Task<IActionResult> DownloadMembersPdfReportByQuarter(
+            int year, int quarter)
+        {
+            try
+            {
+                if (quarter < 1 || quarter > 4)
+                    return BadRequest("Kvartal mora biti između 1 i 4");
+
+                var startMonth = (quarter - 1) * 3 + 1;
+                var startDate = new DateTime(year, startMonth, 1);
+                var endDate = startDate.AddMonths(3).AddDays(-1);
+                
+                var pdfBytes = await _reportingService.GenerateMembersPdfReportAsync(startDate, endDate);
+                
+                var fileName = $"izvjestaj_clanovi_Q{quarter}_{year}.pdf";
+                
+                return File(pdfBytes, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Greška pri generiranju PDF izvještaja: {ex.Message}");
+            }
+        }
+
+        [HttpGet("members/pdf/year/{year}")]
+        public async Task<IActionResult> DownloadMembersPdfReportByYear(int year)
+        {
+            try
+            {
+                if (year < 2000 || year > 2100)
+                    return BadRequest("Godina mora biti između 2000 i 2100");
+
+                var startDate = new DateTime(year, 1, 1);
+                var endDate = new DateTime(year, 12, 31);
+                
+                var pdfBytes = await _reportingService.GenerateMembersPdfReportAsync(startDate, endDate);
+                
+                var fileName = $"izvjestaj_clanovi_{year}.pdf";
+                
+                return File(pdfBytes, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Greška pri generiranju PDF izvještaja: {ex.Message}");
+            }
+        }
     }
 }

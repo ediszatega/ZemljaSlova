@@ -4,6 +4,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import '../models/reports/books_sold_report.dart';
 import '../models/reports/books_rented_report.dart';
+import '../models/reports/members_report.dart';
 import 'api_service.dart';
 
 class ReportingService {
@@ -352,6 +353,170 @@ class ReportingService {
       }
     } catch (e) {
       throw Exception('Error downloading PDF rental report by year: $e');
+    }
+  }
+
+  // Members and Memberships Reports
+  Future<MembersReport?> getMembersReport({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      final startDateStr = startDate.toIso8601String().split('T')[0];
+      final endDateStr = endDate.toIso8601String().split('T')[0];
+      
+      final response = await _apiService.get(
+        'Reporting/members?startDate=$startDateStr&endDate=$endDateStr'
+      );
+      
+      if (response != null) {
+        return MembersReport.fromJson(response);
+      }
+      
+      return null;
+    } catch (e) {
+      throw Exception('Error getting members report: $e');
+    }
+  }
+
+  Future<MembersReport?> getMembersReportByMonth({
+    required int year,
+    required int month,
+  }) async {
+    try {
+      final response = await _apiService.get(
+        'Reporting/members/month/$year/$month'
+      );
+      
+      if (response != null) {
+        return MembersReport.fromJson(response);
+      }
+      
+      return null;
+    } catch (e) {
+      throw Exception('Error getting members report by month: $e');
+    }
+  }
+
+  Future<MembersReport?> getMembersReportByQuarter({
+    required int year,
+    required int quarter,
+  }) async {
+    try {
+      final response = await _apiService.get(
+        'Reporting/members/quarter/$year/$quarter'
+      );
+      
+      if (response != null) {
+        return MembersReport.fromJson(response);
+      }
+      
+      return null;
+    } catch (e) {
+      throw Exception('Error getting members report by quarter: $e');
+    }
+  }
+
+  Future<MembersReport?> getMembersReportByYear({
+    required int year,
+  }) async {
+    try {
+      final response = await _apiService.get(
+        'Reporting/members/year/$year'
+      );
+      
+      if (response != null) {
+        return MembersReport.fromJson(response);
+      }
+      
+      return null;
+    } catch (e) {
+      throw Exception('Error getting members report by year: $e');
+    }
+  }
+
+  Future<void> downloadMembersPdfReport({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      final startDateStr = startDate.toIso8601String().split('T')[0];
+      final endDateStr = endDate.toIso8601String().split('T')[0];
+      
+      final url = '${ApiService.baseUrl}/Reporting/members/pdf?startDate=$startDateStr&endDate=$endDateStr';
+      
+      if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+        final response = await _downloadPdfFromUrl(url);
+        if (response != null) {
+          final downloadsDir = await getDownloadsDirectory();
+          final filePath = '${downloadsDir?.path}/izvjestaj_clanovi_${startDateStr}_${endDateStr}.pdf';
+          final file = File(filePath);
+          await file.writeAsBytes(response);
+        }
+      }
+    } catch (e) {
+      throw Exception('Error downloading PDF members report: $e');
+    }
+  }
+
+  Future<void> downloadMembersPdfReportByMonth({
+    required int year,
+    required int month,
+  }) async {
+    try {
+      final url = '${ApiService.baseUrl}/Reporting/members/pdf/month/$year/$month';
+      
+      if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+        final response = await _downloadPdfFromUrl(url);
+        if (response != null) {
+          final downloadsDir = await getDownloadsDirectory();
+          final filePath = '${downloadsDir?.path}/izvjestaj_clanovi_${month}_${year}.pdf';
+          final file = File(filePath);
+          await file.writeAsBytes(response);
+        }
+      }
+    } catch (e) {
+      throw Exception('Error downloading PDF members report by month: $e');
+    }
+  }
+
+  Future<void> downloadMembersPdfReportByQuarter({
+    required int year,
+    required int quarter,
+  }) async {
+    try {
+      final response = await _downloadPdfFromUrl(
+        '${ApiService.baseUrl}/Reporting/members/pdf/quarter/$year/$quarter'
+      );
+      
+      if (response != null) {
+        final downloadsDir = await getDownloadsDirectory();
+        final filePath = '${downloadsDir?.path}/izvjestaj_clanovi_Q${quarter}_${year}.pdf';
+        final file = File(filePath);
+        await file.writeAsBytes(response);
+      }
+    } catch (e) {
+      throw Exception('Error downloading PDF members report by quarter: $e');
+    }
+  }
+
+  Future<void> downloadMembersPdfReportByYear({
+    required int year,
+  }) async {
+    try {
+      final url = '${ApiService.baseUrl}/Reporting/members/pdf/year/$year';
+      
+      if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+        final response = await _downloadPdfFromUrl(url);
+        if (response != null) {
+          final downloadsDir = await getDownloadsDirectory();
+                  final filePath = '${downloadsDir?.path}/izvjestaj_clanovi_${year}.pdf';
+        final file = File(filePath);
+        await file.writeAsBytes(response);
+        }
+      }
+    } catch (e) {
+      throw Exception('Error downloading PDF members report by year: $e');
     }
   }
 }

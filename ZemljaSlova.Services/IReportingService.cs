@@ -21,5 +21,12 @@ namespace ZemljaSlova.Services
         Task<BooksRentedReport> GetBooksRentedReportByMonthAsync(int year, int month);
         Task<BooksRentedReport> GetBooksRentedReportByQuarterAsync(int year, int quarter);
         Task<BooksRentedReport> GetBooksRentedReportByYearAsync(int year);
+        
+        // Members and Memberships Reports
+        Task<MembersReport> GetMembersReportAsync(DateTime startDate, DateTime endDate);
+        Task<byte[]> GenerateMembersPdfReportAsync(DateTime startDate, DateTime endDate);
+        Task<MembersReport> GetMembersReportByMonthAsync(int year, int month);
+        Task<MembersReport> GetMembersReportByQuarterAsync(int year, int quarter);
+        Task<MembersReport> GetMembersReportByYearAsync(int year);
     }
 }

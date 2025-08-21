@@ -539,5 +539,201 @@ namespace ZemljaSlova.Services
                 return ms.ToArray();
             }
         }
+
+        public async Task<MembersReport> GetMembersReportAsync(DateTime startDate, DateTime endDate)
+        {
+            var report = new MembersReport
+            {
+                StartDate = startDate,
+                EndDate = endDate,
+                ReportPeriod = $"{startDate:dd.MM.yyyy} - {endDate:dd.MM.yyyy}"
+            };
+
+            // Get all members with their user info
+            var members = await _context.Members
+                .Include(m => m.User)
+                .Include(m => m.Memberships)
+                .ToListAsync();
+
+            // Get memberships in the period
+            var membershipsInPeriod = await _context.Memberships
+                .Include(m => m.Member)
+                .ThenInclude(m => m.User)
+                .Where(m => m.StartDate <= endDate && m.EndDate >= startDate)
+                .OrderByDescending(m => m.StartDate)
+                .ToListAsync();
+
+            // Calculate statistics
+            var now = DateTime.Now;
+            report.TotalActiveMembers = members.Count(m => m.Memberships.Any(ms => ms.EndDate >= now));
+            report.NewMembersInPeriod = members.Count(m => m.JoinedAt >= startDate && m.JoinedAt <= endDate);
+            report.ExpiredMemberships = members.Count(m => m.Memberships.Any(ms => ms.EndDate < now && ms.EndDate >= startDate));
+            report.TotalMemberships = membershipsInPeriod.Count;
+
+            // Create member summaries
+            var memberSummaries = members
+                .Where(m => m.Memberships.Any(ms => ms.StartDate <= endDate && ms.EndDate >= startDate))
+                .Select(m => new MemberSummary
+                {
+                    MemberId = m.Id,
+                    MemberName = m.User != null ? $"{m.User.FirstName} {m.User.LastName}" : "Nepoznato",
+                    Email = m.User?.Email ?? "Nepoznato",
+                    MembershipStartDate = m.Memberships.OrderBy(ms => ms.StartDate).FirstOrDefault()?.StartDate,
+                    MembershipEndDate = m.Memberships.OrderByDescending(ms => ms.EndDate).FirstOrDefault()?.EndDate,
+                    IsActive = m.Memberships.Any(ms => ms.EndDate >= now),
+                    TotalRentals = _context.BookTransactions.Count(bt => bt.ActivityTypeId == (byte)ActivityType.Rent && 
+                                                                       (bt.UserId == m.UserId || 
+                                                                        (bt.Data != null && bt.Data.Contains($"MemberId:{m.Id}")))),
+                    TotalPurchases = _context.BookTransactions.Count(bt => bt.ActivityTypeId == (byte)ActivityType.Sold && 
+                                                                         bt.UserId == m.UserId)
+                })
+                .OrderByDescending(ms => ms.IsActive)
+                .ThenBy(ms => ms.MemberName)
+                .ToList();
+
+            report.MemberSummaries = memberSummaries;
+
+            // Create membership activities
+            var membershipActivities = membershipsInPeriod.Select(m => new MembershipActivity
+            {
+                Id = m.Id,
+                MemberName = m.Member?.User != null ? $"{m.Member.User.FirstName} {m.Member.User.LastName}" : "Nepoznato",
+                StartDate = m.StartDate,
+                EndDate = m.EndDate,
+                Status = m.EndDate >= now ? "Aktivno" : "Isteklo"
+            }).ToList();
+
+            report.MembershipActivities = membershipActivities;
+
+            return report;
+        }
+
+        public async Task<MembersReport> GetMembersReportByMonthAsync(int year, int month)
+        {
+            var startDate = new DateTime(year, month, 1);
+            var endDate = startDate.AddMonths(1).AddDays(-1);
+            return await GetMembersReportAsync(startDate, endDate);
+        }
+
+        public async Task<MembersReport> GetMembersReportByQuarterAsync(int year, int quarter)
+        {
+            var startMonth = (quarter - 1) * 3 + 1;
+            var startDate = new DateTime(year, startMonth, 1);
+            var endDate = startDate.AddMonths(3).AddDays(-1);
+            return await GetMembersReportAsync(startDate, endDate);
+        }
+
+        public async Task<MembersReport> GetMembersReportByYearAsync(int year)
+        {
+            var startDate = new DateTime(year, 1, 1);
+            var endDate = new DateTime(year, 12, 31);
+            return await GetMembersReportAsync(startDate, endDate);
+        }
+
+        public async Task<byte[]> GenerateMembersPdfReportAsync(DateTime startDate, DateTime endDate)
+        {
+            var report = await GetMembersReportAsync(startDate, endDate);
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                Document document = new Document(PageSize.A4, 25, 25, 30, 30);
+                PdfWriter writer = PdfWriter.GetInstance(document, ms);
+
+                document.Open();
+
+                // Add title
+                Font titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 18);
+                Paragraph title = new Paragraph("Izvještaj o clanovima i clanstvima", titleFont);
+                title.Alignment = Element.ALIGN_CENTER;
+                document.Add(title);
+                document.Add(new Paragraph(" "));
+
+                // Add period
+                Font periodFont = FontFactory.GetFont(FontFactory.HELVETICA, 12);
+                Paragraph period = new Paragraph($"Period: {report.ReportPeriod}", periodFont);
+                document.Add(period);
+                document.Add(new Paragraph(" "));
+
+                // Add summary
+                Font summaryFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
+                document.Add(new Paragraph("Sažetak:", summaryFont));
+                document.Add(new Paragraph($"Ukupno aktivnih članova: {report.TotalActiveMembers}"));
+                document.Add(new Paragraph($"Novi članovi u periodu: {report.NewMembersInPeriod}"));
+                document.Add(new Paragraph($"Istekla članstva: {report.ExpiredMemberships}"));
+                document.Add(new Paragraph($"Ukupno članstava: {report.TotalMemberships}"));
+                document.Add(new Paragraph(" "));
+
+                // Add member summaries table
+                if (report.MemberSummaries.Any())
+                {
+                    document.Add(new Paragraph("Pregled članova:", summaryFont));
+                    document.Add(new Paragraph(" "));
+
+                    PdfPTable table = new PdfPTable(7);
+                    table.WidthPercentage = 100;
+
+                    // Add headers
+                    table.AddCell(new PdfPCell(new Phrase("Ime i prezime", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    table.AddCell(new PdfPCell(new Phrase("Email", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    table.AddCell(new PdfPCell(new Phrase("Početak članstva", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    table.AddCell(new PdfPCell(new Phrase("Kraj članstva", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    table.AddCell(new PdfPCell(new Phrase("Status", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    table.AddCell(new PdfPCell(new Phrase("Iznajmljivanja", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    table.AddCell(new PdfPCell(new Phrase("Kupovine", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+
+                    // Add data
+                    foreach (var member in report.MemberSummaries.Take(50)) // Limit to first 50
+                    {
+                        table.AddCell(new PdfPCell(new Phrase(member.MemberName)));
+                        table.AddCell(new PdfPCell(new Phrase(member.Email)));
+                        table.AddCell(new PdfPCell(new Phrase(member.MembershipStartDate?.ToString("dd.MM.yyyy") ?? "N/A")));
+                        table.AddCell(new PdfPCell(new Phrase(member.MembershipEndDate?.ToString("dd.MM.yyyy") ?? "N/A")));
+                        table.AddCell(new PdfPCell(new Phrase(member.IsActive ? "Aktivno" : "Neaktivno")));
+                        table.AddCell(new PdfPCell(new Phrase(member.TotalRentals.ToString())));
+                        table.AddCell(new PdfPCell(new Phrase(member.TotalPurchases.ToString())));
+                    }
+
+                    document.Add(table);
+                    document.Add(new Paragraph(" "));
+                }
+
+                // Add membership activities table
+                if (report.MembershipActivities.Any())
+                {
+                    document.Add(new Paragraph("Aktivnosti članstava:", summaryFont));
+                    document.Add(new Paragraph(" "));
+
+                    PdfPTable transTable = new PdfPTable(4);
+                    transTable.WidthPercentage = 100;
+
+                    // Add headers
+                    transTable.AddCell(new PdfPCell(new Phrase("Član", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    transTable.AddCell(new PdfPCell(new Phrase("Početak", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    transTable.AddCell(new PdfPCell(new Phrase("Kraj", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    transTable.AddCell(new PdfPCell(new Phrase("Status", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+
+                    // Add data
+                    foreach (var activity in report.MembershipActivities.Take(50)) // Limit to first 50
+                    {
+                        transTable.AddCell(new PdfPCell(new Phrase(activity.MemberName)));
+                        transTable.AddCell(new PdfPCell(new Phrase(activity.StartDate.ToString("dd.MM.yyyy"))));
+                        transTable.AddCell(new PdfPCell(new Phrase(activity.EndDate.ToString("dd.MM.yyyy"))));
+                        transTable.AddCell(new PdfPCell(new Phrase(activity.Status)));
+                    }
+
+                    document.Add(transTable);
+
+                    if (report.MembershipActivities.Count > 50)
+                    {
+                        document.Add(new Paragraph($"Napomena: Prikazano je prvih 50 aktivnosti od ukupno {report.MembershipActivities.Count}"));
+                    }
+                }
+
+                document.Close();
+                writer.Close();
+
+                return ms.ToArray();
+            }
+        }
     }
 }
