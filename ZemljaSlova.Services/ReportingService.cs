@@ -129,6 +129,199 @@ namespace ZemljaSlova.Services
             return await GetBooksSoldReportAsync(startDate, endDate);
         }
 
+        public async Task<BooksRentedReport> GetBooksRentedReportAsync(DateTime startDate, DateTime endDate)
+        {
+            var rentedTransactions = await _context.BookTransactions
+                .Include(bt => bt.Book)
+                .ThenInclude(b => b.Authors)
+                .Include(bt => bt.User)
+                .Where(bt => bt.ActivityTypeId == (byte)ActivityType.Rent &&
+                            bt.CreatedAt >= startDate &&
+                            bt.CreatedAt <= endDate)
+                .OrderByDescending(bt => bt.CreatedAt)
+                .ToListAsync();
+
+            var report = new BooksRentedReport
+            {
+                StartDate = startDate,
+                EndDate = endDate,
+                TotalBooksRented = rentedTransactions.Select(bt => bt.BookId).Distinct().Count(),
+                TotalTransactions = rentedTransactions.Count,
+                ReportPeriod = $"{startDate:dd.MM.yyyy} - {endDate:dd.MM.yyyy}"
+            };
+
+            // Get transactions with details
+            foreach (var transaction in rentedTransactions)
+            {
+                var book = transaction.Book;
+                var authorNames = book?.Authors != null 
+                    ? string.Join(", ", book.Authors.Select(a => $"{a.FirstName} {a.LastName}"))
+                    : "Nepoznato";
+
+                var employeeName = transaction.User != null
+                    ? $"{transaction.User.FirstName} {transaction.User.LastName}"
+                    : "Nepoznato";
+
+                // Parse rental data to get customer and due date
+                var (customerName, dueDate) = ParseRentalData(transaction.Data);
+
+                // Check if returned
+                var returnTransaction = await _context.BookTransactions
+                    .Where(bt => bt.ActivityTypeId == (byte)ActivityType.Stock &&
+                                bt.BookId == transaction.BookId &&
+                                bt.Data != null &&
+                                bt.Data.Contains("Vraćeno:") &&
+                                bt.CreatedAt > transaction.CreatedAt)
+                    .OrderBy(bt => bt.CreatedAt)
+                    .FirstOrDefaultAsync();
+
+                var returnDate = returnTransaction?.CreatedAt;
+                var isReturned = returnTransaction != null;
+                var isOverdue = !isReturned && dueDate < DateTime.Now;
+                var daysOverdue = isOverdue ? (int)(DateTime.Now - dueDate).TotalDays : 0;
+
+                if (isOverdue)
+                {
+                    report.TotalOverdueRentals++;
+                }
+
+                if (!isReturned)
+                {
+                    report.TotalActiveRentals++;
+                }
+
+                report.Transactions.Add(new BookRentedTransaction
+                {
+                    Id = transaction.Id,
+                    BookTitle = book?.Title ?? "Nepoznato",
+                    AuthorNames = authorNames,
+                    Quantity = transaction.Quantity,
+                    RentedDate = transaction.CreatedAt,
+                    ReturnDate = returnDate,
+                    DueDate = dueDate,
+                    CustomerName = customerName,
+                    EmployeeName = employeeName,
+                    IsOverdue = isOverdue,
+                    IsReturned = isReturned,
+                    DaysOverdue = daysOverdue
+                });
+            }
+
+            // Create book summaries
+            var bookSummaries = rentedTransactions
+                .GroupBy(bt => bt.BookId)
+                .Select(g => new BookRentedSummary
+                {
+                    BookId = g.Key,
+                    BookTitle = g.First().Book?.Title ?? "Nepoznato",
+                    AuthorNames = g.First().Book?.Authors != null
+                        ? string.Join(", ", g.First().Book.Authors.Select(a => $"{a.FirstName} {a.LastName}"))
+                        : "Nepoznato",
+                    TotalTimesRented = g.Count(),
+                    TotalQuantityRented = g.Sum(bt => bt.Quantity),
+                    ActiveRentals = g.Count(bt => !IsRentalReturned(bt.Id)),
+                    OverdueRentals = g.Count(bt => IsRentalOverdue(bt.Id))
+                })
+                .OrderByDescending(bs => bs.TotalTimesRented)
+                .ToList();
+
+            report.BookSummaries = bookSummaries;
+
+            return report;
+        }
+
+        private (string customerName, DateTime dueDate) ParseRentalData(string? data)
+        {
+            var customerName = "Nepoznato";
+            var dueDate = DateTime.Now.AddDays(14); // Default 14 days
+
+            if (!string.IsNullOrEmpty(data))
+            {
+                var lines = data.Split('\n');
+                foreach (var line in lines)
+                {
+                    if (line.Contains("MemberId:"))
+                    {
+                        // Extract member ID and get customer name
+                        var memberIdMatch = System.Text.RegularExpressions.Regex.Match(line, @"MemberId:(\d+)");
+                        if (memberIdMatch.Success && int.TryParse(memberIdMatch.Groups[1].Value, out int memberId))
+                        {
+                            var member = _context.Members
+                                .Include(m => m.User)
+                                .FirstOrDefault(m => m.Id == memberId);
+                            if (member?.User != null)
+                            {
+                                customerName = $"{member.User.FirstName} {member.User.LastName}";
+                            }
+                        }
+                    }
+                    else if (line.Contains("Izdato na period:"))
+                    {
+                        // Extract due date from rental period
+                        var periodMatch = System.Text.RegularExpressions.Regex.Match(line, @"Izdato na period:\s*\d{2}-\d{2}-\d{4}\s*-\s*(\d{2}-\d{2}-\d{4})");
+                        if (periodMatch.Success)
+                        {
+                            var dueDateStr = periodMatch.Groups[1].Value;
+                            var dateParts = dueDateStr.Split('-');
+                            if (dateParts.Length == 3)
+                            {
+                                dueDate = new DateTime(
+                                    int.Parse(dateParts[2]), // year
+                                    int.Parse(dateParts[1]), // month
+                                    int.Parse(dateParts[0])  // day
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+
+            return (customerName, dueDate);
+        }
+
+        private bool IsRentalReturned(int rentalTransactionId)
+        {
+            return _context.BookTransactions
+                .Any(bt => bt.ActivityTypeId == (byte)ActivityType.Stock &&
+                          bt.Data != null &&
+                          bt.Data.Contains("Vraćeno:") &&
+                          bt.CreatedAt > _context.BookTransactions
+                              .Where(rt => rt.Id == rentalTransactionId)
+                              .Select(rt => rt.CreatedAt)
+                              .FirstOrDefault());
+        }
+
+        private bool IsRentalOverdue(int rentalTransactionId)
+        {
+            var rental = _context.BookTransactions.FirstOrDefault(rt => rt.Id == rentalTransactionId);
+            if (rental == null) return false;
+
+            var (_, dueDate) = ParseRentalData(rental.Data);
+            return !IsRentalReturned(rentalTransactionId) && dueDate < DateTime.Now;
+        }
+
+        public async Task<BooksRentedReport> GetBooksRentedReportByMonthAsync(int year, int month)
+        {
+            var startDate = new DateTime(year, month, 1);
+            var endDate = startDate.AddMonths(1).AddDays(-1);
+            return await GetBooksRentedReportAsync(startDate, endDate);
+        }
+
+        public async Task<BooksRentedReport> GetBooksRentedReportByQuarterAsync(int year, int quarter)
+        {
+            var startMonth = (quarter - 1) * 3 + 1;
+            var startDate = new DateTime(year, startMonth, 1);
+            var endDate = startDate.AddMonths(3).AddDays(-1);
+            return await GetBooksRentedReportAsync(startDate, endDate);
+        }
+
+        public async Task<BooksRentedReport> GetBooksRentedReportByYearAsync(int year)
+        {
+            var startDate = new DateTime(year, 1, 1);
+            var endDate = new DateTime(year, 12, 31);
+            return await GetBooksRentedReportAsync(startDate, endDate);
+        }
+
         public async Task<byte[]> GenerateBooksSoldPdfReportAsync(DateTime startDate, DateTime endDate)
         {
             var report = await GetBooksSoldReportAsync(startDate, endDate);
@@ -219,6 +412,117 @@ namespace ZemljaSlova.Services
                         transTable.AddCell(new PdfPCell(new Phrase(transaction.TotalPrice.ToString("C"))));
                         transTable.AddCell(new PdfPCell(new Phrase(transaction.CustomerName)));
                         transTable.AddCell(new PdfPCell(new Phrase(transaction.EmployeeName)));
+                    }
+
+                    document.Add(transTable);
+
+                    if (report.Transactions.Count > 50)
+                    {
+                        document.Add(new Paragraph($"Napomena: Prikazano je prvih 50 transakcija od ukupno {report.Transactions.Count}"));
+                    }
+                }
+
+                document.Close();
+                writer.Close();
+
+                return ms.ToArray();
+            }
+        }
+
+        public async Task<byte[]> GenerateBooksRentedPdfReportAsync(DateTime startDate, DateTime endDate)
+        {
+            var report = await GetBooksRentedReportAsync(startDate, endDate);
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                Document document = new Document(PageSize.A4, 25, 25, 30, 30);
+                PdfWriter writer = PdfWriter.GetInstance(document, ms);
+
+                document.Open();
+
+                // Add title
+                Font titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 18);
+                Paragraph title = new Paragraph("Izvještaj o iznajmljivanju knjiga", titleFont);
+                title.Alignment = Element.ALIGN_CENTER;
+                document.Add(title);
+                document.Add(new Paragraph(" "));
+
+                // Add period
+                Font periodFont = FontFactory.GetFont(FontFactory.HELVETICA, 12);
+                Paragraph period = new Paragraph($"Period: {report.ReportPeriod}", periodFont);
+                document.Add(period);
+                document.Add(new Paragraph(" "));
+
+                // Add summary
+                Font summaryFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
+                document.Add(new Paragraph("Sažetak:", summaryFont));
+                document.Add(new Paragraph($"Ukupno iznajmljenih knjiga: {report.TotalBooksRented}"));
+                document.Add(new Paragraph($"Aktivna iznajmljivanja: {report.TotalActiveRentals}"));
+                document.Add(new Paragraph($"Prekoračenja roka: {report.TotalOverdueRentals}"));
+                document.Add(new Paragraph($"Ukupno transakcija: {report.TotalTransactions}"));
+                document.Add(new Paragraph(" "));
+
+                // Add book summaries table
+                if (report.BookSummaries.Any())
+                {
+                    document.Add(new Paragraph("Pregled po knjigama:", summaryFont));
+                    document.Add(new Paragraph(" "));
+
+                    PdfPTable table = new PdfPTable(5);
+                    table.WidthPercentage = 100;
+
+                    // Add headers
+                    table.AddCell(new PdfPCell(new Phrase("Naslov knjige", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    table.AddCell(new PdfPCell(new Phrase("Autori", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    table.AddCell(new PdfPCell(new Phrase("Broj iznajmljivanja", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    table.AddCell(new PdfPCell(new Phrase("Aktivna", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    table.AddCell(new PdfPCell(new Phrase("Prekoračenja", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+
+                    // Add data
+                    foreach (var summary in report.BookSummaries)
+                    {
+                        table.AddCell(new PdfPCell(new Phrase(summary.BookTitle)));
+                        table.AddCell(new PdfPCell(new Phrase(summary.AuthorNames)));
+                        table.AddCell(new PdfPCell(new Phrase(summary.TotalTimesRented.ToString())));
+                        table.AddCell(new PdfPCell(new Phrase(summary.ActiveRentals.ToString())));
+                        table.AddCell(new PdfPCell(new Phrase(summary.OverdueRentals.ToString())));
+                    }
+
+                    document.Add(table);
+                    document.Add(new Paragraph(" "));
+                }
+
+                // Add detailed transactions table
+                if (report.Transactions.Any())
+                {
+                    document.Add(new Paragraph("Detaljne transakcije:", summaryFont));
+                    document.Add(new Paragraph(" "));
+
+                    PdfPTable transTable = new PdfPTable(7);
+                    transTable.WidthPercentage = 100;
+
+                    // Add headers
+                    transTable.AddCell(new PdfPCell(new Phrase("Datum iznajmljivanja", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    transTable.AddCell(new PdfPCell(new Phrase("Knjiga", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    transTable.AddCell(new PdfPCell(new Phrase("Autori", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    transTable.AddCell(new PdfPCell(new Phrase("Količina", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    transTable.AddCell(new PdfPCell(new Phrase("Rok povrata", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    transTable.AddCell(new PdfPCell(new Phrase("Kupac", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+                    transTable.AddCell(new PdfPCell(new Phrase("Status", summaryFont)) { BackgroundColor = BaseColor.LIGHT_GRAY });
+
+                    // Add data
+                    foreach (var transaction in report.Transactions.Take(50)) // Limit to first 50 for PDF
+                    {
+                        var status = transaction.IsReturned ? "Vraćeno" : 
+                                   transaction.IsOverdue ? $"Prekoračenje ({transaction.DaysOverdue} dana)" : "Aktivno";
+
+                        transTable.AddCell(new PdfPCell(new Phrase(transaction.RentedDate.ToString("dd.MM.yyyy"))));
+                        transTable.AddCell(new PdfPCell(new Phrase(transaction.BookTitle)));
+                        transTable.AddCell(new PdfPCell(new Phrase(transaction.AuthorNames)));
+                        transTable.AddCell(new PdfPCell(new Phrase(transaction.Quantity.ToString())));
+                        transTable.AddCell(new PdfPCell(new Phrase(transaction.DueDate.ToString("dd.MM.yyyy"))));
+                        transTable.AddCell(new PdfPCell(new Phrase(transaction.CustomerName)));
+                        transTable.AddCell(new PdfPCell(new Phrase(status)));
                     }
 
                     document.Add(transTable);

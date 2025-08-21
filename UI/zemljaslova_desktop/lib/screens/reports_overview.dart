@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_dropdown.dart';
 import '../services/reporting_service.dart';
 import '../models/reports/books_sold_report.dart';
+import '../models/reports/books_rented_report.dart';
 import '../services/api_service.dart';
 
 class ReportsOverview extends StatelessWidget {
@@ -36,7 +36,7 @@ class ReportsOverview extends StatelessWidget {
                   const SizedBox(height: 24),
                   
                   Expanded(
-                    child: BooksSoldReportsSection(),
+                    child: ReportsSection(),
                   ),
                 ],
               ),
@@ -48,18 +48,17 @@ class ReportsOverview extends StatelessWidget {
   }
 }
 
-class BooksSoldReportsSection extends StatefulWidget {
-  const BooksSoldReportsSection({super.key});
+class ReportsSection extends StatefulWidget {
+  const ReportsSection({super.key});
 
   @override
-  State<BooksSoldReportsSection> createState() => _BooksSoldReportsSectionState();
+  State<ReportsSection> createState() => _ReportsSectionState();
 }
 
-class _BooksSoldReportsSectionState extends State<BooksSoldReportsSection> {
+class _ReportsSectionState extends State<ReportsSection> {
   final ReportingService _reportingService = ReportingService(ApiService());
   
-  BooksSoldReport? _currentReport;
-  bool _isLoading = false;
+  String _selectedReportCategory = 'books_sold';
   String _selectedReportType = 'custom';
   int _selectedYear = DateTime.now().year;
   int _selectedMonth = DateTime.now().month;
@@ -67,6 +66,19 @@ class _BooksSoldReportsSectionState extends State<BooksSoldReportsSection> {
   
   DateTime _startDate = DateTime.now().subtract(const Duration(days: 30));
   DateTime _endDate = DateTime.now();
+  
+  bool _isLoading = false;
+  dynamic _currentReport;
+  
+  final List<String> _reportCategories = [
+    'books_sold',
+    'books_rented',
+  ];
+  
+  final List<String> _reportCategoryLabels = [
+    'Prodaja knjiga',
+    'Iznajmljivanje knjiga',
+  ];
   
   final List<String> _reportTypes = [
     'custom',
@@ -91,148 +103,200 @@ class _BooksSoldReportsSectionState extends State<BooksSoldReportsSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Report Type Selection
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Izvještaj o prodaji knjiga',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                Row(
-                  children: [
-                    Expanded(
-                      child: ZSDropdown<String>(
-                        value: _selectedReportType,
-                        items: _reportTypes.asMap().entries.map((entry) {
+        // Report Selection and Configuration
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Report Category Selection
+            Expanded(
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Odaberite tip izvještaja',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      ZSDropdown<String>(
+                        value: _selectedReportCategory,
+                        items: _reportCategories.asMap().entries.map((entry) {
                           return DropdownMenuItem(
                             value: entry.value,
-                            child: Text(_reportTypeLabels[entry.key]),
+                            child: Text(_reportCategoryLabels[entry.key]),
                           );
                         }).toList(),
                         onChanged: (value) {
                           setState(() {
-                            _selectedReportType = value!;
+                            _selectedReportCategory = value!;
+                            _currentReport = null; // Clear previous report
                           });
                         },
-                        label: 'Tip izvještaja',
+                        label: 'Kategorija izvještaja',
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    
-                    if (_selectedReportType == 'month') ...[
-                      Expanded(
-                                              child: ZSDropdown<int>(
-                        value: _selectedMonth,
-                        items: _months.map((month) {
-                          return DropdownMenuItem(
-                            value: month,
-                            child: Text(_getMonthName(month)),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedMonth = value!;
-                          });
-                        },
-                        label: 'Mjesec',
-                      ),
-                      ),
-                      const SizedBox(width: 16),
                     ],
-                    
-                    if (_selectedReportType == 'quarter') ...[
-                      Expanded(
-                      child: ZSDropdown<int>(
-                        value: _selectedQuarter,
-                        items: _quarters.map((quarter) {
-                          return DropdownMenuItem(
-                            value: quarter,
-                            child: Text('Q$quarter'),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedQuarter = value!;
-                          });
-                        },
-                        label: 'Kvartal',
-                      ),
-                      ),
-                      const SizedBox(width: 16),
-                    ],
-                    
-                    if (_selectedReportType != 'custom') ...[
-                      Expanded(
-                      child: ZSDropdown<int>(
-                        value: _selectedYear,
-                        items: _years.map((year) {
-                          return DropdownMenuItem(
-                            value: year,
-                            child: Text(year.toString()),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedYear = value!;
-                          });
-                        },
-                        label: 'Godina',
-                      ),
-                      ),
-                      const SizedBox(width: 16),
-                    ],
-                    
-                    if (_selectedReportType == 'custom') ...[
-                      Expanded(
-                        child: _buildDatePicker(
-                          'Od datuma',
-                          _startDate,
-                          (date) => setState(() => _startDate = date),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildDatePicker(
-                          'Do datuma',
-                          _endDate,
-                          (date) => setState(() => _endDate = date),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                    ],
-                  ],
+                  ),
                 ),
-                
-                const SizedBox(height: 16),
-                
-                Row(
-                  children: [
-                    ZSButton(
-                      onPressed: _isLoading ? () {} : () => _generateReport(),
-                      text: 'Generiraj izvještaj',
-                    ),
-                    const SizedBox(width: 16),
-                    if (_currentReport != null)
-                      ZSButton(
-                        onPressed: _downloadPdf,
-                        text: 'Preuzmi PDF',
-                        backgroundColor: Colors.grey.shade200,
-                        foregroundColor: Colors.black87,
-                      ),
-                  ],
-                ),
-              ],
+              ),
             ),
-          ),
+            
+            const SizedBox(width: 24),
+            
+            // Report Configuration
+            Expanded(
+              flex: 2,
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _selectedReportCategory == 'books_sold' 
+                          ? 'Izvještaj o prodaji knjiga'
+                          : 'Izvještaj o iznajmljivanju knjiga',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ZSDropdown<String>(
+                              value: _selectedReportType,
+                              items: _reportTypes.asMap().entries.map((entry) {
+                                return DropdownMenuItem(
+                                  value: entry.value,
+                                  child: Text(_reportTypeLabels[entry.key]),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedReportType = value!;
+                                });
+                              },
+                              label: 'Tip izvještaja',
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          
+                          if (_selectedReportType == 'month') ...[
+                            Expanded(
+                              child: ZSDropdown<int>(
+                                value: _selectedMonth,
+                                items: _months.map((month) {
+                                  return DropdownMenuItem(
+                                    value: month,
+                                    child: Text(_getMonthName(month)),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedMonth = value!;
+                                  });
+                                },
+                                label: 'Mjesec',
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                          ],
+                          
+                          if (_selectedReportType == 'quarter') ...[
+                            Expanded(
+                              child: ZSDropdown<int>(
+                                value: _selectedQuarter,
+                                items: _quarters.map((quarter) {
+                                  return DropdownMenuItem(
+                                    value: quarter,
+                                    child: Text('Q$quarter'),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedQuarter = value!;
+                                  });
+                                },
+                                label: 'Kvartal',
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                          ],
+                          
+                          if (_selectedReportType != 'custom') ...[
+                            Expanded(
+                              child: ZSDropdown<int>(
+                                value: _selectedYear,
+                                items: _years.map((year) {
+                                  return DropdownMenuItem(
+                                    value: year,
+                                    child: Text(year.toString()),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedYear = value!;
+                                  });
+                                },
+                                label: 'Godina',
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                          ],
+                          
+                          if (_selectedReportType == 'custom') ...[
+                            Expanded(
+                              child: _buildDatePicker(
+                                'Od datuma',
+                                _startDate,
+                                (date) => setState(() => _startDate = date),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildDatePicker(
+                                'Do datuma',
+                                _endDate,
+                                (date) => setState(() => _endDate = date),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                          ],
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 16),
+                      
+                      Row(
+                        children: [
+                          ZSButton(
+                            onPressed: _isLoading ? () {} : () => _generateReport(),
+                            text: 'Generiraj izvještaj',
+                          ),
+                          const SizedBox(width: 16),
+                          if (_currentReport != null)
+                            ZSButton(
+                              onPressed: _downloadPdf,
+                              text: 'Preuzmi PDF',
+                              backgroundColor: Colors.grey.shade200,
+                              foregroundColor: Colors.black87,
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
         
         const SizedBox(height: 24),
@@ -246,40 +310,13 @@ class _BooksSoldReportsSectionState extends State<BooksSoldReportsSection> {
                 children: [
                   // Summary Cards
                   Row(
-                    children: [
-                      Expanded(
-                          child: _buildSummaryCard(
-                           'Ukupno prodanih knjiga',
-                           _currentReport!.bookSummaries.length.toString(),
-                           Icons.book,
-                           Colors.blue,
-                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildSummaryCard(
-                          'Ukupan prihod',
-                          '${_currentReport!.totalRevenue.toStringAsFixed(2)} KM',
-                          Icons.attach_money,
-                          Colors.green,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildSummaryCard(
-                          'Ukupno transakcija',
-                          _currentReport!.totalTransactions.toString(),
-                          Icons.receipt,
-                          Colors.orange,
-                        ),
-                      ),
-                    ],
+                    children: _buildSummaryCards(),
                   ),
                   
                   const SizedBox(height: 24),
                   
                   // Book Summaries Table
-                  if (_currentReport!.bookSummaries.isNotEmpty) ...[
+                  if (_hasBookSummaries()) ...[
                     const Text(
                       'Pregled po knjigama',
                       style: TextStyle(
@@ -293,7 +330,7 @@ class _BooksSoldReportsSectionState extends State<BooksSoldReportsSection> {
                   ],
                   
                   // Transactions Table
-                  if (_currentReport!.transactions.isNotEmpty) ...[
+                  if (_hasTransactions()) ...[
                     const Text(
                       'Detaljne transakcije',
                       style: TextStyle(
@@ -311,6 +348,89 @@ class _BooksSoldReportsSectionState extends State<BooksSoldReportsSection> {
         ],
       ],
     );
+  }
+
+  List<Widget> _buildSummaryCards() {
+    if (_currentReport is BooksSoldReport) {
+      final report = _currentReport as BooksSoldReport;
+      return [
+        Expanded(
+          child: _buildSummaryCard(
+            'Ukupno prodanih knjiga',
+            report.totalBooksSold.toString(),
+            Icons.book,
+            Colors.blue,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildSummaryCard(
+            'Ukupan prihod',
+            '${report.totalRevenue.toStringAsFixed(2)} KM',
+            Icons.attach_money,
+            Colors.green,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildSummaryCard(
+            'Ukupno transakcija',
+            report.totalTransactions.toString(),
+            Icons.receipt,
+            Colors.orange,
+          ),
+        ),
+      ];
+    } else if (_currentReport is BooksRentedReport) {
+      final report = _currentReport as BooksRentedReport;
+      return [
+        Expanded(
+          child: _buildSummaryCard(
+            'Ukupno iznajmljenih knjiga',
+            report.totalBooksRented.toString(),
+            Icons.book,
+            Colors.blue,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildSummaryCard(
+            'Aktivna iznajmljivanja',
+            report.totalActiveRentals.toString(),
+            Icons.access_time,
+            Colors.orange,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildSummaryCard(
+            'Prekoračenja roka',
+            report.totalOverdueRentals.toString(),
+            Icons.warning,
+            Colors.red,
+          ),
+        ),
+      ];
+    }
+    return [];
+  }
+
+  bool _hasBookSummaries() {
+    if (_currentReport is BooksSoldReport) {
+      return (_currentReport as BooksSoldReport).bookSummaries.isNotEmpty;
+    } else if (_currentReport is BooksRentedReport) {
+      return (_currentReport as BooksRentedReport).bookSummaries.isNotEmpty;
+    }
+    return false;
+  }
+
+  bool _hasTransactions() {
+    if (_currentReport is BooksSoldReport) {
+      return (_currentReport as BooksSoldReport).transactions.isNotEmpty;
+    } else if (_currentReport is BooksRentedReport) {
+      return (_currentReport as BooksRentedReport).transactions.isNotEmpty;
+    }
+    return false;
   }
 
   Widget _buildDatePicker(String label, DateTime date, Function(DateTime) onChanged) {
@@ -392,59 +512,127 @@ class _BooksSoldReportsSectionState extends State<BooksSoldReportsSection> {
   }
 
   Widget _buildBookSummariesTable() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        columns: const [
-          DataColumn(label: Text('Naslov knjige')),
-          DataColumn(label: Text('Autori')),
-          DataColumn(label: Text('Količina')),
-          DataColumn(label: Text('Ukupan prihod')),
-          DataColumn(label: Text('Prosječna cijena')),
-        ],
-        rows: _currentReport!.bookSummaries.map((summary) {
-          return DataRow(
-            cells: [
-              DataCell(Text(summary.bookTitle)),
-              DataCell(Text(summary.authorNames)),
-              DataCell(Text(summary.totalQuantitySold.toString())),
-              DataCell(Text('${summary.totalRevenue.toStringAsFixed(2)} KM')),
-              DataCell(Text('${summary.averagePrice.toStringAsFixed(2)} KM')),
-            ],
-          );
-        }).toList(),
-      ),
-    );
+    if (_currentReport is BooksSoldReport) {
+      final report = _currentReport as BooksSoldReport;
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          columns: const [
+            DataColumn(label: Text('Naslov knjige')),
+            DataColumn(label: Text('Autori')),
+            DataColumn(label: Text('Količina')),
+            DataColumn(label: Text('Ukupan prihod')),
+            DataColumn(label: Text('Prosječna cijena')),
+          ],
+          rows: report.bookSummaries.map((summary) {
+            return DataRow(
+              cells: [
+                DataCell(Text(summary.bookTitle)),
+                DataCell(Text(summary.authorNames)),
+                DataCell(Text(summary.totalQuantitySold.toString())),
+                DataCell(Text('${summary.totalRevenue.toStringAsFixed(2)} KM')),
+                DataCell(Text('${summary.averagePrice.toStringAsFixed(2)} KM')),
+              ],
+            );
+          }).toList(),
+        ),
+      );
+    } else if (_currentReport is BooksRentedReport) {
+      final report = _currentReport as BooksRentedReport;
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          columns: const [
+            DataColumn(label: Text('Naslov knjige')),
+            DataColumn(label: Text('Autori')),
+            DataColumn(label: Text('Broj iznajmljivanja')),
+            DataColumn(label: Text('Aktivna')),
+            DataColumn(label: Text('Prekoračenja')),
+          ],
+          rows: report.bookSummaries.map((summary) {
+            return DataRow(
+              cells: [
+                DataCell(Text(summary.bookTitle)),
+                DataCell(Text(summary.authorNames)),
+                DataCell(Text(summary.totalTimesRented.toString())),
+                DataCell(Text(summary.activeRentals.toString())),
+                DataCell(Text(summary.overdueRentals.toString())),
+              ],
+            );
+          }).toList(),
+        ),
+      );
+    }
+    return const SizedBox.shrink();
   }
 
   Widget _buildTransactionsTable() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        columns: const [
-          DataColumn(label: Text('Datum')),
-          DataColumn(label: Text('Knjiga')),
-          DataColumn(label: Text('Autori')),
-          DataColumn(label: Text('Količina')),
-          DataColumn(label: Text('Cijena')),
-          DataColumn(label: Text('Kupac')),
-          DataColumn(label: Text('Uposlenik')),
-        ],
-        rows: _currentReport!.transactions.take(20).map((transaction) {
-          return DataRow(
-            cells: [
-              DataCell(Text('${transaction.soldDate.day.toString().padLeft(2, '0')}.${transaction.soldDate.month.toString().padLeft(2, '0')}.${transaction.soldDate.year}')),
-              DataCell(Text(transaction.bookTitle)),
-              DataCell(Text(transaction.authorNames)),
-              DataCell(Text(transaction.quantity.toString())),
-              DataCell(Text('${transaction.totalPrice.toStringAsFixed(2)} KM')),
-              DataCell(Text(transaction.customerName)),
-              DataCell(Text(transaction.employeeName)),
-            ],
-          );
-        }).toList(),
-      ),
-    );
+    if (_currentReport is BooksSoldReport) {
+      final report = _currentReport as BooksSoldReport;
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          columns: const [
+            DataColumn(label: Text('Datum')),
+            DataColumn(label: Text('Knjiga')),
+            DataColumn(label: Text('Autori')),
+            DataColumn(label: Text('Količina')),
+            DataColumn(label: Text('Cijena')),
+            DataColumn(label: Text('Kupac')),
+            DataColumn(label: Text('Uposlenik')),
+          ],
+          rows: report.transactions.take(20).map((transaction) {
+            return DataRow(
+              cells: [
+                DataCell(Text('${transaction.soldDate.day.toString().padLeft(2, '0')}.${transaction.soldDate.month.toString().padLeft(2, '0')}.${transaction.soldDate.year}')),
+                DataCell(Text(transaction.bookTitle)),
+                DataCell(Text(transaction.authorNames)),
+                DataCell(Text(transaction.quantity.toString())),
+                DataCell(Text('${transaction.totalPrice.toStringAsFixed(2)} KM')),
+                DataCell(Text(transaction.customerName)),
+                DataCell(Text(transaction.employeeName)),
+              ],
+            );
+          }).toList(),
+        ),
+      );
+    } else if (_currentReport is BooksRentedReport) {
+      final report = _currentReport as BooksRentedReport;
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          columns: const [
+            DataColumn(label: Text('Datum iznajmljivanja')),
+            DataColumn(label: Text('Knjiga')),
+            DataColumn(label: Text('Autori')),
+            DataColumn(label: Text('Količina')),
+            DataColumn(label: Text('Rok povrata')),
+            DataColumn(label: Text('Kupac')),
+            DataColumn(label: Text('Status')),
+          ],
+          rows: report.transactions.take(20).map((transaction) {
+            String status = transaction.isReturned ? 'Vraćeno' : 
+                           transaction.isOverdue ? 'Prekoračenje (${transaction.daysOverdue} dana)' : 'Aktivno';
+            
+            Color statusColor = transaction.isReturned ? Colors.green : 
+                               transaction.isOverdue ? Colors.red : Colors.orange;
+
+            return DataRow(
+              cells: [
+                DataCell(Text('${transaction.rentedDate.day.toString().padLeft(2, '0')}.${transaction.rentedDate.month.toString().padLeft(2, '0')}.${transaction.rentedDate.year}')),
+                DataCell(Text(transaction.bookTitle)),
+                DataCell(Text(transaction.authorNames)),
+                DataCell(Text(transaction.quantity.toString())),
+                DataCell(Text('${transaction.dueDate.day.toString().padLeft(2, '0')}.${transaction.dueDate.month.toString().padLeft(2, '0')}.${transaction.dueDate.year}')),
+                DataCell(Text(transaction.customerName)),
+                DataCell(Text(status, style: TextStyle(color: statusColor, fontWeight: FontWeight.w500))),
+              ],
+            );
+          }).toList(),
+        ),
+      );
+    }
+    return const SizedBox.shrink();
   }
 
   String _getMonthName(int month) {
@@ -461,32 +649,60 @@ class _BooksSoldReportsSectionState extends State<BooksSoldReportsSection> {
     });
 
     try {
-      BooksSoldReport? report;
+      dynamic report;
       
-      switch (_selectedReportType) {
-        case 'custom':
-          report = await _reportingService.getBooksSoldReport(
-            startDate: _startDate,
-            endDate: _endDate,
-          );
-          break;
-        case 'month':
-          report = await _reportingService.getBooksSoldReportByMonth(
-            year: _selectedYear,
-            month: _selectedMonth,
-          );
-          break;
-        case 'quarter':
-          report = await _reportingService.getBooksSoldReportByQuarter(
-            year: _selectedYear,
-            quarter: _selectedQuarter,
-          );
-          break;
-        case 'year':
-          report = await _reportingService.getBooksSoldReportByYear(
-            year: _selectedYear,
-          );
-          break;
+      if (_selectedReportCategory == 'books_sold') {
+        switch (_selectedReportType) {
+          case 'custom':
+            report = await _reportingService.getBooksSoldReport(
+              startDate: _startDate,
+              endDate: _endDate,
+            );
+            break;
+          case 'month':
+            report = await _reportingService.getBooksSoldReportByMonth(
+              year: _selectedYear,
+              month: _selectedMonth,
+            );
+            break;
+          case 'quarter':
+            report = await _reportingService.getBooksSoldReportByQuarter(
+              year: _selectedYear,
+              quarter: _selectedQuarter,
+            );
+            break;
+          case 'year':
+            report = await _reportingService.getBooksSoldReportByYear(
+              year: _selectedYear,
+            );
+            break;
+        }
+      } else if (_selectedReportCategory == 'books_rented') {
+        switch (_selectedReportType) {
+          case 'custom':
+            report = await _reportingService.getBooksRentedReport(
+              startDate: _startDate,
+              endDate: _endDate,
+            );
+            break;
+          case 'month':
+            report = await _reportingService.getBooksRentedReportByMonth(
+              year: _selectedYear,
+              month: _selectedMonth,
+            );
+            break;
+          case 'quarter':
+            report = await _reportingService.getBooksRentedReportByQuarter(
+              year: _selectedYear,
+              quarter: _selectedQuarter,
+            );
+            break;
+          case 'year':
+            report = await _reportingService.getBooksRentedReportByYear(
+              year: _selectedYear,
+            );
+            break;
+        }
       }
       
       setState(() {
@@ -522,30 +738,58 @@ class _BooksSoldReportsSectionState extends State<BooksSoldReportsSection> {
 
   Future<void> _downloadPdf() async {
     try {
-      switch (_selectedReportType) {
-        case 'custom':
-          await _reportingService.downloadBooksSoldPdfReport(
-            startDate: _startDate,
-            endDate: _endDate,
-          );
-          break;
-        case 'month':
-          await _reportingService.downloadBooksSoldPdfReportByMonth(
-            year: _selectedYear,
-            month: _selectedMonth,
-          );
-          break;
-        case 'quarter':
-          await _reportingService.downloadBooksSoldPdfReportByQuarter(
-            year: _selectedYear,
-            quarter: _selectedQuarter,
-          );
-          break;
-        case 'year':
-          await _reportingService.downloadBooksSoldPdfReportByYear(
-            year: _selectedYear,
-          );
-          break;
+      if (_selectedReportCategory == 'books_sold') {
+        switch (_selectedReportType) {
+          case 'custom':
+            await _reportingService.downloadBooksSoldPdfReport(
+              startDate: _startDate,
+              endDate: _endDate,
+            );
+            break;
+          case 'month':
+            await _reportingService.downloadBooksSoldPdfReportByMonth(
+              year: _selectedYear,
+              month: _selectedMonth,
+            );
+            break;
+          case 'quarter':
+            await _reportingService.downloadBooksSoldPdfReportByQuarter(
+              year: _selectedYear,
+              quarter: _selectedQuarter,
+            );
+            break;
+          case 'year':
+            await _reportingService.downloadBooksSoldPdfReportByYear(
+              year: _selectedYear,
+            );
+            break;
+        }
+      } else if (_selectedReportCategory == 'books_rented') {
+        switch (_selectedReportType) {
+          case 'custom':
+            await _reportingService.downloadBooksRentedPdfReport(
+              startDate: _startDate,
+              endDate: _endDate,
+            );
+            break;
+          case 'month':
+            await _reportingService.downloadBooksRentedPdfReportByMonth(
+              year: _selectedYear,
+              month: _selectedMonth,
+            );
+            break;
+          case 'quarter':
+            await _reportingService.downloadBooksRentedPdfReportByQuarter(
+              year: _selectedYear,
+              quarter: _selectedQuarter,
+            );
+            break;
+          case 'year':
+            await _reportingService.downloadBooksRentedPdfReportByYear(
+              year: _selectedYear,
+            );
+            break;
+        }
       }
       
       if (mounted) {
