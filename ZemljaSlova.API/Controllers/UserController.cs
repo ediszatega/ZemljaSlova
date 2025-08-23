@@ -5,6 +5,7 @@ using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services;
 using Microsoft.AspNetCore.Authorization;
+using ZemljaSlova.Model.Enums;
 
 namespace ZemljaSlova.API.Controllers
 {
@@ -48,7 +49,7 @@ namespace ZemljaSlova.API.Controllers
         }
         
         [HttpPost("admin_change_password")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = UserRoles.Admin)]
         public async Task<ActionResult> AdminChangePassword([FromBody] AdminChangePasswordRequest request)
         {
             var result = await _userService.AdminChangePassword(request);

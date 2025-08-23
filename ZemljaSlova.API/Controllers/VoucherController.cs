@@ -4,6 +4,7 @@ using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services;
 using Microsoft.AspNetCore.Authorization;
+using ZemljaSlova.Model.Enums;
 
 namespace ZemljaSlova.API.Controllers
 {
@@ -27,14 +28,14 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpPost("CreateAdminVoucher")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = UserRoles.Admin)]
         public virtual Model.Voucher CreateAdminVoucher(VoucherAdminInsertRequest request)
         {
             return _voucherService.InsertAdminVoucher(request);
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = UserRoles.Admin)]
         public virtual async Task<Model.Voucher> Delete(int id)
         {
             return await _voucherService.Delete(id);

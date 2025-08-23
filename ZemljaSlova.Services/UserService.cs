@@ -13,11 +13,13 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Configuration;
 using ZemljaSlova.Model.Helpers;
 using ZemljaSlova.Services.Utils;
+using ZemljaSlova.Model.Enums;
 namespace ZemljaSlova.Services
 {
     public class UserService : BaseCRUDService<Model.User, UserSearchObject, Database.User, UserInsertRequest, UserUpdateRequest>, IUserService
     {
         private readonly IConfiguration _configuration;
+
         public UserService(_200036Context context, IMapper mapper, IConfiguration configuration) : base(context, mapper)
         {
             _configuration = configuration;
@@ -46,19 +48,18 @@ namespace ZemljaSlova.Services
                     return new AuthResponse { Result = AuthResult.UserNotFound };
                 }
 
-                // Use the actual access level from the database
-                var actualRole = employee.AccessLevel;
-                var token = CreateToken(user, actualRole);
+                var userRole = MapAccessLevelToRole(employee.AccessLevel);
+                var token = CreateToken(user, userRole);
                 
-                return new AuthResponse { Result = AuthResult.Success, UserId = user.Id, Token = token, Role = actualRole };
+                return new AuthResponse { Result = AuthResult.Success, UserId = user.Id, Token = token, Role = userRole };
             }
 
             // For member login
-            var memberToken = CreateToken(user, role);
-            return new AuthResponse { Result = AuthResult.Success, UserId = user.Id, Token = memberToken, Role = "member" };
+            var memberToken = CreateToken(user, UserRoles.Member);
+            return new AuthResponse { Result = AuthResult.Success, UserId = user.Id, Token = memberToken, Role = UserRoles.Member };
         }
 
-        // JWT creation method
+        // JWT creation
         private string CreateToken(User user, string role)
         {
             List<Claim> claims = new List<Claim>
@@ -66,6 +67,7 @@ namespace ZemljaSlova.Services
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Role, role)
             };
+            
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var token = new JwtSecurityToken(
@@ -90,7 +92,7 @@ namespace ZemljaSlova.Services
         public bool IsUserAdmin(int userId)
         {
             var userExists = Context.Employees
-                                  .Any(employee => employee.UserId == userId && employee.AccessLevel == "admin");
+                                  .Any(employee => employee.UserId == userId && employee.AccessLevel == UserRoles.Admin);
 
             return userExists;
         }
@@ -101,6 +103,16 @@ namespace ZemljaSlova.Services
                                   .Any(member => member.UserId == userId);
 
             return userExists;
+        }
+
+        private string MapAccessLevelToRole(string accessLevel)
+        {
+            return accessLevel?.ToLower() switch
+            {
+                "admin" => UserRoles.Admin,
+                "employee" => UserRoles.Employee,
+                _ => accessLevel ?? string.Empty
+            };
         }
         
         public async Task<bool> ChangePassword(ChangePasswordRequest request)

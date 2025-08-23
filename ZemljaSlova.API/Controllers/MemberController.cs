@@ -4,6 +4,7 @@ using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services;
 using Microsoft.AspNetCore.Authorization;
+using ZemljaSlova.Model.Enums;
 using System.Security.Claims;
 
 namespace ZemljaSlova.API.Controllers
@@ -92,7 +93,7 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = UserRoles.Admin)]
         public override async Task<Model.Member> Delete(int id)
         {
             return await _memberService.Delete(id);

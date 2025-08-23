@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math' as math;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -48,10 +47,11 @@ class ApiService {
   Future<dynamic> post(String endpoint, dynamic data) async {
     try {
       final url = Uri.parse('$baseUrl/$endpoint');
+      final headers = await this.headers;
       
       final response = await http.post(
         url,
-        headers: await headers,
+        headers: headers,
         body: json.encode(data),
       );
       
