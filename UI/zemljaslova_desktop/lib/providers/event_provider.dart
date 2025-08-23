@@ -179,8 +179,7 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
     }
   }
   
-  // Add new event with ticket types
-  Future<Event?> addEventWithTicketTypes({
+  Future<Event?> addEvent({
     required String title,
     required String description,
     String? location,
@@ -190,7 +189,7 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
     String? lecturers,
     List<int>? coverImage,
     int? maxNumberOfPeople,
-    required List<Map<String, dynamic>> ticketTypes,
+    List<Map<String, dynamic>>? ticketTypes,
   }) async {
     _isLoading = true;
     _error = null;
@@ -224,22 +223,24 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
         return null;
       }
       
-      // Create ticket types for the event
-      final ticketTypesWithUserId = ticketTypes.map((ticketType) {
-        return {
-          ...ticketType,
-          'userId': Authorization.userId,
-        };
-      }).toList();
+      // Create ticket types if provided
+      if (ticketTypes != null && ticketTypes.isNotEmpty) {
+        final ticketTypesWithUserId = ticketTypes.map((ticketType) {
+          return {
+            ...ticketType,
+            'userId': Authorization.userId,
+          };
+        }).toList();
             
-      final createdTicketTypes = await _eventService.batchCreateTicketTypes(
-        eventId: newEvent.id,
-        ticketTypes: ticketTypesWithUserId,
-      );
-      
-      // Check if all ticket types were created
-      if (createdTicketTypes.length < ticketTypes.length) {
-        _error = 'Created event but only ${createdTicketTypes.length} of ${ticketTypes.length} ticket types were saved';
+        final createdTicketTypes = await _eventService.batchCreateTicketTypes(
+          eventId: newEvent.id,
+          ticketTypes: ticketTypesWithUserId,
+        );
+        
+        // Check if all ticket types were created
+        if (createdTicketTypes.length < ticketTypes.length) {
+          _error = 'Created event but only ${createdTicketTypes.length} of ${ticketTypes.length} ticket types were saved';
+        }
       }
       
       try {
@@ -281,7 +282,7 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
     );
   }
   
-  Future<Event?> updateEventWithTicketTypes({
+  Future<Event?> updateEvent({
     required int eventId,
     required String title,
     required String description,
@@ -292,8 +293,8 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
     String? lecturers,
     List<int>? coverImage,
     int? maxNumberOfPeople,
-    required List<Map<String, dynamic>> ticketTypes,
-    required List<int> ticketTypesToDelete,
+    List<Map<String, dynamic>>? ticketTypes,
+    List<int>? ticketTypesToDelete,
   }) async {
     _isLoading = true;
     _error = null;
@@ -320,25 +321,30 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
         return null;
       }
       
-      for (var ticketTypeId in ticketTypesToDelete) {
-        await _eventService.deleteTicketType(ticketTypeId);
+      // Handle ticket types if provided
+      if (ticketTypesToDelete != null && ticketTypesToDelete.isNotEmpty) {
+        for (var ticketTypeId in ticketTypesToDelete) {
+          await _eventService.deleteTicketType(ticketTypeId);
+        }
       }
       
-      for (var ticketTypeData in ticketTypes) {
-        if (ticketTypeData.containsKey('id') && ticketTypeData['id'] != null) {
-          await _eventService.updateTicketType(
-            id: ticketTypeData['id'],
-            price: ticketTypeData['price'],
-            name: ticketTypeData['name'],
-            description: ticketTypeData['description'],
-          );
-        } else {
-          await _eventService.addTicketType(
-            eventId: eventId,
-            price: ticketTypeData['price'],
-            name: ticketTypeData['name'],
-            description: ticketTypeData['description'],
-          );
+      if (ticketTypes != null && ticketTypes.isNotEmpty) {
+        for (var ticketTypeData in ticketTypes) {
+          if (ticketTypeData.containsKey('id') && ticketTypeData['id'] != null) {
+            await _eventService.updateTicketType(
+              id: ticketTypeData['id'],
+              price: ticketTypeData['price'],
+              name: ticketTypeData['name'],
+              description: ticketTypeData['description'],
+            );
+          } else {
+            await _eventService.addTicketType(
+              eventId: eventId,
+              price: ticketTypeData['price'],
+              name: ticketTypeData['name'],
+              description: ticketTypeData['description'],
+            );
+          }
         }
       }
       
@@ -357,7 +363,6 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
         debugPrint('Error refreshing event: $e');
         _isLoading = false;
         notifyListeners();
-
         return updatedEvent;
       }
       

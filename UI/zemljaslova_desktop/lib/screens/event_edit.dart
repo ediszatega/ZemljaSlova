@@ -38,11 +38,11 @@ class _EventEditScreenState extends State<EventEditScreen> {
   final TextEditingController _ticketNameController = TextEditingController();
   final TextEditingController _ticketPriceController = TextEditingController();
   final TextEditingController _ticketDescriptionController = TextEditingController();
+  final TextEditingController _ticketInitialQuantityController = TextEditingController();
   
   bool _isLoading = true;
   DateTime? _startDateTime;
   DateTime? _endDateTime;
-  Event? _event;
   
   // Used to track which ticket type is being edited, null means adding a new one
   int? _editingTicketIndex;
@@ -63,11 +63,9 @@ class _EventEditScreenState extends State<EventEditScreen> {
     try {
       final event = await eventProvider.getEventById(widget.eventId);
       
-      if (event != null) {
-        setState(() {
-          _event = event;
-          
-          _titleController.text = event.title;
+                if (event != null) {
+            setState(() {
+              _titleController.text = event.title;
           _descriptionController.text = event.description;
           _locationController.text = event.location ?? '';
           _startDateTime = event.startAt;
@@ -85,6 +83,7 @@ class _EventEditScreenState extends State<EventEditScreen> {
                 'name': ticketType.name,
                 'price': ticketType.price,
                 'description': ticketType.description,
+                'initialQuantity': ticketType.initialQuantity,
               });
             }
           }
@@ -124,6 +123,7 @@ class _EventEditScreenState extends State<EventEditScreen> {
     _ticketNameController.dispose();
     _ticketPriceController.dispose();
     _ticketDescriptionController.dispose();
+    _ticketInitialQuantityController.dispose();
     super.dispose();
   }
 
@@ -150,11 +150,28 @@ class _EventEditScreenState extends State<EventEditScreen> {
       return;
     }
     
+    // Try parsing the initial quantity
+    int? initialQuantity;
+    if (_ticketInitialQuantityController.text.isNotEmpty) {
+      initialQuantity = int.tryParse(_ticketInitialQuantityController.text);
+      if (initialQuantity == null || initialQuantity <= 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Početna količina mora biti pozitivan broj'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+    }
+    
     setState(() {
       // If editing an existing ticket type
       if (_editingTicketIndex != null) {
         // Update the existing ticket type while preserving its ID
         final existingTicket = _ticketTypes[_editingTicketIndex!];
+        final isExistingTicket = existingTicket.containsKey('id') && existingTicket['id'] != null;
+        
         _ticketTypes[_editingTicketIndex!] = {
           'id': existingTicket.containsKey('id') ? existingTicket['id'] : null,
           'name': _ticketNameController.text,
@@ -162,6 +179,9 @@ class _EventEditScreenState extends State<EventEditScreen> {
           'description': _ticketDescriptionController.text.isEmpty 
               ? null 
               : _ticketDescriptionController.text,
+          'initialQuantity': isExistingTicket 
+              ? existingTicket['initialQuantity'] 
+              : initialQuantity,
         };
         _editingTicketIndex = null;
       } else {
@@ -172,22 +192,27 @@ class _EventEditScreenState extends State<EventEditScreen> {
           'description': _ticketDescriptionController.text.isEmpty 
               ? null 
               : _ticketDescriptionController.text,
+          'initialQuantity': initialQuantity,
         });
       }
       
       _ticketNameController.clear();
       _ticketPriceController.clear();
       _ticketDescriptionController.clear();
+      _ticketInitialQuantityController.clear();
     });
   }
   
   void _editTicketType(int index) {
     final ticket = _ticketTypes[index];
+    
     setState(() {
       _editingTicketIndex = index;
       _ticketNameController.text = ticket['name'];
       _ticketPriceController.text = ticket['price'].toString();
       _ticketDescriptionController.text = ticket['description'] ?? '';
+      
+      _ticketInitialQuantityController.text = ticket['initialQuantity']?.toString() ?? '';
     });
   }
   
@@ -197,6 +222,7 @@ class _EventEditScreenState extends State<EventEditScreen> {
       _ticketNameController.clear();
       _ticketPriceController.clear();
       _ticketDescriptionController.clear();
+      _ticketInitialQuantityController.clear();
     });
   }
   
@@ -380,12 +406,38 @@ class _EventEditScreenState extends State<EventEditScreen> {
                                   
                                   // Ticket types section
                                   const Text(
-                                    'Tipovi ulaznica',
+                                    'Tipovi ulaznica (opcionalno)',
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
+                                  const SizedBox(height: 20),
+                                  
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade50,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: Colors.blue.shade200),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.info_outline, color: Colors.blue.shade700),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            'Ulaznice su opcionalne. Možete ažurirati događaj bez ulaznica ili dodati ih kasnije. Događaj koji nema ulaznice bit će označen kao besplatan događaj.',
+                                            style: TextStyle(
+                                              color: Colors.blue.shade700,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  
                                   const SizedBox(height: 20),
                                   
                                   // Display existing ticket types
@@ -406,8 +458,19 @@ class _EventEditScreenState extends State<EventEditScreen> {
                                           final ticketType = _ticketTypes[index];
                                           return ListTile(
                                             title: Text(ticketType['name']),
-                                            subtitle: Text(
-                                              ticketType['description'] ?? 'Bez opisa',
+                                            subtitle: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(ticketType['description'] ?? 'Bez opisa'),
+                                                if (ticketType['initialQuantity'] != null)
+                                                  Text(
+                                                    'Početna količina: ${ticketType['initialQuantity']}',
+                                                    style: const TextStyle(
+                                                      color: Colors.green,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ),
+                                              ],
                                             ),
                                             trailing: Row(
                                               mainAxisSize: MainAxisSize.min,
@@ -458,9 +521,38 @@ class _EventEditScreenState extends State<EventEditScreen> {
                                           keyboardType: TextInputType.number,
                                         ),
                                       ),
+                                      const SizedBox(width: 6),
+                                      
+                                      // Initial quantity
+                                      Expanded(
+                                        flex: 2,
+                                        child: ZSInput(
+                                          label: 'Početna količina (opciono)',
+                                          controller: _ticketInitialQuantityController,
+                                          keyboardType: TextInputType.number,
+                                          enabled: _editingTicketIndex == null || 
+                                                   (_ticketTypes[_editingTicketIndex!].containsKey('id') && 
+                                                    _ticketTypes[_editingTicketIndex!]['id'] == null),
+                                        ),
+                                      ),
                                       const SizedBox(width: 16),
                                     ],
                                   ),
+                                  
+                                  if (_editingTicketIndex != null && 
+                                      _ticketTypes[_editingTicketIndex!].containsKey('id') && 
+                                      _ticketTypes[_editingTicketIndex!]['id'] != null)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 8.0),
+                                      child: Text(
+                                        'Početna količina se ne može mijenjati za postojeće tipove ulaznica',
+                                        style: TextStyle(
+                                          color: Colors.orange.shade700,
+                                          fontSize: 12,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      ),
+                                    ),
                                   
                                   const SizedBox(height: 16),
                                   
@@ -563,31 +655,19 @@ class _EventEditScreenState extends State<EventEditScreen> {
         return;
       }
       
-      // Validate that at least one ticket type is added
-      if (_ticketTypes.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Dodajte barem jedan tip ulaznice'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-      
       // Get max people count (if provided)
       int? maxPeople;
       if (_maxPeopleController.text.isNotEmpty) {
         maxPeople = int.tryParse(_maxPeopleController.text);
       }
       
-      // Update the event with ticket types
       final eventProvider = Provider.of<EventProvider>(context, listen: false);
       
       setState(() {
         _isLoading = true;
       });
       
-      eventProvider.updateEventWithTicketTypes(
+      eventProvider.updateEvent(
         eventId: widget.eventId,
         title: _titleController.text,
         description: _descriptionController.text,
@@ -597,8 +677,8 @@ class _EventEditScreenState extends State<EventEditScreen> {
         organizer: _organizerController.text.isEmpty ? null : _organizerController.text,
         lecturers: _lecturersController.text.isEmpty ? null : _lecturersController.text,
         maxNumberOfPeople: maxPeople,
-        ticketTypes: _ticketTypes,
-        ticketTypesToDelete: _ticketTypesToDelete,
+        ticketTypes: _ticketTypes.isNotEmpty ? _ticketTypes : null,
+        ticketTypesToDelete: _ticketTypesToDelete.isNotEmpty ? _ticketTypesToDelete : null,
       ).then((event) {
         setState(() {
           _isLoading = false;

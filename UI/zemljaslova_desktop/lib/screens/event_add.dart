@@ -291,12 +291,38 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                   
                                   // Ticket types section
                                   const Text(
-                                    'Tipovi ulaznica',
+                                    'Tipovi ulaznica (opcionalno)',
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
+                                  const SizedBox(height: 20),
+                                  
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade50,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: Colors.blue.shade200),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.info_outline, color: Colors.blue.shade700),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Ulaznice su opcionalne. Možete kreirati događaj bez ulaznica ili dodati ih kasnije. Događaj koji nema ulaznice bit će označen kao besplatan događaj.',
+                                            style: TextStyle(
+                                              color: Colors.blue.shade700,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  
                                   const SizedBox(height: 20),
                                   
                                   // Display existing ticket types
@@ -479,31 +505,19 @@ class _EventAddScreenState extends State<EventAddScreen> {
         return;
       }
       
-      // Validate that at least one ticket type is added
-      if (_ticketTypes.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Dodajte barem jedan tip ulaznice'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-      
       // Get max people count (if provided)
       int? maxPeople;
       if (_maxPeopleController.text.isNotEmpty) {
         maxPeople = int.tryParse(_maxPeopleController.text);
       }
       
-      // Create the event with ticket types
       final eventProvider = Provider.of<EventProvider>(context, listen: false);
       
       setState(() {
         _isLoading = true;
       });
       
-      eventProvider.addEventWithTicketTypes(
+      eventProvider.addEvent(
         title: _titleController.text,
         description: _descriptionController.text,
         location: _locationController.text.isEmpty ? null : _locationController.text,
@@ -512,7 +526,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
         organizer: _organizerController.text.isEmpty ? null : _organizerController.text,
         lecturers: _lecturersController.text.isEmpty ? null : _lecturersController.text,
         maxNumberOfPeople: maxPeople,
-        ticketTypes: _ticketTypes,
+        ticketTypes: _ticketTypes.isNotEmpty ? _ticketTypes : null,
       ).then((event) {
         setState(() {
           _isLoading = false;
