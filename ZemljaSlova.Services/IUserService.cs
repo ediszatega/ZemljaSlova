@@ -12,11 +12,12 @@ namespace ZemljaSlova.Services
 {
     public interface IUserService : ICRUDService<User, UserSearchObject, UserInsertRequest, UserUpdateRequest>
     {
-        public Task<AuthResponse> AuthenticateUser(string email, string password, string role);
+        public AuthResponse AuthenticateUser(string email, string password, string role);
         public bool IsUserEmployee(int userId);
         public bool IsUserAdmin(int userId);
         public bool IsUserMember(int userId);
         public Task<bool> ChangePassword(ChangePasswordRequest request);
         public Task<bool> AdminChangePassword(AdminChangePasswordRequest request);
+        public string? RefreshToken(string email);
     }
 }

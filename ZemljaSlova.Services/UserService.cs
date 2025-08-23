@@ -25,7 +25,7 @@ namespace ZemljaSlova.Services
             _configuration = configuration;
         }
 
-        public async Task<AuthResponse> AuthenticateUser(string email, string password, string role)
+        public AuthResponse AuthenticateUser(string email, string password, string role)
         {
             var user = Context.Users.FirstOrDefault(u => u.Email == email);
 
@@ -173,6 +173,32 @@ namespace ZemljaSlova.Services
             
             await Context.SaveChangesAsync();
             return true;
+        }
+
+        public string? RefreshToken(string email)
+        {
+            var user = Context.Users.FirstOrDefault(u => u.Email == email);
+            if (user == null)
+            {
+                return null;
+            }
+
+            // Check if user is an employee to determine role
+            var employee = Context.Employees.FirstOrDefault(e => e.UserId == user.Id);
+            if (employee != null)
+            {
+                var role = MapAccessLevelToRole(employee.AccessLevel);
+                return CreateToken(user, role);
+            }
+
+            // Check if user is a member
+            var member = Context.Members.FirstOrDefault(m => m.UserId == user.Id);
+            if (member != null)
+            {
+                return CreateToken(user, UserRoles.Member);
+            }
+
+            return null;
         }
         
 

@@ -23,16 +23,16 @@ namespace ZemljaSlova.API.Controllers
 
         [HttpPost("employee_login")]
         [AllowAnonymous]
-        public async Task<AuthResponse> EmployeeLogin([FromBody] LoginRequest request)
+        public AuthResponse EmployeeLogin([FromBody] LoginRequest request)
         {
-            return await _userService.AuthenticateUser(request.Email, request.Password, "employee");
+            return _userService.AuthenticateUser(request.Email, request.Password, "employee");
         }
 
 		[HttpPost("member_login")]
 		[AllowAnonymous]
-		public async Task<AuthResponse> MemberLogin([FromBody] LoginRequest request)
+		public AuthResponse MemberLogin([FromBody] LoginRequest request)
 		{
-            return await _userService.AuthenticateUser(request.Email, request.Password, "member");
+            return _userService.AuthenticateUser(request.Email, request.Password, "member");
         }
         
         [HttpPost("change_password")]
@@ -60,6 +60,32 @@ namespace ZemljaSlova.API.Controllers
             }
             
             return BadRequest(new { message = "Failed to change password. User not found." });
+        }
+
+        [HttpPost("refresh-token")]
+        [Authorize]
+        public ActionResult RefreshToken()
+        {
+            try
+            {
+                var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+                if (string.IsNullOrEmpty(email))
+                {
+                    return BadRequest("Invalid token");
+                }
+
+                var newToken = _userService.RefreshToken(email);
+                if (newToken != null)
+                {
+                    return Ok(new { token = newToken });
+                }
+
+                return BadRequest("Failed to refresh token");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error refreshing token: {ex.Message}");
+            }
         }
     }
 }
