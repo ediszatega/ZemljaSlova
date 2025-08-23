@@ -4,8 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // Update URLs to match your backend
-  static const String baseUrl = 'http://localhost:5285'; // Desktop always localhost
+  static const String baseUrl = 'http://localhost:5285';
       
   String? authToken;
   final _storage = const FlutterSecureStorage();
@@ -37,11 +36,9 @@ class ApiService {
     final headers = await this.headers;
     final response = await http.get(url, headers: headers);
     
-    // Check if we need to refresh token and retry
     if (response.statusCode == 401) {
       await _handleTokenRefresh();
       
-      // Retry the request with new token
       final newHeaders = await this.headers;
       final retryResponse = await http.get(url, headers: newHeaders);
       
@@ -61,11 +58,9 @@ class ApiService {
       body: json.encode(data),
     );
     
-    // Check if we need to refresh token and retry
     if (response.statusCode == 401) {
       await _handleTokenRefresh();
       
-      // Retry the request with new token
       final newHeaders = await this.headers;
       final retryResponse = await http.post(
         url,
@@ -88,11 +83,9 @@ class ApiService {
       body: json.encode(data),
     );
     
-    // Check if we need to refresh token and retry
     if (response.statusCode == 401) {
       await _handleTokenRefresh();
       
-      // Retry the request with new token
       final newHeaders = await this.headers;
       final retryResponse = await http.put(
         url,
@@ -111,11 +104,9 @@ class ApiService {
     
     final response = await http.delete(url, headers: await headers);
     
-    // Check if we need to refresh token and retry
     if (response.statusCode == 401) {
       await _handleTokenRefresh();
       
-      // Retry the request with new token
       final newHeaders = await this.headers;
       final retryResponse = await http.delete(url, headers: newHeaders);
       
@@ -162,12 +153,9 @@ class ApiService {
         if (newToken != null) {
           await _storage.write(key: 'jwt', value: newToken);
           authToken = newToken;
-          print('Token refreshed successfully');
         }
       }
     } catch (e) {
-      print('Failed to refresh token: $e');
-      // Clear invalid token
       await _storage.delete(key: 'jwt');
       authToken = null;
     }

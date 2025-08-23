@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -33,59 +32,86 @@ class ApiService {
   }
 
   Future<dynamic> get(String endpoint, {Map<String, String>? queryParams}) async {
-    try {
-      final uri = Uri.parse('$baseUrl/$endpoint').replace(queryParameters: queryParams);
-      final response = await http.get(uri, headers: await headers);
+    final uri = Uri.parse('$baseUrl/$endpoint').replace(queryParameters: queryParams);
+    final response = await http.get(uri, headers: await headers);
+    
+    if (response.statusCode == 401) {
+      await _handleTokenRefresh();
       
-      return _handleResponse(response);
-    } catch (e) {
-      throw Exception('Failed to perform GET request: $e');
+      final newHeaders = await this.headers;
+      final retryResponse = await http.get(uri, headers: newHeaders);
+      
+      return _handleResponse(retryResponse);
     }
+    
+    return _handleResponse(response);
   }
 
   Future<dynamic> post(String endpoint, dynamic data) async {
-    try {
-      final url = Uri.parse('$baseUrl/$endpoint');
-      final headers = await this.headers;
+    final url = Uri.parse('$baseUrl/$endpoint');
+    final headers = await this.headers;
+    
+    final response = await http.post(
+      url,
+      headers: headers,
+      body: json.encode(data),
+    );
+    
+    if (response.statusCode == 401) {
+      await _handleTokenRefresh();
       
-      
-      final response = await http.post(
+      final newHeaders = await this.headers;
+      final retryResponse = await http.post(
         url,
-        headers: headers,
+        headers: newHeaders,
         body: json.encode(data),
       );
       
-      return _handleResponse(response);
-    } catch (e) {
-      throw Exception('Failed to perform POST request: $e');
+      return _handleResponse(retryResponse);
     }
+    
+    return _handleResponse(response);
   }
 
   Future<dynamic> put(String endpoint, dynamic data) async {
-    try {
-      final url = Uri.parse('$baseUrl/$endpoint');
+    final url = Uri.parse('$baseUrl/$endpoint');
+    
+    final response = await http.put(
+      url,
+      headers: await headers,
+      body: json.encode(data),
+    );
+    
+    if (response.statusCode == 401) {
+      await _handleTokenRefresh();
       
-      final response = await http.put(
+      final newHeaders = await this.headers;
+      final retryResponse = await http.put(
         url,
-        headers: await headers,
+        headers: newHeaders,
         body: json.encode(data),
       );
       
-      return _handleResponse(response);
-    } catch (e) {
-      throw Exception('Failed to perform PUT request: $e');
+      return _handleResponse(retryResponse);
     }
+    
+    return _handleResponse(response);
   }
 
   Future<dynamic> delete(String endpoint) async {
-    try {
-      final url = Uri.parse('$baseUrl/$endpoint');
-      final response = await http.delete(url, headers: await headers);
+    final url = Uri.parse('$baseUrl/$endpoint');
+    final response = await http.delete(url, headers: await headers);
+    
+    if (response.statusCode == 401) {
+      await _handleTokenRefresh();
       
-      return _handleResponse(response);
-    } catch (e) {
-      throw Exception('Failed to perform DELETE request: $e');
+      final newHeaders = await this.headers;
+      final retryResponse = await http.delete(url, headers: newHeaders);
+      
+      return _handleResponse(retryResponse);
     }
+    
+    return _handleResponse(response);
   }
 
   dynamic _handleResponse(http.Response response) {
@@ -98,10 +124,38 @@ class ApiService {
         }
       }
       return null;
-    } else if (response.statusCode == 401) {
-      throw Exception("Unauthorized");
     } else {
       throw Exception('API Error: [${response.statusCode}] ${response.reasonPhrase}');
+    }
+  }
+
+  Future<void> _handleTokenRefresh() async {
+    try {
+      final currentToken = authToken ?? await _storage.read(key: 'jwt');
+      if (currentToken == null || currentToken.isEmpty) {
+        return; // No token to refresh
+      }
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/User/refresh-token'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $currentToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        final newToken = responseData['token'] as String?;
+        
+        if (newToken != null) {
+          await _storage.write(key: 'jwt', value: newToken);
+          authToken = newToken;
+        }
+      }
+    } catch (e) {
+      await _storage.delete(key: 'jwt');
+      authToken = null;
     }
   }
 }
