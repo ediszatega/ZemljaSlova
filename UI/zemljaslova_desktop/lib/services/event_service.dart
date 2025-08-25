@@ -255,6 +255,15 @@ class EventService {
       return false;
     }
   }
+
+  Future<bool> deleteEvent(int id) async {
+    try {
+      await _apiService.delete('Event/$id');
+      return true;
+    } catch (e) {
+      rethrow;
+    }
+  }
   
   Future<List<TicketType>> batchCreateTicketTypes({
     required int eventId,

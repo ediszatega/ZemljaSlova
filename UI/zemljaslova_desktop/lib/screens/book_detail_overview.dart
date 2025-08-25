@@ -568,10 +568,10 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
   }
   
   Future<void> _deleteBook() async {
-    try {
-      await Provider.of<BookProvider>(context, listen: false)
-          .deleteBook(widget.book.id);
-      
+    final success = await Provider.of<BookProvider>(context, listen: false)
+        .deleteBook(widget.book.id);
+    
+    if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Knjiga je uspješno obrisana'),
@@ -579,8 +579,9 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
         ),
       );
       Navigator.of(context).pop();
-    } catch (e) {
-      String errorMessage = ErrorFormatter.formatException(e.toString());
+    } else {
+      final bookProvider = Provider.of<BookProvider>(context, listen: false);
+      String errorMessage = bookProvider.error ?? 'Greška prilikom brisanja knjige';
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

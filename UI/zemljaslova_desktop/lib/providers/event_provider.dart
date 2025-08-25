@@ -6,6 +6,7 @@ import '../models/event_filters.dart';
 import '../services/event_service.dart';
 import '../widgets/paginated_data_widget.dart';
 import '../utils/authorization.dart';
+import '../utils/error_formatter.dart';
 
 class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> {
   final EventService _eventService;
@@ -371,6 +372,27 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
       _isLoading = false;
       notifyListeners();
       return null;
+    }
+  }
+
+  Future<bool> deleteEvent(int id) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _eventService.deleteEvent(id);
+      
+      await refresh();
+      _isLoading = false;
+      _error = null;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = ErrorFormatter.formatException(e.toString());
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
   }
 } 

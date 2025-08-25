@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
+using ZemljaSlova.Model;
 using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services.Database;
@@ -114,6 +115,18 @@ namespace ZemljaSlova.Services
             }
 
             return base.AddFilter(search, query);
+        }
+
+        public override void BeforeDelete(Database.Event entity)
+        {
+            // Check if event has sold tickets
+            var hasSoldTickets = Context.TicketTypeTransactions
+                .Any(ttt => ttt.TicketType.EventId == entity.Id);
+            
+            if (hasSoldTickets)
+            {
+                throw new UserException("Nije moguće izbrisati događaj koji ima prodane karte.");
+            }
         }
     }
 }

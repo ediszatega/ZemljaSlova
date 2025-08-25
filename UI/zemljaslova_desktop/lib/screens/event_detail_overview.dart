@@ -330,9 +330,7 @@ class _EventDetailOverviewState extends State<EventDetailOverview> {
                               borderColor: Colors.grey.shade300,
                               width: 410,
                               topPadding: 5,
-                              onPressed: () {
-                                // TODO: Implement delete functionality
-                              },
+                              onPressed: () => _showDeleteDialog(event),
                             ),
                           ],
                         ),
@@ -468,6 +466,61 @@ class _EventDetailOverviewState extends State<EventDetailOverview> {
         );
       }).toList(),
     );
+  }
+  
+  void _showDeleteDialog(Event event) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Potvrda brisanja'),
+          content: Text(
+            'Da li ste sigurni da želite obrisati događaj "${event.title}"?\n\n'
+            'Ova akcija se ne može poništiti.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Otkaži'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _deleteEvent(event);
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Obriši'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  Future<void> _deleteEvent(Event event) async {
+    final success = await Provider.of<EventProvider>(context, listen: false)
+        .deleteEvent(event.id);
+    
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Događaj je uspješno obrisan'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.of(context).pop();
+    } else {
+      final eventProvider = Provider.of<EventProvider>(context, listen: false);
+      String errorMessage = eventProvider.error ?? 'Greška prilikom brisanja događaja';
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 6),
+        ),
+      );
+    }
   }
 }
 
