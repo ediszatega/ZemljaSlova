@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/event_provider.dart';
-import '../models/event.dart';
-import '../models/ticket_type.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_input.dart';
 import '../widgets/zs_datetime_picker.dart';
+import '../utils/error_formatter.dart';
 
 class EventEditScreen extends StatefulWidget {
   final int eventId;
@@ -226,17 +225,95 @@ class _EventEditScreenState extends State<EventEditScreen> {
     });
   }
   
-  void _removeTicketType(int index) {
-    setState(() {
-      final ticketType = _ticketTypes[index];
+  Future<void> _removeTicketType(int index) async {
+    final ticketType = _ticketTypes[index];
+    
+    // If this is a new ticket type (not saved yet), just remove it
+    if (!ticketType.containsKey('id') || ticketType['id'] == null) {
+      setState(() {
+        _ticketTypes.removeAt(index);
+      });
+      return;
+    }
+    
+    // For existing ticket types, check if they can be deleted
+    final ticketTypeId = ticketType['id'] as int;
+    
+    try {
+      // Try to delete the ticket type to see if it's allowed
+      final canDelete = await Provider.of<EventProvider>(context, listen: false)
+          .canDeleteTicketType(ticketTypeId);
       
-      // If this is an existing ticket type, add it to the delete list
-      if (ticketType.containsKey('id') && ticketType['id'] != null) {
-        _ticketTypesToDelete.add(ticketType['id']);
+      if (canDelete) {
+        // If deletion is allowed, show confirmation dialog
+        _showDeleteTicketTypeConfirmation(index, ticketType);
+      } else {
+        // If deletion is not allowed, show error immediately
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Nije moguće izbrisati tip ulaznice koja ima ranije transakcije.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 6),
+          ),
+        );
       }
+    } catch (e) {
+      String errorMessage = ErrorFormatter.formatException(e.toString());
       
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 6),
+        ),
+      );
+    }
+  }
+  
+  void _showDeleteTicketTypeConfirmation(int index, Map<String, dynamic> ticketType) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Potvrda brisanja'),
+          content: Text(
+            'Da li ste sigurni da želite obrisati tip karte "${ticketType['name']}"?\n\n'
+            'Ova akcija se ne može poništiti.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Otkaži'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _confirmDeleteTicketType(index, ticketType);
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Obriši'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  void _confirmDeleteTicketType(int index, Map<String, dynamic> ticketType) {
+    setState(() {
+      // Add to delete list
+      _ticketTypesToDelete.add(ticketType['id']);
+      // Remove from display list
       _ticketTypes.removeAt(index);
     });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Tip karte će biti obrisan prilikom spremanja događaja'),
+        backgroundColor: Colors.orange,
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
   
   void _selectStartDateTime(DateTime dateTime) {
@@ -487,7 +564,7 @@ class _EventEditScreenState extends State<EventEditScreen> {
                                                 ),
                                                 IconButton(
                                                   icon: const Icon(Icons.delete, color: Colors.red),
-                                                  onPressed: () => _removeTicketType(index),
+                                                  onPressed: () async => await _removeTicketType(index),
                                                 ),
                                               ],
                                             ),

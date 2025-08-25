@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
+using ZemljaSlova.Model;
 using ZemljaSlova.Model.Enums;
 using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
@@ -137,6 +138,36 @@ namespace ZemljaSlova.Services
             catch (Exception)
             {
                 return false;
+            }
+        }
+
+        public override void BeforeDelete(Database.TicketType entity)
+        {
+            // Check if ticket type has sold tickets (transactions)
+            var hasTransactions = Context.TicketTypeTransactions
+                .Any(ttt => ttt.TicketTypeId == entity.Id);
+            
+            if (hasTransactions)
+            {
+                throw new UserException("Nije moguće izbrisati tip ulaznice koja ima ranije transakcije.");
+            }
+            
+            // Check if ticket type has order items
+            var hasOrderItems = Context.OrderItems
+                .Any(oi => oi.TicketTypeId == entity.Id);
+            
+            if (hasOrderItems)
+            {
+                throw new UserException("Nije moguće izbrisati tip karte koji ima povezane narudžbe.");
+            }
+            
+            // Check if ticket type has tickets
+            var hasTickets = Context.Tickets
+                .Any(t => t.TicketTypeId == entity.Id);
+            
+            if (hasTickets)
+            {
+                throw new UserException("Nije moguće izbrisati tip karte koji ima izdane karte.");
             }
         }
     }

@@ -325,7 +325,14 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
       // Handle ticket types if provided
       if (ticketTypesToDelete != null && ticketTypesToDelete.isNotEmpty) {
         for (var ticketTypeId in ticketTypesToDelete) {
-          await _eventService.deleteTicketType(ticketTypeId);
+          try {
+            await _eventService.deleteTicketType(ticketTypeId);
+          } catch (e) {
+            _error = ErrorFormatter.formatException(e.toString());
+            _isLoading = false;
+            notifyListeners();
+            return null;
+          }
         }
       }
       
@@ -392,6 +399,15 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
       _error = ErrorFormatter.formatException(e.toString());
       _isLoading = false;
       notifyListeners();
+      return false;
+    }
+  }
+  
+  Future<bool> canDeleteTicketType(int id) async {
+    try {
+      await _eventService.deleteTicketType(id);
+      return true;
+    } catch (e) {
       return false;
     }
   }

@@ -248,11 +248,10 @@ class EventService {
   
   Future<bool> deleteTicketType(int id) async {
     try {
-      final response = await _apiService.delete('TicketType/$id');
-      return response != null;
+      await _apiService.delete('TicketType/$id');
+      return true;
     } catch (e) {
-      debugPrint('Error deleting ticket type: $e');
-      return false;
+      rethrow;
     }
   }
 
