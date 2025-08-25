@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import '../models/user_book_club.dart';
 import '../models/user_book_club_transaction.dart';
 import 'api_service.dart';
@@ -10,61 +9,33 @@ class BookClubService {
   
   Future<Map<String, dynamic>?> getCurrentYearPoints(int memberId) async {
     try {
-      final response = await _apiService.get('BookClubPoints/member/$memberId/current');
-      return response;
+      return await _apiService.get('BookClubPoints/member/$memberId/current');
     } catch (e) {
-      debugPrint('Failed to get current year points: $e');
-      return null;
+      throw Exception('Greška pri učitavanju podataka o Klubu čitalaca');
     }
   }
 
   Future<Map<String, dynamic>?> getYearPoints(int memberId, int year) async {
     try {
-      final response = await _apiService.get('BookClubPoints/member/$memberId/year/$year');
-      return response;
+      return await _apiService.get('BookClubPoints/member/$memberId/year/$year');
     } catch (e) {
-      debugPrint('Failed to get year points: $e');
-      return null;
+      throw Exception('Greška pri učitavanju podataka o Klubu čitalaca');
     }
   }
 
   Future<List<UserBookClubTransaction>?> getTransactionsForYear(int memberId, int year) async {
     try {
-      final response = await _apiService.get('BookClubPoints/member/$memberId/transactions/$year');
-      
-      if (response != null && response is List) {
-        return response.map<UserBookClubTransaction>((json) => UserBookClubTransaction.fromJson(json)).toList();
-      }
-      
-      return [];
+      return await _apiService.get('BookClubPoints/member/$memberId/transactions/$year');
     } catch (e) {
-      debugPrint('Failed to get transactions for year: $e');
-      return [];
+      throw Exception('Greška pri učitavanju transakcija');
     }
   }
 
   Future<List<UserBookClub>?> getMemberHistory(int memberId) async {
     try {
-      final response = await _apiService.get('BookClubPoints/member/$memberId/history');
-      
-      if (response != null && response is List) {
-        return response.map<UserBookClub>((json) => UserBookClub.fromJson(json)).toList();
-      }
-      
-      return [];
+      return await _apiService.get('BookClubPoints/member/$memberId/history');
     } catch (e) {
-      debugPrint('Failed to get member history: $e');
-      return [];
-    }
-  }
-
-  Future<Map<String, dynamic>?> testBookClubPoints() async {
-    try {
-      final response = await _apiService.get('BookClubPoints/test');
-      return response;
-    } catch (e) {
-      debugPrint('Failed to test Book Club points: $e');
-      return null;
+      throw Exception('Greška pri učitavanju istorije');
     }
   }
 }

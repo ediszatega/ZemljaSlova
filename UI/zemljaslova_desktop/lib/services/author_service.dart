@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../models/author.dart';
 import 'api_service.dart';
@@ -69,7 +68,6 @@ class AuthorService {
         'totalCount': 0,
       };
     } catch (e) {
-      debugPrint('Failed to fetch authors: $e');
       return {
         'authors': <Author>[],
         'totalCount': 0,
@@ -80,19 +78,13 @@ class AuthorService {
   Future<Author> getAuthorById(int id) async {
     try {
       final response = await _apiService.get('Author/$id');
-      
-      if (response != null) {
-        return _mapAuthorFromBackend(response);
-      }
-      
-      throw Exception('Author not found');
+      return _mapAuthorFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to get author: $e');
-      throw Exception('Failed to get author: $e');
+      throw Exception('Autor nije pronađen');
     }
   }
   
-  Future<Author?> addAuthor(
+  Future<Author> addAuthor(
     String firstName,
     String lastName,
     String? dateOfBirth,
@@ -122,19 +114,13 @@ class AuthorService {
       };
       
       final response = await _apiService.post('Author', data);
-      
-      if (response != null) {
-        return _mapAuthorFromBackend(response);
-      }
-      
-      return null;
+      return _mapAuthorFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to add author: $e');
-      return null;
+      throw Exception('Greška prilikom dodavanja autora');
     }
   }
 
-  Future<Author?> updateAuthor(
+  Future<Author> updateAuthor(
     int id,
     String firstName,
     String lastName,
@@ -166,15 +152,9 @@ class AuthorService {
       };
       
       final response = await _apiService.put('Author/$id', data);
-      
-      if (response != null) {
-        return _mapAuthorFromBackend(response);
-      }
-      
-      return null;
+      return _mapAuthorFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to update author: $e');
-      return null;
+      throw Exception('Greška prilikom ažuriranja autora');
     }
   }
 

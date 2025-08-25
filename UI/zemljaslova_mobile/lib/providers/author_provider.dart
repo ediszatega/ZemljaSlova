@@ -24,7 +24,7 @@ class AuthorProvider with ChangeNotifier {
     try {
       final result = await _authorService.fetchAuthors(
         page: 0,
-        pageSize: 1000, // Get all authors for dropdown
+        pageSize: 1000,
         sortBy: 'firstName',
         sortOrder: 'asc',
       );

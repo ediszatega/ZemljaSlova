@@ -252,6 +252,10 @@ class _BookEditScreenState extends State<BookEditScreen> {
                                       if (int.tryParse(value) == null) {
                                         return 'Broj stranica mora biti cijeli broj';
                                       }
+                                      final pages = int.parse(value);
+                                      if (pages < 0) {
+                                        return 'Broj stranica ne može biti negativan';
+                                      }
                                       return null;
                                     },
                                   ),

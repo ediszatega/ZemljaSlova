@@ -48,7 +48,7 @@ class Book {
     this.edition,
     this.publisher,
     this.bookPurpose,
-    this.numberOfPages = 0,
+    required this.numberOfPages,
     this.weight,
     this.dimensions,
     this.genre,

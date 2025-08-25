@@ -27,25 +27,21 @@ class AuthProvider with ChangeNotifier {
 
       final response = await _apiService.post(_endpoint, body);
 
-      if (response != null) {
-        var data = LoginResponse.fromJson(response);
-        if (data.isSuccess) {
-          await _storage.write(key: "jwt", value: data.token);
-          await _storage.write(key: "userId", value: data.userId?.toString());
-          await _storage.write(key: "role", value: data.role);
-          _apiService.authToken = data.token;
-          _isLoggedIn = true;
-          Authorization.userId = data.userId;
-          Authorization.role = data.role;
-          Authorization.token = data.token;
-          notifyListeners();
-        }
-        return data;
-      } else {
-        throw Exception("Login failed");
+      var data = LoginResponse.fromJson(response);
+      if (data.isSuccess) {
+        await _storage.write(key: "jwt", value: data.token);
+        await _storage.write(key: "userId", value: data.userId?.toString());
+        await _storage.write(key: "role", value: data.role);
+        _apiService.authToken = data.token;
+        _isLoggedIn = true;
+        Authorization.userId = data.userId;
+        Authorization.role = data.role;
+        Authorization.token = data.token;
+        notifyListeners();
       }
+      return data;
     } catch (e) {
-      throw Exception("Login failed: $e");
+      throw Exception("Greška prilikom prijave");
     }
   }
 

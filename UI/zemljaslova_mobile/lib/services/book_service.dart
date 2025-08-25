@@ -54,9 +54,7 @@ class BookService {
       
       final queryString = queryParams.join('&');
       final response = await _apiService.get('Book?$queryString');
-      
-      debugPrint('API response: $response');
-      
+            
       if (response != null) {
         final booksList = response['resultList'] as List;
         final totalCount = response['count'] as int;
@@ -76,7 +74,6 @@ class BookService {
         'totalCount': 0,
       };
     } catch (e) {
-      debugPrint('Failed to fetch books: $e');
       return {
         'books': <Book>[],
         'totalCount': 0,
@@ -84,19 +81,14 @@ class BookService {
     }
   }
   
-  Future<Book> getBookById(int id) async {
-    try {
+  Future<Book?> getBookById(int id) async {
       final response = await _apiService.get('Book/$id?IsAuthorIncluded=true');
       
       if (response != null) {
         return _mapBookFromBackend(response);
       }
       
-      throw Exception('Book not found');
-    } catch (e) {
-      debugPrint('Failed to get book: $e');
-      throw Exception('Failed to get book: $e');
-    }
+    throw Exception('Knjiga nije pronađena');
   }
 
   Book _mapBookFromBackend(dynamic bookData) {

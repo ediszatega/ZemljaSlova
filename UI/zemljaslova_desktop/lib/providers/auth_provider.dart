@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/auth/login_response.dart';
@@ -29,32 +28,22 @@ class AuthProvider with ChangeNotifier {
 
       final response = await _apiService.post(_endpoint, body);
 
-      if (response != null) {
-        var data = LoginResponse.fromJson(response);
-        if (data.isSuccess) {
-          await _storage.write(key: "jwt", value: data.token);
-          await _storage.write(key: "userId", value: data.userId?.toString());
-          await _storage.write(key: "role", value: data.role);
-          _apiService.authToken = data.token;
-          _isLoggedIn = true;
-          Authorization.userId = data.userId;
-          Authorization.role = data.role;
-          Authorization.token = data.token;
-          
-          debugPrint('=== Auth Provider Debug ===');
-          debugPrint('Login successful');
-          debugPrint('Role from backend: ${data.role}');
-          debugPrint('Authorization.role set to: ${Authorization.role}');
-          debugPrint('Authorization.isEmployee: ${Authorization.isEmployee}');
-          debugPrint('Authorization.isAdmin: ${Authorization.isAdmin}');
-          notifyListeners();
-        }
-        return data;
-      } else {
-        throw Exception("Login failed");
+      var data = LoginResponse.fromJson(response);
+      if (data.isSuccess) {
+        await _storage.write(key: "jwt", value: data.token);
+        await _storage.write(key: "userId", value: data.userId?.toString());
+        await _storage.write(key: "role", value: data.role);
+        _apiService.authToken = data.token;
+        _isLoggedIn = true;
+        Authorization.userId = data.userId;
+        Authorization.role = data.role;
+        Authorization.token = data.token;
+      
+        notifyListeners();
       }
+      return data;
     } catch (e) {
-      throw Exception("Login failed: $e");
+      throw Exception("Greška prilikom prijave");
     }
   }
 

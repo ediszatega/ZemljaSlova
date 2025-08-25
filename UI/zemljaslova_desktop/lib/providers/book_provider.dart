@@ -64,8 +64,8 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
   BookFilters get filters => _filters;
   BookPurpose? get currentBookPurpose => _currentBookPurpose;
 
-  /// Initialize the provider for a specific book purpose
-  /// This should be called when entering a screen
+  // Initialize the provider for a specific book purpose
+  // This should be called when entering a screen
   void initializeForBookPurpose(BookPurpose bookPurpose) {
     if (_currentBookPurpose != bookPurpose) {
       _currentBookPurpose = bookPurpose;
@@ -80,8 +80,8 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
     }
   }
 
-  /// Clear the book purpose and reset state
-  /// This should be called when leaving book screens
+  // Clear the book purpose and reset state
+  // This should be called when leaving book screens
   void clearBookPurpose() {
     _currentBookPurpose = null;
     _books.clear();
@@ -119,7 +119,7 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
         sortBy: _sortBy,
         sortOrder: _sortOrder,
         filters: _filters.hasActiveFilters ? _filters.toQueryParams() : null,
-        bookPurpose: _currentBookPurpose, // Always use the current book purpose
+        bookPurpose: _currentBookPurpose,
       );
       
       final List<Book> newBooks = result['books'] as List<Book>;
@@ -237,7 +237,7 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
     notifyListeners();
 
     try {
-      final updatedBook = await _bookService.updateBook(
+      await _bookService.updateBook(
         id,
         title,
         description,
@@ -255,18 +255,10 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
         authorIds,
       );
       
-      if (updatedBook != null) {
-        // Refresh to get updated pagination
-        await refresh();
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      } else {
-        _error = "Failed to update book";
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
+      await refresh();
+      _isLoading = false;
+      notifyListeners();
+      return true;
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
@@ -296,7 +288,7 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
     notifyListeners();
 
     try {
-      final newBook = await _bookService.addBook(
+      await _bookService.addBook(
         title,
         description,
         price,
@@ -313,18 +305,10 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
         authorIds,
       );
       
-      if (newBook != null) {
-        // Refresh to get updated pagination
-        await refresh();
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      } else {
-        _error = "Failed to add book";
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
+      await refresh();
+      _isLoading = false;
+      notifyListeners();
+      return true;
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
@@ -350,7 +334,7 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
       _error = ErrorFormatter.formatException(e.toString());
       _isLoading = false;
       notifyListeners();
-      rethrow;
+      return false;
     }
   }
 }

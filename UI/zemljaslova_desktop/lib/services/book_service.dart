@@ -56,9 +56,7 @@ class BookService {
       
       final queryString = queryParams.join('&');
       final response = await _apiService.get('Book?$queryString');
-      
-      debugPrint('API response: $response');
-      
+            
       if (response != null) {
         final booksList = response['resultList'] as List;
         final totalCount = response['count'] as int;
@@ -78,7 +76,6 @@ class BookService {
         'totalCount': 0,
       };
     } catch (e) {
-      debugPrint('Failed to fetch books: $e');
       return {
         'books': <Book>[],
         'totalCount': 0,
@@ -89,19 +86,13 @@ class BookService {
   Future<Book> getBookById(int id) async {
     try {
       final response = await _apiService.get('Book/$id?IsAuthorIncluded=true');
-      
-      if (response != null) {
-        return _mapBookFromBackend(response);
-      }
-      
-      throw Exception('Book not found');
+      return _mapBookFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to get book: $e');
-      throw Exception('Failed to get book: $e');
+      throw Exception('Knjiga nije pronađena');
     }
   }
 
-  Future<Book?> updateBook(
+  Future<Book> updateBook(
     int id,
     String title,
     String? description,
@@ -151,19 +142,13 @@ class BookService {
       };
       
       final response = await _apiService.put('Book/$id', data);
-      
-      if (response != null) {
-        return _mapBookFromBackend(response);
-      }
-      
-      return null;
+      return _mapBookFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to update book: $e');
-      return null;
+      throw Exception('Greška prilikom ažuriranja knjige');
     }
   }
 
-  Future<Book?> addBook(
+  Future<Book> addBook(
     String title,
     String? description,
     double? price,
@@ -211,15 +196,9 @@ class BookService {
       };
       
       final response = await _apiService.post('Book', data);
-      
-      if (response != null) {
-        return _mapBookFromBackend(response);
-      }
-      
-      return null;
+      return _mapBookFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to add book: $e');
-      return null;
+      throw Exception('Greška prilikom dodavanja knjige');
     }
   }
 
@@ -262,7 +241,7 @@ class BookService {
         orElse: () => BookPurpose.sell,
       );
     }
-    int? numberOfPages = bookData['numberOfPages'];
+    int numberOfPages = bookData['numberOfPages'] ?? 0;
     double? weight = bookData['weight']?.toDouble();
     String? dimensions = bookData['dimensions'];
     String? genre = bookData['genre'];
@@ -301,7 +280,7 @@ class BookService {
       edition: edition,
       publisher: publisher,
       bookPurpose: bookPurpose,
-      numberOfPages: numberOfPages ?? 0,
+      numberOfPages: numberOfPages,
       weight: weight,
       dimensions: dimensions,
       genre: genre,

@@ -190,7 +190,7 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
     notifyListeners();
 
     try {
-      final newAuthor = await _authorService.addAuthor(
+      await _authorService.addAuthor(
         firstName,
         lastName,
         dateOfBirth,
@@ -198,18 +198,11 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
         biography,
       );
       
-      if (newAuthor != null) {
-        // Refresh to get updated pagination
-        await refresh();
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      } else {
-        _error = "Failed to add author";
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
+      // Refresh to get updated pagination
+      await refresh();
+      _isLoading = false;
+      notifyListeners();
+      return true;
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
@@ -231,7 +224,7 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
     notifyListeners();
 
     try {
-      final updatedAuthor = await _authorService.updateAuthor(
+      await _authorService.updateAuthor(
         id,
         firstName,
         lastName,
@@ -240,20 +233,10 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
         biography,
       );
       
-      if (updatedAuthor != null) {
-        final index = _authors.indexWhere((author) => author.id == id);
-        if (index >= 0) {
-          _authors[index] = updatedAuthor;
-        }
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      } else {
-        _error = "Failed to update author";
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
+      await refresh();
+      _isLoading = false;
+      notifyListeners();
+      return true;
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
@@ -268,20 +251,12 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
     notifyListeners();
 
     try {
-      final success = await _authorService.deleteAuthor(id);
+      await _authorService.deleteAuthor(id);
       
-      if (success) {
-        // Refresh to get updated pagination
-        await refresh();
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      } else {
-        _error = "Failed to delete author";
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
+      await refresh();
+      _isLoading = false;
+      notifyListeners();
+      return true;
     } catch (e) {
       _error = e.toString();
       _isLoading = false;

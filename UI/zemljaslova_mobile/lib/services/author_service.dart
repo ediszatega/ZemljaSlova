@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../models/author.dart';
 import 'api_service.dart';
@@ -69,7 +68,6 @@ class AuthorService {
         'totalCount': 0,
       };
     } catch (e) {
-      debugPrint('Failed to fetch authors: $e');
       return {
         'authors': <Author>[],
         'totalCount': 0,
@@ -80,15 +78,9 @@ class AuthorService {
   Future<Author> getAuthorById(int id) async {
     try {
       final response = await _apiService.get('Author/$id');
-      
-      if (response != null) {
-        return _mapAuthorFromBackend(response);
-      }
-      
-      throw Exception('Author not found');
+      return _mapAuthorFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to get author: $e');
-      throw Exception('Failed to get author: $e');
+      throw Exception('Autor nije pronađen');
     }
   }
 

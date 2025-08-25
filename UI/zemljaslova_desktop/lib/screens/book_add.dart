@@ -44,9 +44,6 @@ class _BookAddScreenState extends State<BookAddScreen> {
   @override
   void initState() {
     super.initState();
-    // Set default values
-    _numberOfPagesController.text = '0';
-    _priceController.text = '0.0';
     
     // Prefill bookPurpose
     if (widget.bookPurpose != null) {
@@ -240,6 +237,10 @@ class _BookAddScreenState extends State<BookAddScreen> {
                                       }
                                       if (int.tryParse(value) == null) {
                                         return 'Broj stranica mora biti cijeli broj';
+                                      }
+                                      final pages = int.parse(value);
+                                      if (pages < 0) {
+                                        return 'Broj stranica ne može biti negativan';
                                       }
                                       return null;
                                     },

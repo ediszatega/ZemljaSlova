@@ -34,7 +34,7 @@ class BookClubProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      _setError('Greška pri učitavanju podataka o Klubu čitalaca: $e');
+      _setError('Greška pri učitavanju podataka o Klubu čitalaca');
     } finally {
       _setLoading(false);
     }
@@ -51,7 +51,7 @@ class BookClubProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      _setError('Greška pri učitavanju transakcija: $e');
+      _setError('Greška pri učitavanju transakcija');
     } finally {
       _setLoading(false);
     }
@@ -68,7 +68,7 @@ class BookClubProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      _setError('Greška pri učitavanju istorije: $e');
+      _setError('Greška pri učitavanju istorije');
     } finally {
       _setLoading(false);
     }

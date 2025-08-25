@@ -30,7 +30,6 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
   // Filters state
   BookFilters _filters = const BookFilters();
   
-  // Current book purpose - this is the key to reliable filtering
   BookPurpose? _currentBookPurpose;
 
   List<Book> get books => [..._books];
@@ -64,7 +63,6 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
   void initializeForBookPurpose(BookPurpose bookPurpose) {
     if (_currentBookPurpose != bookPurpose) {
       _currentBookPurpose = bookPurpose;
-      // Clear existing data when switching purposes
       _books.clear();
       _currentPage = 0;
       _hasMoreData = true;
