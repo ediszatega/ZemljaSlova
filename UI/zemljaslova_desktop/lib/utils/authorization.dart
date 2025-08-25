@@ -13,9 +13,9 @@ class Authorization {
     token = null;
   }
 
-  static bool get isEmployee => role == "employee" || role == "admin";
-  static bool get isMember => role == "member";
-  static bool get isAdmin => role == "admin";
+  static bool get isEmployee => role == "employee" || role == "admin" || role == "Employee" || role == "Admin";
+  static bool get isMember => role == "member" || role == "Member";
+  static bool get isAdmin => role == "admin" || role == "Admin";
   
   // Admin-only permissions
   static bool canDeleteBooks() => isAdmin;

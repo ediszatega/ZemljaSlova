@@ -119,15 +119,31 @@ class ApiService {
   dynamic _handleResponse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (response.body.isNotEmpty) {
-        try {
-          return json.decode(response.body);
-        } catch (e) {
-          throw Exception('Invalid JSON response from server');
-        }
+        return json.decode(response.body);
       }
       return null;
     } else {
-      throw Exception('API Error: [${response.statusCode}] ${response.reasonPhrase}');
+      String errorMessage = 'API Error: [${response.statusCode}] ${response.reasonPhrase}';
+      
+      if (response.body.isNotEmpty) {
+        final errorData = json.decode(response.body);
+        
+        // Extract userError from UserException response
+        if (errorData is Map<String, dynamic> && 
+            errorData.containsKey('errors') && 
+            errorData['errors'] is Map<String, dynamic>) {
+          final errors = errorData['errors'] as Map<String, dynamic>;
+          
+          if (errors.containsKey('userError')) {
+            final userErrors = errors['userError'] as List;
+            if (userErrors.isNotEmpty) {
+              errorMessage = userErrors.first.toString();
+            }
+          }
+        }
+      }
+      
+      throw Exception(errorMessage);
     }
   }
 

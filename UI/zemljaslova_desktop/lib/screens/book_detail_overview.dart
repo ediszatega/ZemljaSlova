@@ -5,6 +5,7 @@ import '../providers/book_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/permission_guard.dart';
+import '../utils/error_formatter.dart';
 import 'book_edit.dart';
 import 'book_inventory_screen.dart';
 import 'book_rental_screen.dart';
@@ -568,31 +569,24 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
   
   Future<void> _deleteBook() async {
     try {
-      final success = await Provider.of<BookProvider>(context, listen: false)
+      await Provider.of<BookProvider>(context, listen: false)
           .deleteBook(widget.book.id);
       
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Knjiga je uspješno obrisana'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        // Navigate back to books overview
-        Navigator.of(context).pop();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Greška pri brisanju knjige'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Knjiga je uspješno obrisana'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.of(context).pop();
     } catch (e) {
+      String errorMessage = ErrorFormatter.formatException(e.toString());
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Greška: ${e.toString()}'),
+          content: Text(errorMessage),
           backgroundColor: Colors.red,
+          duration: const Duration(seconds: 6),
         ),
       );
     }

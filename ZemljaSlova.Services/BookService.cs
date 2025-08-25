@@ -261,7 +261,7 @@ namespace ZemljaSlova.Services
             
             if (book == null || author == null)
             {
-                throw new ArgumentException("Book or Author not found");
+                throw new UserException("Knjiga ili autor nije pronađen");
             }
             
             // Check if relationship already exists
@@ -319,19 +319,19 @@ namespace ZemljaSlova.Services
             var hasOrderItems = Context.OrderItems.Any(oi => oi.BookId == entity.Id);
             if (hasOrderItems)
             {
-                throw new InvalidOperationException("Cannot delete book that has been ordered. Books with order history must be preserved for record keeping.");
+                throw new UserException("Nije moguće izbrisati knjigu koja ima ranije narudžbe.");
             }
 
             var hasReservations = Context.BookReservations.Any(br => br.BookId == entity.Id);
             if (hasReservations)
             {
-                throw new InvalidOperationException("Cannot delete book that has active reservations. Please cancel all reservations first.");
+                throw new UserException("Nije moguće izbrisati knjigu koja ima aktivne rezervacije.");
             }
 
             var hasTransactions = Context.BookTransactions.Any(bt => bt.BookId == entity.Id);
             if (hasTransactions)
             {
-                throw new InvalidOperationException("Cannot delete book that has transaction history. Books with transaction records must be preserved for auditing purposes.");
+                throw new UserException("Nije moguće izbrisati knjigu koja ima ranije transakcije.");
             }
 
             // Remove book-author relationships and favourites

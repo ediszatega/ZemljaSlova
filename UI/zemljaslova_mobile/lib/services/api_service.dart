@@ -38,7 +38,7 @@ class ApiService {
     if (response.statusCode == 401) {
       await _handleTokenRefresh();
       
-      final newHeaders = await this.headers;
+      final newHeaders = await headers;
       final retryResponse = await http.get(uri, headers: newHeaders);
       
       return _handleResponse(retryResponse);
@@ -85,7 +85,7 @@ class ApiService {
     if (response.statusCode == 401) {
       await _handleTokenRefresh();
       
-      final newHeaders = await this.headers;
+      final newHeaders = await headers;
       final retryResponse = await http.put(
         url,
         headers: newHeaders,
@@ -105,7 +105,7 @@ class ApiService {
     if (response.statusCode == 401) {
       await _handleTokenRefresh();
       
-      final newHeaders = await this.headers;
+      final newHeaders = await headers;
       final retryResponse = await http.delete(url, headers: newHeaders);
       
       return _handleResponse(retryResponse);

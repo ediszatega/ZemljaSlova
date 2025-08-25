@@ -188,8 +188,8 @@ class FilterConfigurations {
         type: FilterFieldType.dropdown,
         dropdownOptions: [
           FilterDropdownOption(value: '', label: 'Svi nivoi', data: null),
-          FilterDropdownOption(value: 'admin', label: 'Admin', data: 'admin'),
-          FilterDropdownOption(value: 'employee', label: 'Uposlenik', data: 'employee'),
+          FilterDropdownOption(value: 'Admin', label: 'Admin', data: 'Admin'),
+          FilterDropdownOption(value: 'Employee', label: 'Uposlenik', data: 'Employee'),
         ],
       ),
     ];

@@ -4,6 +4,7 @@ import '../models/book.dart';
 import '../models/book_filters.dart';
 import '../services/book_service.dart';
 import '../widgets/paginated_data_widget.dart';
+import '../utils/error_formatter.dart';
 
 class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
   final BookService _bookService;
@@ -338,25 +339,18 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
     notifyListeners();
 
     try {
-      final success = await _bookService.deleteBook(id);
+      await _bookService.deleteBook(id);
       
-      if (success) {
-        // Refresh to get updated pagination
-        await refresh();
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      } else {
-        _error = "Failed to delete book";
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
+      await refresh();
+      _isLoading = false;
+      _error = null;
+      notifyListeners();
+      return true;
     } catch (e) {
-      _error = e.toString();
+      _error = ErrorFormatter.formatException(e.toString());
       _isLoading = false;
       notifyListeners();
-      return false;
+      rethrow;
     }
   }
 }

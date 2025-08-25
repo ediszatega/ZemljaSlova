@@ -225,11 +225,10 @@ class BookService {
 
   Future<bool> deleteBook(int id) async {
     try {
-      final response = await _apiService.delete('Book/$id');
-      return response != null;
+      await _apiService.delete('Book/$id');
+      return true;
     } catch (e) {
-      debugPrint('Failed to delete book: $e');
-      return false;
+      rethrow;
     }
   }
 

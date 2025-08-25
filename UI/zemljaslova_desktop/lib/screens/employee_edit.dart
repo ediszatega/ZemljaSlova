@@ -316,13 +316,13 @@ class _EmployeeEditScreenState extends State<EmployeeEditScreen> {
       String accessLevel;
       switch (_selectedAccessLevel) {
         case 'Admin':
-          accessLevel = 'admin';
+          accessLevel = 'Admin';
           break;
         case 'Uposlenik':
-          accessLevel = 'employee';
+          accessLevel = 'Employee';
           break;
         default:
-          accessLevel = 'employee';
+          accessLevel = 'Employee';
       }
       
       String? backendGender;
