@@ -250,37 +250,30 @@ class AuthorDetailOverview extends StatelessWidget {
   }
   
   Future<void> _deleteAuthor(BuildContext context) async {
-    try {
-      final success = await Provider.of<AuthorProvider>(context, listen: false)
-          .deleteAuthor(author.id);
-      
-      if (success) {
+    final success = await Provider.of<AuthorProvider>(context, listen: false)
+        .deleteAuthor(author.id);
+    
+    if (success && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Autor je uspješno obrisan'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.of(context).pop();
+    } else {
+      if (context.mounted) {
+        final authorProvider = Provider.of<AuthorProvider>(context, listen: false);
+        String errorMessage = authorProvider.error ?? 'Greška prilikom brisanja autora';
+        
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Autor je uspješno obrisan'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        // Navigate back to authors overview
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/authors',
-          (route) => false,
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Greška pri brisanju autora'),
+          SnackBar(
+            content: Text(errorMessage),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 6),
           ),
         );
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Greška: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 }

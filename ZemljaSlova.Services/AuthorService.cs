@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MapsterMapper;
+using ZemljaSlova.Model;
 using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services.Database;
@@ -64,7 +65,7 @@ namespace ZemljaSlova.Services
             if (bookAuthors.Any())
             {
                 var bookCount = bookAuthors.Count;
-                throw new InvalidOperationException($"Cannot delete author who has {bookCount} book(s) associated. Please remove the author from all books first.");
+                throw new UserException($"Nije moguće izbrisati autora koji ima knjige povezane sa njim.");
             }
         }
     }

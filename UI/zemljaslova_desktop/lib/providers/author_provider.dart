@@ -4,6 +4,7 @@ import '../models/author.dart';
 import '../models/author_filters.dart';
 import '../services/author_service.dart';
 import '../widgets/paginated_data_widget.dart';
+import '../utils/error_formatter.dart';
 
 class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author> {
   final AuthorService _authorService;
@@ -255,10 +256,11 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
       
       await refresh();
       _isLoading = false;
+      _error = null;
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = ErrorFormatter.formatException(e.toString());
       _isLoading = false;
       notifyListeners();
       return false;

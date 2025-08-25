@@ -160,11 +160,10 @@ class AuthorService {
 
   Future<bool> deleteAuthor(int id) async {
     try {
-      final response = await _apiService.delete('Author/$id');
-      return response != null;
+      await _apiService.delete('Author/$id');
+      return true;
     } catch (e) {
-      debugPrint('Failed to delete author: $e');
-      return false;
+      rethrow;
     }
   }
 
