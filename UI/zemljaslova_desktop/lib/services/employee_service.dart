@@ -156,12 +156,10 @@ class EmployeeService {
   
   Future<bool> deleteEmployee(int id) async {
     try {
-      final response = await _apiService.delete('Employee/$id');
-      
-      return response != null;
+      await _apiService.delete('Employee/$id');
+      return true;
     } catch (e) {
-      debugPrint('Failed to delete employee: $e');
-      throw Exception('Failed to delete employee: $e');
+      rethrow;
     }
   }
   

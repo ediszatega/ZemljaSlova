@@ -181,6 +181,27 @@ namespace ZemljaSlova.Services
             return _mapper.Map<Model.Employee>(entity);
         }
         
+        public override void BeforeDelete(Database.Employee entity)
+        {
+            // Check if employee has book transactions
+            var hasBookTransactions = _context.BookTransactions
+                .Any(bt => bt.UserId == entity.UserId);
+            
+            if (hasBookTransactions)
+            {
+                throw new UserException("Nije moguće izbrisati uposlenika koji ima ranije transakcije knjiga.");
+            }
+
+            // Check if employee has ticket type transactions
+            var hasTicketTransactions = _context.TicketTypeTransactions
+                .Any(ttt => ttt.UserId == entity.UserId);
+            
+            if (hasTicketTransactions)
+            {
+                throw new UserException("Nije moguće izbrisati uposlenika koji ima ranije transakcije ulaznica.");
+            }
+        }
+
         public override async Task<Model.Employee> Delete(int id)
         {
             using (var transaction = _context.Database.BeginTransaction())
@@ -203,22 +224,9 @@ namespace ZemljaSlova.Services
                         return null;
                     }
 
-                    var employeeModel = _mapper.Map<Model.Employee>(employee);
+                    BeforeDelete(employee);
 
-                    // Remove all related entities
-                    
-                    // Remove user notifications
-                    _context.Notifications.RemoveRange(employee.User.Notifications);
-                    
-                    // Remove user book transactions and their related user book club transactions
-                    foreach (var bookTransaction in employee.User.BookTransactions)
-                    {
-                        _context.UserBookClubTransactions.RemoveRange(bookTransaction.UserBookClubTransactions);
-                    }
-                    _context.BookTransactions.RemoveRange(employee.User.BookTransactions);
-                    
-                    // Remove user ticket type transactions
-                    _context.TicketTypeTransactions.RemoveRange(employee.User.TicketTypeTransactions);
+                    var employeeModel = _mapper.Map<Model.Employee>(employee);
                     
                     // Remove the employee and user
                     _context.Employees.Remove(employee);
@@ -226,16 +234,12 @@ namespace ZemljaSlova.Services
                     
                     await _context.SaveChangesAsync();                
                     transaction.Commit();
-    
                     return employeeModel;
                 }
-                catch (Exception ex)
+                catch (UserException)
                 {
                     transaction.Rollback();
-                    // Log the specific error for debugging
-                    Console.WriteLine($"Error deleting employee {id}: {ex.Message}");
-                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                    throw new Exception($"Failed to delete employee: {ex.Message}", ex);
+                    throw;
                 }
             }
         }

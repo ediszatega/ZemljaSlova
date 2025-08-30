@@ -4,6 +4,7 @@ import '../models/employee.dart';
 import '../models/employee_filters.dart';
 import '../services/employee_service.dart';
 import '../widgets/paginated_data_widget.dart';
+import '../utils/error_formatter.dart';
 
 class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Employee> {
   final EmployeeService _employeeService;
@@ -272,22 +273,15 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
     notifyListeners();
 
     try {
-      final success = await _employeeService.deleteEmployee(id);
-
-      if (success) {
-        // Refresh to get updated pagination
-        await refresh();
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      }
-
-      _error = 'Failed to delete employee';
+      await _employeeService.deleteEmployee(id);
+      
+      await refresh();
       _isLoading = false;
+      _error = null;
       notifyListeners();
-      return false;
+      return true;
     } catch (e) {
-      _error = e.toString();
+      _error = ErrorFormatter.formatException(e.toString());
       _isLoading = false;
       notifyListeners();
       return false;

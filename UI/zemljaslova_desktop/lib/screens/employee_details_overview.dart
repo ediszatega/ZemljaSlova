@@ -57,11 +57,11 @@ class _EmployeeDetailsOverviewState extends State<EmployeeDetailsOverview> {
     );
     
     if (confirmed == true) {
-      try {
-        final success = await Provider.of<EmployeeProvider>(context, listen: false)
-            .deleteEmployee(_employee.id);
-        
-        if (success) {
+      final success = await Provider.of<EmployeeProvider>(context, listen: false)
+          .deleteEmployee(_employee.id);
+      
+      if (success) {
+        if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Uposlenik je uspješno izbrisan'),
@@ -73,21 +73,20 @@ class _EmployeeDetailsOverviewState extends State<EmployeeDetailsOverview> {
             '/employees',
             (route) => false,
           );
-        } else {
+        }
+      } else {
+        if (context.mounted) {
+          final employeeProvider = Provider.of<EmployeeProvider>(context, listen: false);
+          String errorMessage = employeeProvider.error ?? 'Greška prilikom brisanja uposlenika';
+          
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Greška prilikom brisanja uposlenika'),
+            SnackBar(
+              content: Text(errorMessage),
               backgroundColor: Colors.red,
+              duration: const Duration(seconds: 6),
             ),
           );
         }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Greška: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
       }
     }
   }
