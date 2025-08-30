@@ -159,7 +159,6 @@ class MemberService {
     try {
       await _apiService.delete('Member/$id');
     } catch (e) {
-      debugPrint('Failed to delete member: $e');
       rethrow;
     }
   }

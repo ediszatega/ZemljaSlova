@@ -230,7 +230,7 @@ class VoucherProvider with ChangeNotifier {
         return true;
       }
 
-      _error = 'Failed to delete voucher';
+      _error = 'Brisanje vouchera nije uspjelo.';
       _isLoading = false;
       notifyListeners();
       return false;

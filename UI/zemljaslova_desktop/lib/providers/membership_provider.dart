@@ -284,7 +284,7 @@ class MembershipProvider with ChangeNotifier {
         return true;
       }
 
-      _error = 'Failed to delete membership';
+      _error = 'Brisanje članarine nije uspjelo.';
       _isLoading = false;
       notifyListeners();
       return false;

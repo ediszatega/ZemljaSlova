@@ -189,7 +189,6 @@ class DiscountService {
       final response = await _apiService.delete('Discount/$id');
       return response != null;
     } catch (e) {
-      debugPrint('Failed to delete discount: $e');
       return false;
     }
   }

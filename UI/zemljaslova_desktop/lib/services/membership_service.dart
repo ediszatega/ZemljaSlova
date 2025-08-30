@@ -197,7 +197,6 @@ class MembershipService {
       final response = await _apiService.delete('Membership/$id');
       return response != null;
     } catch (e) {
-      debugPrint('Failed to delete membership: $e');
       return false;
     }
   }

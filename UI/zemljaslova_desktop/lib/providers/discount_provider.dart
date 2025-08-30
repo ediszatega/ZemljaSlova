@@ -279,7 +279,7 @@ class DiscountProvider with ChangeNotifier {
         return true;
       }
 
-      _error = 'Failed to delete discount';
+      _error = 'Brisanje popusta nije uspjelo.';
       _isLoading = false;
       notifyListeners();
       return false;

@@ -153,7 +153,6 @@ class VoucherService {
       final response = await _apiService.delete('Voucher/$id');
       return response != null;
     } catch (e) {
-      debugPrint('Failed to delete voucher: $e');
       return false;
     }
   }
