@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MapsterMapper;
+using ZemljaSlova.Model;
 using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services.Database;
@@ -151,6 +152,25 @@ namespace ZemljaSlova.Services
             return Context.Memberships.Any(m => m.MemberId == memberId && 
                                               m.StartDate <= now && 
                                               m.EndDate >= now);
+        }
+
+        public override void BeforeDelete(Database.Membership entity)
+        {
+            // Clean up related order items
+            var relatedOrderItems = Context.OrderItems
+                .Where(oi => oi.MembershipId == entity.Id)
+                .ToList();
+            
+            if (relatedOrderItems.Any())
+            {
+                Context.OrderItems.RemoveRange(relatedOrderItems);
+            }
+            
+            // Remove related notifications
+            if (entity.Notifications != null && entity.Notifications.Any())
+            {
+                Context.Notifications.RemoveRange(entity.Notifications);
+            }
         }
 
         // TODO: Implement event publishing when membership is created
