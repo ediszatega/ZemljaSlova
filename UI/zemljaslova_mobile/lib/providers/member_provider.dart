@@ -42,7 +42,7 @@ class MemberProvider with ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _setError('Failed to create member account');
+        _setError('Greška prilikom kreiranja člana.');
         return false;
       }
     } catch (e) {
@@ -64,7 +64,7 @@ class MemberProvider with ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _setError('Member not found');
+        _setError('Član nije pronađen.');
         return false;
       }
     } catch (e) {
@@ -86,7 +86,7 @@ class MemberProvider with ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _setError('Member not found');
+        _setError('Član nije pronađen.');
         return false;
       }
     } catch (e) {
@@ -122,7 +122,7 @@ class MemberProvider with ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _setError('Failed to update member');
+        _setError('Greška prilikom ažuriranja člana.');
         return false;
       }
     } catch (e) {

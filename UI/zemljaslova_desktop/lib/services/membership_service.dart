@@ -72,7 +72,6 @@ class MembershipService {
         'totalCount': 0,
       };
     } catch (e) {
-      debugPrint('Failed to fetch memberships: $e');
       return {
         'memberships': <Membership>[],
         'totalCount': 0,
@@ -83,48 +82,31 @@ class MembershipService {
   Future<Membership> getMembershipById(int id) async {
     try {
       final response = await _apiService.get('Membership/$id');
-      
-      if (response != null) {
-        return _mapMembershipFromBackend(response);
-      }
-      
-      throw Exception('Membership not found');
+      return _mapMembershipFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to get membership: $e');
-      throw Exception('Failed to get membership: $e');
+      throw Exception('Greška prilikom dobijanja članstva.');
     }
   }
 
   Future<Membership?> getActiveMembership(int memberId) async {
     try {
       final response = await _apiService.get('Membership/get_active_membership/$memberId');
-      
-      if (response != null) {
-        return _mapMembershipFromBackend(response);
-      }
-      
-      return null;
+      return _mapMembershipFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to get active membership: $e');
-      return null;
+      throw Exception('Greška prilikom dobijanja aktivnog članstva.');
     }
   }
 
   Future<List<Membership>> getMemberMemberships(int memberId) async {
     try {
       final response = await _apiService.get('Membership/get_member_memberships/$memberId');
-      
-      if (response != null) {
-        final membershipsList = response as List;
-        return membershipsList
-            .map((membershipJson) => _mapMembershipFromBackend(membershipJson))
-            .toList();
-      }
-      
-      return [];
+
+      final membershipsList = response as List;
+      return membershipsList
+          .map((membershipJson) => _mapMembershipFromBackend(membershipJson))
+          .toList();
     } catch (e) {
-      debugPrint('Failed to get member memberships: $e');
-      return [];
+      throw Exception('Greška prilikom dobijanja članstava člana.');
     }
   }
 
@@ -142,14 +124,9 @@ class MembershipService {
       
       final response = await _apiService.post('Membership/create_membership_by_admin', data);
       
-      if (response != null) {
-        return _mapMembershipFromBackend(response);
-      }
-      
-      return null;
+      return _mapMembershipFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to create admin membership: $e');
-      return null;
+      throw Exception('Greška prilikom kreiranja članstva.');
     }
   }
 
@@ -163,14 +140,9 @@ class MembershipService {
       
       final response = await _apiService.post('Membership/create_membership_by_member', data);
       
-      if (response != null) {
-        return _mapMembershipFromBackend(response);
-      }
-      
-      return null;
+      return _mapMembershipFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to create member membership: $e');
-      return null;
+      throw Exception('Greška prilikom kreiranja članstva.');
     }
   }
 
@@ -187,8 +159,7 @@ class MembershipService {
       final response = await _apiService.put('Membership/$id', data);
       return response != null;
     } catch (e) {
-      debugPrint('Failed to update membership: $e');
-      return false;
+      throw Exception('Greška prilikom ažuriranja članstva.');
     }
   }
 
@@ -197,7 +168,7 @@ class MembershipService {
       final response = await _apiService.delete('Membership/$id');
       return response != null;
     } catch (e) {
-      return false;
+      throw Exception('Greška prilikom brisanja članstva.');
     }
   }
 

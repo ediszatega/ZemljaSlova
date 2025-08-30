@@ -25,7 +25,7 @@ class CartProvider with ChangeNotifier {
         quantity: clampedQuantity,
       );
     } else {
-      // Add new item, but clamp quantity to maximum
+      // Add new item, but cap quantity at maximum
       final clampedQuantity = item.quantity > maxQuantityPerItem ? maxQuantityPerItem : item.quantity;
       _items.add(item.copyWith(quantity: clampedQuantity));
     }
@@ -44,7 +44,7 @@ class CartProvider with ChangeNotifier {
       return;
     }
     
-    // Clamp quantity to maximum allowed
+    // Cap quantity at maximum allowed
     final clampedQuantity = newQuantity > maxQuantityPerItem ? maxQuantityPerItem : newQuantity;
     
     final index = _items.indexWhere((item) => item.id == itemId);

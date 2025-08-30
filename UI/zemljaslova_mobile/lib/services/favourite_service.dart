@@ -37,49 +37,30 @@ class FavouriteService {
         'bookId': bookId,
       };
       
-      final response = await _apiService.post('Favourite', requestBody);
-      
-      if (response != null) {
-        debugPrint('Successfully added to favourites');
-        return true;
-      }
-      
-      return false;
+      await _apiService.post('Favourite', requestBody);
+      return true;
     } catch (e) {
       debugPrint('Failed to add to favourites: $e');
-      return false;
+      rethrow;
     }
   }
   
   Future<bool> removeFromFavourites(int memberId, int bookId) async {
     try {
-      final response = await _apiService.delete('Favourite/unfavourite?memberId=$memberId&bookId=$bookId');
-      
-      if (response != null) {
-        debugPrint('Successfully removed from favourites');
-        return true;
-      }
-      
-      return false;
+      await _apiService.delete('Favourite/unfavourite?memberId=$memberId&bookId=$bookId');
+      return true;
     } catch (e) {
-      debugPrint('Failed to remove from favourites: $e');
-      return false;
+      rethrow;
     }
   }
   
   Future<bool> isFavourite(int memberId, int bookId) async {
     try {
       final response = await _apiService.get('Favourite?MemberId=$memberId&BookId=$bookId');
-      
-      if (response != null) {
-        final favouritesList = response['resultList'] as List;
-        return favouritesList.isNotEmpty;
-      }
-      
-      return false;
+      final favouritesList = response['resultList'] as List;
+      return favouritesList.isNotEmpty;
     } catch (e) {
-      debugPrint('Failed to check favourite status: $e');
-      return false;
+      rethrow;
     }
   }
 

@@ -71,7 +71,6 @@ class EventService {
         'totalCount': 0,
       };
     } catch (e) {
-      debugPrint('Failed to fetch events: $e');
       return {
         'events': <Event>[],
         'totalCount': 0,
@@ -81,20 +80,13 @@ class EventService {
   
   Future<Event> getEventById(int id) async {
     try {
-      final response = await _apiService.get('Event/GetEventWithTicketTypes/${id}');
-      
-      if (response != null) {
+      final response = await _apiService.get('Event/GetEventWithTicketTypes/${id}');      
         return _mapEventFromBackend(response);
-      }
-      
-      throw Exception('Event not found');
     } catch (e) {
-      debugPrint('Failed to get event: $e');
-      throw Exception('Failed to get event: $e');
+      throw Exception('Događaj nije pronađen.');
     }
   }
 
-  // Add a new event to the system
   Future<Event?> addEvent({
     required String title,
     required String description,
@@ -120,15 +112,9 @@ class EventService {
       };
       
       final response = await _apiService.post('Event', data);
-      
-      if (response != null) {
         return _mapEventFromBackend(response);
-      }
-      
-      return null;
     } catch (e) {
-      debugPrint('Failed to add event: $e');
-      return null;
+      throw Exception('Greška prilikom dodavanja događaja.');
     }
   }
   
@@ -160,14 +146,9 @@ class EventService {
       
       final response = await _apiService.put('Event/$id', data);
       
-      if (response != null) {
-        return _mapEventFromBackend(response);
-      }
-      
-      return null;
+      return _mapEventFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to update event: $e');
-      return null;
+      throw Exception('Greška prilikom ažuriranja događaja.');
     }
   }
   
@@ -192,7 +173,6 @@ class EventService {
       
       final response = await _apiService.post('TicketType', data);
 
-      if (response != null && response is Map) {
         final ticketType = TicketType(
           id: response['id'],
           name: response['name'],
@@ -203,11 +183,8 @@ class EventService {
           currentQuantity: response['currentQuantity'],
         );
         return ticketType;
-      }
-      return null;  
     } catch (e) {
-      debugPrint('Error creating ticket type: $e');
-      return null;
+      throw Exception('Greška prilikom kreiranja karte.');
     }
   }
   
@@ -227,7 +204,6 @@ class EventService {
       
       final response = await _apiService.put('TicketType/$id', data);
 
-      if (response != null && response is Map) {
         final ticketType = TicketType(
           id: response['id'],
           name: response['name'],
@@ -238,11 +214,8 @@ class EventService {
           currentQuantity: response['currentQuantity'],
         );
         return ticketType;
-      }
-      return null;  
     } catch (e) {
-      debugPrint('Error updating ticket type: $e');
-      return null;
+      throw Exception('Greška prilikom ažuriranja karte.');
     }
   }
   
@@ -284,7 +257,7 @@ class EventService {
       try {
         final response = await _apiService.post('TicketType', ticketData);
         
-        if (response != null && response is Map && response.containsKey('id')) {
+        if (response.containsKey('id')) {
           final ticketType = TicketType(
             id: response['id'],
             name: response['name'],
@@ -296,11 +269,9 @@ class EventService {
           );
           
           createdTypes.add(ticketType);
-        } else {
-          debugPrint('Failed to create ticket type: ${data['name']}');
         }
       } catch (e) {
-        debugPrint('Error creating ticket type: $e');
+        throw Exception('Greška prilikom kreiranja karte.');
       }
     }
     

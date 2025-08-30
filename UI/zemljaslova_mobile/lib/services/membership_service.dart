@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../models/membership.dart';
 import '../models/member.dart';
@@ -13,14 +12,9 @@ class MembershipService {
     try {
       final response = await _apiService.get('Membership/get_active_membership/$memberId');
       
-      if (response != null) {
-        return _mapMembershipFromBackend(response);
-      }
-      
-      return null;
+      return _mapMembershipFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to get active membership: $e');
-      return null;
+      throw Exception('Greška prilikom dobijanja aktivnog članstva.');
     }
   }
 
@@ -28,17 +22,12 @@ class MembershipService {
     try {
       final response = await _apiService.get('Membership/get_member_memberships/$memberId');
       
-      if (response != null) {
-        final List<dynamic> membershipsList = response;
-        return membershipsList
-            .map((membershipJson) => _mapMembershipFromBackend(membershipJson))
-            .toList();
-      }
-      
-      return [];
+      final List<dynamic> membershipsList = response;
+      return membershipsList
+          .map((membershipJson) => _mapMembershipFromBackend(membershipJson))
+          .toList();
     } catch (e) {
-      debugPrint('Failed to get member memberships: $e');
-      return [];
+      throw Exception('Greška prilikom dobijanja članstava člana.');
     }
   }
 
@@ -52,14 +41,9 @@ class MembershipService {
       
       final response = await _apiService.post('Membership/create_membership_by_member', data);
       
-      if (response != null) {
-        return _mapMembershipFromBackend(response);
-      }
-      
-      return null;
+      return _mapMembershipFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to create membership: $e');
-      throw Exception('Failed to create membership: $e');
+      throw Exception('Greška prilikom kreiranja članstva.');
     }
   }
 

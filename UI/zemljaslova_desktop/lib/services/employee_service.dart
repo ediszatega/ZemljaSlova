@@ -70,7 +70,6 @@ class EmployeeService {
         'totalCount': 0,
       };
     } catch (e) {
-      debugPrint('Failed to fetch employees: $e');
       return {
         'employees': <Employee>[],
         'totalCount': 0,
@@ -82,14 +81,9 @@ class EmployeeService {
     try {
       final response = await _apiService.get('Employee/$id');
       
-      if (response != null) {
-        return _mapEmployeeFromBackend(response);
-      }
-      
-      throw Exception('Employee not found');
+      return _mapEmployeeFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to get employee: $e');
-      throw Exception('Failed to get employee: $e');
+      throw Exception('Greška prilikom dobijanja podataka o zaposlenom.');
     }
   }
   
@@ -113,14 +107,9 @@ class EmployeeService {
       
       final response = await _apiService.post('Employee/CreateEmployee', data);
       
-      if (response != null) {
-        return _mapEmployeeFromBackend(response);
-      }
-      
-      return null;
+      return _mapEmployeeFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to create employee: $e');
-      throw Exception('Failed to create employee: $e');
+      throw Exception('Greška prilikom kreiranja zaposlenog.');
     }
   }
   
@@ -143,14 +132,9 @@ class EmployeeService {
       
       final response = await _apiService.put('Employee/UpdateEmployee/$id', data);
       
-      if (response != null) {
-        return _mapEmployeeFromBackend(response);
-      }
-      
-      return null;
+      return _mapEmployeeFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to update employee: $e');
-      throw Exception('Failed to update employee: $e');
+      throw Exception('Greška prilikom ažuriranja zaposlenog.');
     }
   }
   
@@ -191,7 +175,6 @@ class EmployeeService {
       lastName = userData['lastName'] ?? '';
       email = userData['email'] ?? '';
       gender = userData['gender'];
-      // Assuming user is active unless specifically marked inactive
       isActive = userData['isActive'] ?? true;
     }
 

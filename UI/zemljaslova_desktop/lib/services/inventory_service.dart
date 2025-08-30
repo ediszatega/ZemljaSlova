@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+
 import '../services/api_service.dart';
 import '../utils/authorization.dart';
 import '../widgets/inventory_screen.dart';
@@ -24,7 +24,6 @@ class InventoryService<T extends InventoryTransaction> {
       
       return 0;
     } catch (e) {
-      debugPrint('Failed to get current quantity: $e');
       return 0;
     }
   }
@@ -39,7 +38,6 @@ class InventoryService<T extends InventoryTransaction> {
       
       return 0;
     } catch (e) {
-      debugPrint('Failed to get physical stock: $e');
       return 0;
     }
   }
@@ -54,7 +52,6 @@ class InventoryService<T extends InventoryTransaction> {
       
       return 0;
     } catch (e) {
-      debugPrint('Failed to get currently rented quantity: $e');
       return 0;
     }
   }
@@ -69,7 +66,6 @@ class InventoryService<T extends InventoryTransaction> {
       
       return false;
     } catch (e) {
-      debugPrint('Failed to check availability: $e');
       return false;
     }
   }
@@ -84,7 +80,6 @@ class InventoryService<T extends InventoryTransaction> {
       
       return false;
     } catch (e) {
-      debugPrint('Failed to check rental availability: $e');
       return false;
     }
   }
@@ -101,7 +96,6 @@ class InventoryService<T extends InventoryTransaction> {
       }
       return null;
     } catch (e) {
-      debugPrint('Failed to reserve book: $e');
       return null;
     }
   }
@@ -114,7 +108,6 @@ class InventoryService<T extends InventoryTransaction> {
       }
       return null;
     } catch (e) {
-      debugPrint('Failed to get reservation position: $e');
       return null;
     }
   }
@@ -125,7 +118,6 @@ class InventoryService<T extends InventoryTransaction> {
     String? data,
   }) async {
     if (Authorization.userId == null) {
-      debugPrint('User not logged in. Cannot add stock.');
       return false;
     }
     
@@ -140,7 +132,6 @@ class InventoryService<T extends InventoryTransaction> {
       
       return response != null && response is bool && response;
     } catch (e) {
-      debugPrint('Failed to add stock: $e');
       return false;
     }
   }
@@ -151,7 +142,6 @@ class InventoryService<T extends InventoryTransaction> {
     String? data,
   }) async {
     if (Authorization.userId == null) {
-      debugPrint('User not logged in. Cannot sell items.');
       return false;
     }
     
@@ -166,7 +156,6 @@ class InventoryService<T extends InventoryTransaction> {
       
       return response != null && response is bool && response;
     } catch (e) {
-      debugPrint('Failed to sell items: $e');
       return false;
     }
   }
@@ -177,7 +166,6 @@ class InventoryService<T extends InventoryTransaction> {
     String? data,
   }) async {
     if (Authorization.userId == null) {
-      debugPrint('User not logged in. Cannot remove items.');
       return false;
     }
     
@@ -192,7 +180,6 @@ class InventoryService<T extends InventoryTransaction> {
       
       return response != null && response is bool && response;
     } catch (e) {
-      debugPrint('Failed to remove items: $e');
       return false;
     }
   }
@@ -203,7 +190,6 @@ class InventoryService<T extends InventoryTransaction> {
     String? data,
   }) async {
     if (Authorization.userId == null) {
-      debugPrint('User not logged in. Cannot rent items.');
       return false;
     }
     
@@ -215,15 +201,11 @@ class InventoryService<T extends InventoryTransaction> {
       };
       
       final endpoint = '$_baseEndpoint/$id/rent';
-      debugPrint('Calling rental endpoint: $endpoint');
-      debugPrint('Request data: $requestData');
       
       final response = await _apiService.post(endpoint, requestData);
       
-      debugPrint('Rental response: $response');
       return response != null && response is bool && response;
     } catch (e) {
-      debugPrint('Failed to rent items: $e');
       return false;
     }
   }
@@ -234,7 +216,6 @@ class InventoryService<T extends InventoryTransaction> {
     String? data,
   }) async {
     if (Authorization.userId == null) {
-      debugPrint('User not logged in. Cannot return items.');
       return false;
     }
     
@@ -249,7 +230,6 @@ class InventoryService<T extends InventoryTransaction> {
       
       return response != null && response is bool && response;
     } catch (e) {
-      debugPrint('Failed to return items: $e');
       return false;
     }
   }
@@ -264,7 +244,6 @@ class InventoryService<T extends InventoryTransaction> {
       
       return [];
     } catch (e) {
-      debugPrint('Failed to get transactions: $e');
       return [];
     }
   }
@@ -279,7 +258,6 @@ class InventoryService<T extends InventoryTransaction> {
       
       return [];
     } catch (e) {
-      debugPrint('Failed to get active rentals: $e');
       return [];
     }
   }

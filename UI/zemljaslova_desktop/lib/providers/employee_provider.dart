@@ -210,7 +210,7 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
         return true;
       }
 
-      _error = 'Failed to add employee';
+      _error = 'Greška prilikom dodavanja zaposlenog.';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -255,7 +255,7 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
         return updatedEmployee;
       }
 
-      _error = 'Failed to update employee';
+      _error = 'Greška prilikom ažuriranja zaposlenog.';
       _isLoading = false;
       notifyListeners();
       return null;

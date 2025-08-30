@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import '../models/order.dart';
 import '../models/book.dart';
 import '../models/author.dart';
@@ -102,9 +101,9 @@ class TransactionService {
         };
       }
       
-      throw Exception('Failed to load transactions');
+      throw Exception('Greška prilikom učitavanja transakcija.');
     } catch (e) {
-      throw Exception('Failed to get member transactions: $e');
+      throw Exception('Greška prilikom dobijanja transakcija.');
     }
   }
 
@@ -117,7 +116,7 @@ class TransactionService {
       }
       return [];
     } catch (e) {
-      throw Exception('Failed to get order items: $e');
+      throw Exception('Greška prilikom dobijanja stavki narudžbe.');
     }
   }
 
@@ -146,7 +145,7 @@ class TransactionService {
       
       return [];
     } catch (e) {
-      throw Exception('Failed to get member rental transactions: $e');
+      throw Exception('Greška prilikom dobijanja iznajmljivanja člana.');
     }
   }
 
@@ -256,26 +255,6 @@ class TransactionService {
       description: ticketTypeData['description'] ?? '',
       initialQuantity: ticketTypeData['initialQuantity'],
       currentQuantity: ticketTypeData['currentQuantity'],
-    );
-  }
-
-  Event _mapEventFromBackend(dynamic eventData) {
-    return Event(
-      id: eventData['id'],
-      title: eventData['title'] ?? '',
-      description: eventData['description'] ?? '',
-      location: eventData['location'],
-      startAt: eventData['startAt'] != null 
-          ? DateTime.parse(eventData['startAt']) 
-          : DateTime.now(),
-      endAt: eventData['endAt'] != null 
-          ? DateTime.parse(eventData['endAt']) 
-          : DateTime.now(),
-      organizer: eventData['organizer'],
-      lecturers: eventData['lecturers'],
-      coverImageUrl: eventData['coverImageUrl'],
-      maxNumberOfPeople: eventData['maxNumberOfPeople'],
-      ticketTypes: eventData['ticketTypes'] != null ? (eventData['ticketTypes'] as List).map((t) => _mapTicketTypeFromBackend(t)).toList() : null,
     );
   }
 

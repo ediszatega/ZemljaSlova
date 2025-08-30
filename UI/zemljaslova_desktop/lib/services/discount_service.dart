@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../models/discount.dart';
 import 'api_service.dart';
@@ -68,7 +67,6 @@ class DiscountService {
         'totalCount': 0,
       };
     } catch (e) {
-      debugPrint('Failed to fetch discounts: $e');
       return {
         'discounts': <Discount>[],
         'totalCount': 0,
@@ -80,14 +78,9 @@ class DiscountService {
     try {
       final response = await _apiService.get('Discount/$id');
       
-      if (response != null) {
-        return _mapDiscountFromBackend(response);
-      }
-      
-      throw Exception('Discount not found');
+      return _mapDiscountFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to get discount: $e');
-      throw Exception('Failed to get discount: $e');
+      throw Exception('Discount not found');
     }
   }
 
@@ -95,14 +88,9 @@ class DiscountService {
     try {
       final response = await _apiService.get('Discount/get_discount_by_code/$code');
       
-      if (response != null) {
-        return _mapDiscountFromBackend(response);
-      }
-      
-      return null;
+      return _mapDiscountFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to get discount by code: $e');
-      return null;
+      throw Exception('Greška prilikom dobijanja discounta po kodu.');
     }
   }
 
@@ -132,14 +120,9 @@ class DiscountService {
       
       final response = await _apiService.post('Discount', data);
       
-      if (response != null) {
-        return _mapDiscountFromBackend(response);
-      }
-      
-      return null;
+      return _mapDiscountFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to create discount: $e');
-      return null;
+      throw Exception('Greška prilikom kreiranja discounta.');
     }
   }
 
@@ -173,21 +156,16 @@ class DiscountService {
     
       final response = await _apiService.put('Discount/$id', data);
       
-      if (response != null) {
-        return _mapDiscountFromBackend(response);
-      }
-      
-      return null;
+      return _mapDiscountFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to update discount: $e');
-      return null;
+      throw Exception('Greška prilikom ažuriranja discounta.');
     }
   }
 
   Future<bool> deleteDiscount(int id) async {
     try {
       final response = await _apiService.delete('Discount/$id');
-      return response != null;
+      return response;
     } catch (e) {
       return false;
     }
@@ -198,7 +176,7 @@ class DiscountService {
       final response = await _apiService.post('Discount/cleanup_expired_discounts', {});
       
       if (response != null && response is String) {
-        // Extract number from response like "Successfully removed expired discounts from 5 books."
+        // Extract number from response like to show number of removed discounts
         final match = RegExp(r'(\d+)').firstMatch(response);
         if (match != null) {
           return int.parse(match.group(1)!);
@@ -207,7 +185,6 @@ class DiscountService {
       
       return 0;
     } catch (e) {
-      debugPrint('Failed to cleanup expired discounts: $e');
       return 0;
     }
   }
@@ -216,17 +193,12 @@ class DiscountService {
     try {
       final response = await _apiService.get('Discount/get_expired_discounts');
       
-      if (response != null) {
-        final discountsList = response as List;
-        return discountsList
-            .map((discountJson) => _mapDiscountFromBackend(discountJson))
-            .toList();
-      }
-      
-      return [];
+      final discountsList = response as List;
+      return discountsList
+          .map((discountJson) => _mapDiscountFromBackend(discountJson))
+          .toList();      
     } catch (e) {
-      debugPrint('Failed to get expired discounts: $e');
-      return [];
+      throw Exception('Greška prilikom dobijanja isteklih discounta.');
     }
   }
 
@@ -234,15 +206,10 @@ class DiscountService {
     try {
       final response = await _apiService.get('Discount/get_books_with_discount/$discountId');
       
-      if (response != null) {
-        final booksList = response as List;
-        return booksList.cast<Map<String, dynamic>>();
-      }
-      
-      return [];
+      final booksList = response as List;
+      return booksList.cast<Map<String, dynamic>>();
     } catch (e) {
-      debugPrint('Failed to get books with discount: $e');
-      return [];
+      throw Exception('Greška prilikom dobijanja knjiga s discountom.');
     }
   }
 

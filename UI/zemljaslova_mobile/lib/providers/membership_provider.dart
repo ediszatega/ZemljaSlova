@@ -73,7 +73,7 @@ class MembershipProvider with ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _setError('Failed to create membership');
+        _setError('Greška prilikom kreiranja članstva.');
         return false;
       }
     } catch (e) {

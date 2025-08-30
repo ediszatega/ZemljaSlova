@@ -204,7 +204,6 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
     }
         
     try {
-      // Create the event
       var newEvent = await _eventService.addEvent(
         title: title,
         description: description,
@@ -253,7 +252,6 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
         notifyListeners();
         return refreshedEvent;
       } catch (e) {
-        debugPrint('Error refreshing event: $e');
         // Refresh to get updated pagination
         await refresh();
         _isLoading = false;
@@ -368,7 +366,6 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
         notifyListeners();
         return refreshedEvent;
       } catch (e) {
-        debugPrint('Error refreshing event: $e');
         _isLoading = false;
         notifyListeners();
         return updatedEvent;

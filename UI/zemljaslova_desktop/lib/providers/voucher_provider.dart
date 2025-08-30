@@ -203,7 +203,7 @@ class VoucherProvider with ChangeNotifier {
         return true;
       }
 
-      _error = 'Failed to create admin voucher';
+      _error = 'Greška prilikom kreiranja vouchera.';
       _isLoading = false;
       notifyListeners();
       return false;

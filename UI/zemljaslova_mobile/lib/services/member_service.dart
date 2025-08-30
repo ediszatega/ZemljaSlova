@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../models/member.dart';
 import 'api_service.dart';
@@ -29,14 +28,9 @@ class MemberService {
       
       final response = await _apiService.post('Member/CreateMember', data);
       
-      if (response != null) {
-        return _mapMemberFromBackend(response);
-      }
-      
-      return null;
+      return _mapMemberFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to create member: $e');
-      throw Exception('Failed to create member: $e');
+      throw Exception('Greška prilikom kreiranja člana.');
     }
   }
 
@@ -44,14 +38,9 @@ class MemberService {
     try {
       final response = await _apiService.get('Member/$id');
       
-      if (response != null) {
-        return _mapMemberFromBackend(response);
-      }
-      
-      return null;
+      return _mapMemberFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to get member: $e');
-      throw Exception('Failed to get member: $e');
+      throw Exception('Član nije pronađen.');
     }
   }
 
@@ -59,14 +48,9 @@ class MemberService {
     try {
       final response = await _apiService.get('Member/GetMemberByUserId/$userId');
       
-      if (response != null) {
-        return _mapMemberFromBackend(response);
-      }
-      
-      return null;
+      return _mapMemberFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to get member by user ID: $e');
-      throw Exception('Failed to get member by user ID: $e');
+      throw Exception('Član nije pronađen.');
     }
   }
 
@@ -89,14 +73,9 @@ class MemberService {
       
       final response = await _apiService.put('Member/UpdateMember/$id', data);
       
-      if (response != null) {
-        return _mapMemberFromBackend(response);
-      }
-      
-      return null;
+      return _mapMemberFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to update member: $e');
-      throw Exception('Failed to update member: $e');
+      throw Exception('Greška prilikom ažuriranja člana.');
     }
   }
 
@@ -110,7 +89,7 @@ class MemberService {
       try {
         dateOfBirth = DateTime.parse(memberData['dateOfBirth']);
       } catch (e) {
-        debugPrint('Error parsing dateOfBirth: $e');
+        throw Exception('Greška prilikom parsiranja datuma rođenja.');
       }
     }
     
@@ -119,7 +98,7 @@ class MemberService {
       try {
         joinedAt = DateTime.parse(memberData['joinedAt']);
       } catch (e) {
-        debugPrint('Error parsing joinedAt: $e');
+        throw Exception('Greška prilikom parsiranja datuma prijave.');
       }
     }
     
@@ -149,7 +128,7 @@ class MemberService {
       email: email,
       gender: gender,
       isActive: isActive,
-      profileImageUrl: null, // Not included in backend response
+      profileImageUrl: null,
     );
   }
 } 

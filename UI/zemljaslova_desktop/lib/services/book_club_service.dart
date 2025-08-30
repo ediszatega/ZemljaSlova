@@ -14,7 +14,6 @@ class BookClubService {
         return points;
       }
       return await _calculatePointsFromTransactions(memberId);
-      
     } catch (e) {
       try {
         return await _calculatePointsFromTransactions(memberId);

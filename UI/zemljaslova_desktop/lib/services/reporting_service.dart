@@ -24,13 +24,9 @@ class ReportingService {
         'Reporting/books-sold?startDate=$startDateStr&endDate=$endDateStr'
       );
       
-      if (response != null) {
-        return BooksSoldReport.fromJson(response);
-      }
-      
-      return null;
+      return BooksSoldReport.fromJson(response);
     } catch (e) {
-      throw Exception('Error getting books sold report: $e');
+      throw Exception('Greška prilikom dobijanja izvještaja o prodaji knjiga.');
     }
   }
   
@@ -43,13 +39,9 @@ class ReportingService {
         'Reporting/books-sold/month/$year/$month'
       );
       
-      if (response != null) {
-        return BooksSoldReport.fromJson(response);
-      }
-      
-      return null;
+      return BooksSoldReport.fromJson(response);
     } catch (e) {
-      throw Exception('Error getting books sold report by month: $e');
+      throw Exception('Greška prilikom dobijanja izvještaja o prodaji knjiga po mjesecu.');
     }
   }
   
@@ -62,13 +54,9 @@ class ReportingService {
         'Reporting/books-sold/quarter/$year/$quarter'
       );
       
-      if (response != null) {
-        return BooksSoldReport.fromJson(response);
-      }
-      
-      return null;
+      return BooksSoldReport.fromJson(response);
     } catch (e) {
-      throw Exception('Error getting books sold report by quarter: $e');
+      throw Exception('Greška prilikom dobijanja izvještaja o prodaji knjiga po kvartalu.');
     }
   }
   
@@ -80,13 +68,9 @@ class ReportingService {
         'Reporting/books-sold/year/$year'
       );
       
-      if (response != null) {
-        return BooksSoldReport.fromJson(response);
-      }
-      
-      return null;
+      return BooksSoldReport.fromJson(response);
     } catch (e) {
-      throw Exception('Error getting books sold report by year: $e');
+      throw Exception('Greška prilikom dobijanja izvještaja o prodaji knjiga po godini.');
     }
   }
   
@@ -110,7 +94,7 @@ class ReportingService {
         }
       }
     } catch (e) {
-      throw Exception('Error downloading PDF report: $e');
+      throw Exception('Greška prilikom preuzimanja PDF izvještaja o prodaji knjiga.');
     }
   }
   
@@ -131,7 +115,7 @@ class ReportingService {
         }
       }
     } catch (e) {
-      throw Exception('Error downloading PDF report by month: $e');
+      throw Exception('Greška prilikom preuzimanja PDF izvještaja o prodaji knjiga po mjesecu.');
     }
   }
   
@@ -152,7 +136,7 @@ class ReportingService {
         }
       }
     } catch (e) {
-      throw Exception('Error downloading PDF report by quarter: $e');
+      throw Exception('Greška prilikom preuzimanja PDF izvještaja o prodaji knjiga po kvartalu.');
     }
   }
   
@@ -172,7 +156,7 @@ class ReportingService {
         }
       }
     } catch (e) {
-      throw Exception('Error downloading PDF report by year: $e');
+      throw Exception('Greška prilikom preuzimanja PDF izvještaja o prodaji knjiga po godini.');
     }
   }
   
@@ -187,7 +171,7 @@ class ReportingService {
       }
       return null;
     } catch (e) {
-      throw Exception('Error downloading PDF from URL: $e');
+      throw Exception('Greška prilikom preuzimanja PDF izvještaja.');
     }
   }
 
@@ -204,13 +188,9 @@ class ReportingService {
         'Reporting/books-rented?startDate=$startDateStr&endDate=$endDateStr'
       );
       
-      if (response != null) {
-        return BooksRentedReport.fromJson(response);
-      }
-      
-      return null;
+      return BooksRentedReport.fromJson(response);
     } catch (e) {
-      throw Exception('Error getting books rented report: $e');
+      throw Exception('Greška prilikom dobijanja izvještaja o iznajmljivanju knjiga.');
     }
   }
 
@@ -223,13 +203,9 @@ class ReportingService {
         'Reporting/books-rented/month/$year/$month'
       );
       
-      if (response != null) {
-        return BooksRentedReport.fromJson(response);
-      }
-      
-      return null;
+      return BooksRentedReport.fromJson(response);
     } catch (e) {
-      throw Exception('Error getting books rented report by month: $e');
+      throw Exception('Greška prilikom dobijanja izvještaja o iznajmljivanju knjiga po mjesecu.');
     }
   }
 
@@ -242,13 +218,9 @@ class ReportingService {
         'Reporting/books-rented/quarter/$year/$quarter'
       );
       
-      if (response != null) {
-        return BooksRentedReport.fromJson(response);
-      }
-      
-      return null;
+      return BooksRentedReport.fromJson(response);
     } catch (e) {
-      throw Exception('Error getting books rented report by quarter: $e');
+      throw Exception('Greška prilikom dobijanja izvještaja o iznajmljivanju knjiga po kvartalu.');
     }
   }
 
@@ -260,13 +232,9 @@ class ReportingService {
         'Reporting/books-rented/year/$year'
       );
       
-      if (response != null) {
-        return BooksRentedReport.fromJson(response);
-      }
-      
-      return null;
+      return BooksRentedReport.fromJson(response);
     } catch (e) {
-      throw Exception('Error getting books rented report by year: $e');
+      throw Exception('Greška prilikom dobijanja izvještaja o iznajmljivanju knjiga po godini.');
     }
   }
 
@@ -290,7 +258,7 @@ class ReportingService {
         }
       }
     } catch (e) {
-      throw Exception('Error downloading PDF rental report: $e');
+      throw Exception('Greška prilikom preuzimanja PDF izvještaja o iznajmljivanju knjiga.');
     }
   }
 
@@ -311,7 +279,7 @@ class ReportingService {
         }
       }
     } catch (e) {
-      throw Exception('Error downloading PDF rental report by month: $e');
+      throw Exception('Greška prilikom preuzimanja PDF izvještaja o iznajmljivanju knjiga po mjesecu.');
     }
   }
 
@@ -332,7 +300,7 @@ class ReportingService {
         }
       }
     } catch (e) {
-      throw Exception('Error downloading PDF rental report by quarter: $e');
+      throw Exception('Greška prilikom preuzimanja PDF izvještaja o iznajmljivanju knjiga po kvartalu.');
     }
   }
 
@@ -352,7 +320,7 @@ class ReportingService {
         }
       }
     } catch (e) {
-      throw Exception('Error downloading PDF rental report by year: $e');
+      throw Exception('Greška prilikom preuzimanja PDF izvještaja o iznajmljivanju knjiga po godini.');
     }
   }
 
@@ -369,13 +337,9 @@ class ReportingService {
         'Reporting/members?startDate=$startDateStr&endDate=$endDateStr'
       );
       
-      if (response != null) {
-        return MembersReport.fromJson(response);
-      }
-      
-      return null;
+      return MembersReport.fromJson(response);
     } catch (e) {
-      throw Exception('Error getting members report: $e');
+      throw Exception('Greška prilikom dobijanja izvještaja o članovima.');
     }
   }
 
@@ -388,13 +352,10 @@ class ReportingService {
         'Reporting/members/month/$year/$month'
       );
       
-      if (response != null) {
-        return MembersReport.fromJson(response);
-      }
+      return MembersReport.fromJson(response);
       
-      return null;
     } catch (e) {
-      throw Exception('Error getting members report by month: $e');
+      throw Exception('Greška prilikom dobijanja izvještaja o članovima po mjesecu.');
     }
   }
 
@@ -407,13 +368,10 @@ class ReportingService {
         'Reporting/members/quarter/$year/$quarter'
       );
       
-      if (response != null) {
-        return MembersReport.fromJson(response);
-      }
+      return MembersReport.fromJson(response);
       
-      return null;
     } catch (e) {
-      throw Exception('Error getting members report by quarter: $e');
+      throw Exception('Greška prilikom dobijanja izvještaja o članovima po kvartalu.');
     }
   }
 
@@ -425,13 +383,9 @@ class ReportingService {
         'Reporting/members/year/$year'
       );
       
-      if (response != null) {
-        return MembersReport.fromJson(response);
-      }
-      
-      return null;
+      return MembersReport.fromJson(response);
     } catch (e) {
-      throw Exception('Error getting members report by year: $e');
+      throw Exception('Greška prilikom dobijanja izvještaja o članovima po godini.');
     }
   }
 
@@ -455,7 +409,7 @@ class ReportingService {
         }
       }
     } catch (e) {
-      throw Exception('Error downloading PDF members report: $e');
+      throw Exception('Greška prilikom preuzimanja PDF izvještaja o članovima.');
     }
   }
 
@@ -476,7 +430,7 @@ class ReportingService {
         }
       }
     } catch (e) {
-      throw Exception('Error downloading PDF members report by month: $e');
+      throw Exception('Greška prilikom preuzimanja PDF izvještaja o članovima po mjesecu.');
     }
   }
 
@@ -496,7 +450,7 @@ class ReportingService {
         await file.writeAsBytes(response);
       }
     } catch (e) {
-      throw Exception('Error downloading PDF members report by quarter: $e');
+      throw Exception('Greška prilikom preuzimanja PDF izvještaja o članovima po kvartalu.');
     }
   }
 
@@ -516,7 +470,7 @@ class ReportingService {
         }
       }
     } catch (e) {
-      throw Exception('Error downloading PDF members report by year: $e');
+      throw Exception('Greška prilikom preuzimanja PDF izvještaja o članovima po godini.');
     }
   }
 }

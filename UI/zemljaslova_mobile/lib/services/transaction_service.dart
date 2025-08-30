@@ -31,13 +31,9 @@ class TransactionService {
 
       final response = await _apiService.get('Order/member-transactions', queryParams: queryParams);
       
-      if (response != null) {
-        return response;
-      }
-      
-      throw Exception('Failed to load transactions');
+      return response;
     } catch (e) {
-      throw Exception('Failed to get member transactions: $e');
+      throw Exception('Greška prilikom dobijanja transakcija.');
     }
   }
 
@@ -45,13 +41,13 @@ class TransactionService {
     try {
       final response = await _apiService.get('Order/order-items/$orderId');
       
-      if (response != null && response is List) {
+      if (response is List) {
         return response.map((itemJson) => _mapOrderItemFromBackend(itemJson)).toList();
       }
       
-      throw Exception('Failed to load order items');
+      throw Exception('Greška prilikom učitavanja stavki narudžbe.');
     } catch (e) {
-      throw Exception('Failed to get order items: $e');
+      throw Exception('Greška prilikom dobijanja stavki narudžbe.');
     }
   }
 
@@ -61,13 +57,12 @@ class TransactionService {
       
       if (response != null && response is List) {
         final transactions = response.map((json) => BookTransaction.fromJson(json)).toList();
-        debugPrint('[TransactionService] Parsed ${transactions.length} rental transactions');
         return transactions;
       }
       
       return [];
     } catch (e) {
-      throw Exception('Failed to get member rental transactions: $e');
+      throw Exception('Greška prilikom dobijanja iznajmljivanja člana.');
     }
   }
 
@@ -188,26 +183,6 @@ class TransactionService {
       description: ticketTypeData['description'] ?? '',
       initialQuantity: ticketTypeData['initialQuantity'],
       currentQuantity: ticketTypeData['currentQuantity'],
-    );
-  }
-
-  Event _mapEventFromBackend(dynamic eventData) {
-    return Event(
-      id: eventData['id'],
-      title: eventData['title'] ?? '',
-      description: eventData['description'] ?? '',
-      location: eventData['location'],
-      startAt: eventData['startAt'] != null 
-          ? DateTime.parse(eventData['startAt']) 
-          : DateTime.now(),
-      endAt: eventData['endAt'] != null 
-          ? DateTime.parse(eventData['endAt']) 
-          : DateTime.now(),
-      organizer: eventData['organizer'],
-      lecturers: eventData['lecturers'],
-      coverImageUrl: eventData['coverImageUrl'],
-      maxNumberOfPeople: eventData['maxNumberOfPeople'],
-      ticketTypes: eventData['ticketTypes'] != null ? (eventData['ticketTypes'] as List).map((t) => _mapTicketTypeFromBackend(t)).toList() : null,
     );
   }
 

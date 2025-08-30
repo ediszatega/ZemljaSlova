@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../models/voucher.dart';
 import '../models/member.dart';
@@ -96,15 +95,10 @@ class VoucherService {
   Future<Voucher> getVoucherById(int id) async {
     try {
       final response = await _apiService.get('Voucher/$id');
-      
-      if (response != null) {
-        return _mapVoucherFromBackend(response);
-      }
-      
-      throw Exception('Voucher not found');
+
+      return _mapVoucherFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to get voucher: $e');
-      throw Exception('Failed to get voucher: $e');
+      throw Exception('Greška prilikom dobijanja vouchera.');
     }
   }
 
@@ -112,14 +106,9 @@ class VoucherService {
     try {
       final response = await _apiService.get('Voucher/GetVoucherByCode/$code');
       
-      if (response != null) {
-        return _mapVoucherFromBackend(response);
-      }
-      
-      return null;
+      return _mapVoucherFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to get voucher by code: $e');
-      return null;
+      throw Exception('Greška prilikom dobijanja vouchera po kodu.');
     }
   }
 
@@ -137,23 +126,18 @@ class VoucherService {
       
       final response = await _apiService.post('Voucher/CreateAdminVoucher', data);
       
-      if (response != null) {
-        return _mapVoucherFromBackend(response);
-      }
-      
-      return null;
+      return _mapVoucherFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to create admin voucher: $e');
-      return null;
+      throw Exception('Greška prilikom kreiranja vouchera.');
     }
   }
 
   Future<bool> deleteVoucher(int id) async {
     try {
       final response = await _apiService.delete('Voucher/$id');
-      return response != null;
+      return response;
     } catch (e) {
-      return false;
+      throw Exception('Greška prilikom brisanja vouchera.');
     }
   }
 

@@ -65,18 +65,16 @@ class DiscountProvider with ChangeNotifier {
         name: name ?? (_searchQuery.isNotEmpty ? _searchQuery : null),
       );
       
-      if (result != null) {
-        final discountsList = result['discounts'] as List;
-        final totalCount = result['totalCount'] as int;
-        
-        if (resetPage) {
-          _discounts = discountsList.cast<Discount>();
-        } else {
-          _discounts.addAll(discountsList.cast<Discount>());
-        }
-        
-        _totalCount = totalCount;
+      final discountsList = result['discounts'] as List;
+      final totalCount = result['totalCount'] as int;
+      
+      if (resetPage) {
+        _discounts = discountsList.cast<Discount>();
+      } else {
+        _discounts.addAll(discountsList.cast<Discount>());
       }
+        
+      _totalCount = totalCount;
       
       _isLoading = false;
       _isUpdating = false;
@@ -128,7 +126,7 @@ class DiscountProvider with ChangeNotifier {
   Future<void> _fetchWithCurrentFilters() async {
     await fetchDiscounts(
       filters: _filters,
-      resetPage: false, // Don't reset page since we're navigating
+      resetPage: false,
     );
   }
 

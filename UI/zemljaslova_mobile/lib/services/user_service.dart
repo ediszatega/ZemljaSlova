@@ -20,17 +20,10 @@ class UserService {
         'newPasswordConfirmation': newPasswordConfirmation,
       };
       
-      final response = await _apiService.post('User/change_password', data);
+      return await _apiService.post('User/change_password', data);
       
-      if (response != null) {
-        debugPrint('Password changed successfully');
-        return true;
-      }
-      
-      return false;
     } catch (e) {
-      debugPrint('Failed to change password: $e');
-      return false;
+      throw Exception('Greška prilikom promjene lozinke.');
     }
   }
 } 

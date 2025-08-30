@@ -81,7 +81,7 @@ namespace ZemljaSlova.Services
             
             if (existingFavourite)
             {
-                throw new InvalidOperationException("Book is already in favourites");
+                throw new UserException("Knjiga je već u favoritima.");
             }
         }
     }

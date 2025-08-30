@@ -51,8 +51,6 @@ class EventService {
       final queryString = queryParams.join('&');
       final response = await _apiService.get('Event?$queryString');
       
-      debugPrint('API response: $response');
-      
       if (response != null) {
         final eventsList = response['resultList'] as List;
         final totalCount = response['count'] as int;
@@ -72,7 +70,6 @@ class EventService {
         'totalCount': 0,
       };
     } catch (e) {
-      debugPrint('Failed to fetch events: $e');
       return {
         'events': <Event>[],
         'totalCount': 0,
@@ -83,15 +80,10 @@ class EventService {
   Future<Event> getEventById(int id) async {
     try {
       final response = await _apiService.get('Event/GetEventWithTicketTypes/$id');
-      
-      if (response != null) {
+
         return _mapEventFromBackend(response);
-      }
-      
-      throw Exception('Event not found');
     } catch (e) {
-      debugPrint('Failed to get event: $e');
-      throw Exception('Failed to get event: $e');
+      throw Exception('Događaj nije pronađen.');
     }
   }
 

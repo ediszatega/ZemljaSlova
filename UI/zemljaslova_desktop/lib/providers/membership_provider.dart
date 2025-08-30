@@ -140,7 +140,7 @@ class MembershipProvider with ChangeNotifier {
   Future<void> _fetchWithCurrentFilters() async {
     await fetchMemberships(
       filters: _filters,
-      resetPage: false, // Don't reset page since we're navigating
+      resetPage: false,
     );
   }
 
@@ -195,7 +195,7 @@ class MembershipProvider with ChangeNotifier {
         return true;
       }
 
-      _error = 'Failed to create admin membership';
+      _error = 'Greška prilikom kreiranja članstva.';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -224,7 +224,7 @@ class MembershipProvider with ChangeNotifier {
         return true;
       }
 
-      _error = 'Failed to create member membership';
+      _error = 'Greška prilikom kreiranja članstva.';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -257,7 +257,7 @@ class MembershipProvider with ChangeNotifier {
         return true;
       }
 
-      _error = 'Failed to update membership';
+      _error = 'Greška prilikom ažuriranja članstva.';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -284,7 +284,7 @@ class MembershipProvider with ChangeNotifier {
         return true;
       }
 
-      _error = 'Brisanje članarine nije uspjelo.';
+      _error = 'Greška prilikom brisanja članstva.';
       _isLoading = false;
       notifyListeners();
       return false;

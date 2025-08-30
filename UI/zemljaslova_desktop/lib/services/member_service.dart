@@ -80,16 +80,10 @@ class MemberService {
   
   Future<Member> getMemberById(int id) async {
     try {
-      final response = await _apiService.get('Member/$id');
-      
-      if (response != null) {
-        return _mapMemberFromBackend(response);
-      }
-      
-      throw Exception('Member not found');
+      final response = await _apiService.get('Member/$id');      
+      return _mapMemberFromBackend(response);
     } catch (e) {
-      debugPrint('Failed to get member: $e');
-      throw Exception('Failed to get member: $e');
+      throw Exception('Član nije pronađen.');
     }
   }
   
@@ -114,14 +108,10 @@ class MemberService {
       
       final response = await _apiService.post('Member/CreateMember', data);
       
-      if (response != null) {
-        return _mapMemberFromBackend(response);
-      }
+      return _mapMemberFromBackend(response);
       
-      return null;
     } catch (e) {
-      debugPrint('Failed to create member: $e');
-      throw Exception('Failed to create member: $e');
+      throw Exception('Greška prilikom kreiranja člana.');
     }
   }
   
@@ -144,14 +134,10 @@ class MemberService {
       
       final response = await _apiService.put('Member/UpdateMember/$id', data);
       
-      if (response != null) {
-        return _mapMemberFromBackend(response);
-      }
+      return _mapMemberFromBackend(response);
       
-      return null;
     } catch (e) {
-      debugPrint('Failed to update member: $e');
-      throw Exception('Failed to update member: $e');
+      throw Exception('Greška prilikom ažuriranja člana.');
     }
   }
   
@@ -183,7 +169,7 @@ class MemberService {
       try {
         dateOfBirth = DateTime.parse(memberData['dateOfBirth']);
       } catch (e) {
-        debugPrint('Error parsing dateOfBirth: $e');
+        throw Exception('Greška prilikom parsiranja datuma rođenja.');
       }
     }
     
@@ -192,7 +178,7 @@ class MemberService {
       try {
         joinedAt = DateTime.parse(memberData['joinedAt']);
       } catch (e) {
-        debugPrint('Error parsing joinedAt: $e');
+        throw Exception('Greška prilikom parsiranja datuma prijave.');
       }
     }
     
@@ -209,7 +195,6 @@ class MemberService {
       lastName = userData['lastName'] ?? '';
       email = userData['email'] ?? '';
       gender = userData['gender'];
-      // Assuming user is active unless specifically marked inactive
       isActive = userData['isActive'] ?? true;
     }
 
