@@ -125,26 +125,31 @@ class _MembersDetailOverviewState extends State<MembersDetailOverview> {
     );
     
     if (confirmed == true) {
-      try {
-        final success = await memberProvider.deleteMember(_member.id);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Korisnik je uspješno izbrisan'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/members',
-          (route) => false,
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Greška prilikom brisanja korisnika'),
-            backgroundColor: Colors.red,
-          ),
-        );
+      final success = await memberProvider.deleteMember(_member.id);
+      
+      if (context.mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Korisnik je uspješno izbrisan'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/members',
+            (route) => false,
+          );
+        } else {
+          // Show error message from provider
+          final errorMessage = memberProvider.error ?? 'Greška prilikom brisanja korisnika';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }

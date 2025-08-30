@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MapsterMapper;
+using ZemljaSlova.Model;
 using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services.Database;
@@ -229,33 +230,28 @@ namespace ZemljaSlova.Services
             return _mapper.Map<Model.Member>(entity);
         }
         
+        public override void BeforeDelete(Database.Member entity)
+        {
+            // Check if member has orders
+            var hasOrders = _context.Orders
+                .Any(o => o.MemberId == entity.Id);
+            
+            if (hasOrders)
+            {
+                throw new UserException("Nije moguće izbrisati člana koji ima ranije transakcije.");
+            }
+        }
+        
         public override async Task<Model.Member> Delete(int id)
         {
             using (var transaction = _context.Database.BeginTransaction())
             {
                 try
                 {
-                    // Get the member with all related data
+                    // Get the member with related data
                     var member = await _context.Members
                         .Include(m => m.User)
-                            .ThenInclude(u => u.Notifications)
-                        .Include(m => m.User)
-                            .ThenInclude(u => u.BookTransactions)
-                                .ThenInclude(bt => bt.UserBookClubTransactions)
-                        .Include(m => m.User)
-                            .ThenInclude(u => u.TicketTypeTransactions)
-                        .Include(m => m.BookReservations)
-                            .ThenInclude(br => br.Notifications)
-                        .Include(m => m.Orders)
-                            .ThenInclude(o => o.Notifications)
                         .Include(m => m.UserBookClubs)
-                            .ThenInclude(ubc => ubc.UserBookClubTransactions)
-                        .Include(m => m.Favourites)
-                        .Include(m => m.Memberships)
-                            .ThenInclude(ms => ms.Notifications)
-
-                        .Include(m => m.Tickets)
-                        .Include(m => m.Vouchers)
                         .FirstOrDefaultAsync(m => m.Id == id);
 
                     if (member == null)
@@ -263,70 +259,15 @@ namespace ZemljaSlova.Services
                         return null;
                     }
 
-                    var memberModel = _mapper.Map<Model.Member>(member);
+                    // Call BeforeDelete to check restrictions
+                    BeforeDelete(member);
 
-                    // Remove all related entities
+                    var memberModel = _mapper.Map<Model.Member>(member);
                     
-                    // Remove book reservations and their notifications
-                    foreach (var reservation in member.BookReservations)
+                    if (member.UserBookClubs != null && member.UserBookClubs.Any())
                     {
-                        _context.Notifications.RemoveRange(reservation.Notifications);
+                        _context.UserBookClubs.RemoveRange(member.UserBookClubs);
                     }
-                    _context.BookReservations.RemoveRange(member.BookReservations);
-                    
-                    // Remove orders, their notifications, order items and tickets
-                    foreach (var order in member.Orders)
-                    {
-                        _context.Notifications.RemoveRange(order.Notifications);
-                        
-                        // Get order items directly from context
-                        var orderItems = _context.OrderItems.Where(oi => oi.OrderId == order.Id).ToList();
-                        foreach (var orderItem in orderItems)
-                        {
-                            _context.Tickets.RemoveRange(orderItem.Tickets);
-                        }
-                        
-                        _context.OrderItems.RemoveRange(orderItems);
-                    }
-                    _context.Orders.RemoveRange(member.Orders);
-                    
-                    // Remove tickets
-                    _context.Tickets.RemoveRange(member.Tickets);
-                    
-                    // Remove user book clubs and their transactions
-                    foreach (var userBookClub in member.UserBookClubs)
-                    {
-                        _context.UserBookClubTransactions.RemoveRange(userBookClub.UserBookClubTransactions);
-                    }
-                    _context.UserBookClubs.RemoveRange(member.UserBookClubs);
-                    
-                    // Remove favourites
-                    _context.Favourites.RemoveRange(member.Favourites);
-                    
-                    // Remove memberships, their notifications and order items
-                    foreach (var membership in member.Memberships)
-                    {
-                        _context.Notifications.RemoveRange(membership.Notifications);
-                        var membershipOrderItems = _context.OrderItems.Where(oi => oi.MembershipId == membership.Id).ToList();
-                        _context.OrderItems.RemoveRange(membershipOrderItems);
-                    }
-                    _context.Memberships.RemoveRange(member.Memberships);
-                    
-                    // Remove vouchers
-                    _context.Vouchers.RemoveRange(member.Vouchers);
-                    
-                    // Remove user notifications
-                    _context.Notifications.RemoveRange(member.User.Notifications);
-                    
-                    // Remove user book transactions and their related user book club transactions
-                    foreach (var bookTransaction in member.User.BookTransactions)
-                    {
-                        _context.UserBookClubTransactions.RemoveRange(bookTransaction.UserBookClubTransactions);
-                    }
-                    _context.BookTransactions.RemoveRange(member.User.BookTransactions);
-                    
-                    // Remove user ticket type transactions
-                    _context.TicketTypeTransactions.RemoveRange(member.User.TicketTypeTransactions);
                     
                     // Remove the member and user
                     _context.Members.Remove(member);
@@ -337,12 +278,14 @@ namespace ZemljaSlova.Services
     
                     return memberModel;
                 }
+                catch (UserException)
+                {
+                    transaction.Rollback();
+                    throw;
+                }
                 catch (Exception ex)
                 {
                     transaction.Rollback();
-                    // Log the specific error for debugging
-                    Console.WriteLine($"Error deleting member {id}: {ex.Message}");
-                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
                     throw new Exception($"Failed to delete member: {ex.Message}", ex);
                 }
             }

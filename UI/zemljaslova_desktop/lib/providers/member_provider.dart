@@ -4,6 +4,7 @@ import '../models/member.dart';
 import '../models/member_filters.dart';
 import '../services/member_service.dart';
 import '../widgets/paginated_data_widget.dart';
+import '../utils/error_formatter.dart';
 
 class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member> {
   final MemberService _memberService;
@@ -271,22 +272,16 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
     notifyListeners();
 
     try {
-      final success = await _memberService.deleteMember(id);
-
-      if (success) {
-        // Refresh to get updated pagination
-        await refresh();
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      }
-
-      _error = 'Failed to delete member';
+      await _memberService.deleteMember(id);
+      
+      // Refresh to get updated pagination
+      await refresh();
       _isLoading = false;
+      _error = null;
       notifyListeners();
-      return false;
+      return true;
     } catch (e) {
-      _error = e.toString();
+      _error = ErrorFormatter.formatException(e.toString());
       _isLoading = false;
       notifyListeners();
       return false;

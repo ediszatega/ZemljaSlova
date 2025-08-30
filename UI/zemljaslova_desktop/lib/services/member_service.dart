@@ -155,14 +155,12 @@ class MemberService {
     }
   }
   
-  Future<bool> deleteMember(int id) async {
+  Future<void> deleteMember(int id) async {
     try {
-      final response = await _apiService.delete('Member/$id');
-      
-      return response != null;
+      await _apiService.delete('Member/$id');
     } catch (e) {
       debugPrint('Failed to delete member: $e');
-      throw Exception('Failed to delete member: $e');
+      rethrow;
     }
   }
   
