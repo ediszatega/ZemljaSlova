@@ -118,7 +118,7 @@ class CartScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${item.price.toStringAsFixed(0)} KM',
+                        '${item.price.toStringAsFixed(2)} KM',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey.shade600,
@@ -173,7 +173,7 @@ class CartScreen extends StatelessWidget {
                   ],
                 ),
                 Text(
-                  '${item.totalPrice.toStringAsFixed(0)} KM',
+                  '${item.totalPrice.toStringAsFixed(2)} KM',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -233,7 +233,7 @@ class CartScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '${cartProvider.totalPrice.toStringAsFixed(0)} KM',
+                  '${cartProvider.totalPrice.toStringAsFixed(2)} KM',
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,

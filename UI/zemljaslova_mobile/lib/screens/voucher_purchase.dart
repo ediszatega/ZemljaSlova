@@ -274,7 +274,7 @@ class _VoucherPurchaseScreenState extends State<VoucherPurchaseScreen> {
           }
           
           voucherAmount = customAmount;
-          voucherTitle = 'Poklon bon ${customAmount.toInt()} KM';
+          voucherTitle = 'Poklon bon ${customAmount.toStringAsFixed(2)} KM';
         } else if (selectedAmount == null) {
           _showValidationError('Molimo odaberite vrijednost poklon bona.');
           return;
