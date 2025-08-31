@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "ZemljaSlova.Subscriber": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "SMTP_SERVER": "smtp.gmail.com",
+        "SMTP_PORT": "587",
+        "SMTP_USERNAME": "zemljaslova@gmail.com",
+        "SMTP_PASSWORD": "vimi rwyf uoqq mjvt"
+      }
+    }
+  }
+}

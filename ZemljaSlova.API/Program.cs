@@ -31,6 +31,7 @@ builder.Services.AddTransient<IUserBookClubTransactionService, UserBookClubTrans
 builder.Services.AddTransient<IBookClubPointsService, BookClubPointsService>();
 builder.Services.AddTransient<IVoucherService, VoucherService>();
 builder.Services.AddTransient<IReportingService, ReportingService>();
+builder.Services.AddScoped<IRabbitMQProducer, RabbitMQProducer>();
 
 builder.Services.AddAuthentication(
     JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {

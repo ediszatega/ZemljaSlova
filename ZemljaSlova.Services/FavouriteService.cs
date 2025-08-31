@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services.Database;
+using ZemljaSlova.Model;
 
 namespace ZemljaSlova.Services
 {

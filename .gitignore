@@ -361,6 +361,10 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Environment variables
+.env
+
 # Ignore generated Flutter files
 /UI/discoverhscountry_desktop/**/flutter/generated_plugins.cmake
 /UI/discoverhscountry_desktop/**/flutter/generated_plugin_registrant.cc

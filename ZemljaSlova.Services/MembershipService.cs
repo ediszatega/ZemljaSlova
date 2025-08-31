@@ -8,7 +8,6 @@ using ZemljaSlova.Model;
 using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services.Database;
-using EasyNetQ;
 using ZemljaSlova.Model.Messages;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,8 +15,11 @@ namespace ZemljaSlova.Services
 {
     public class MembershipService : BaseCRUDService<Model.Membership, MembershipSearchObject, Database.Membership, MembershipInsertRequest, MembershipUpdateRequest>, IMembershipService
     {
-        public MembershipService(_200036Context context, IMapper mapper) : base(context, mapper)
+        private readonly IRabbitMQProducer _rabbitMQProducer;
+
+        public MembershipService(_200036Context context, IMapper mapper, IRabbitMQProducer rabbitMQProducer) : base(context, mapper)
         {
+            _rabbitMQProducer = rabbitMQProducer;
         }
 
         public override IQueryable<Database.Membership> AddFilter(MembershipSearchObject search, IQueryable<Database.Membership> query)
@@ -103,7 +105,7 @@ namespace ZemljaSlova.Services
             Context.Add(entity);
             Context.SaveChanges();
 
-            // AfterInsert(request, entity);
+            AfterInsert(request, entity);
 
             return Mapper.Map<Model.Membership>(entity);
         }
@@ -138,7 +140,6 @@ namespace ZemljaSlova.Services
         {
             var memberships = Context.Memberships
                 .Include(m => m.Member)
-                .ThenInclude(m => m.User)
                 .Where(m => m.MemberId == memberId)
                 .OrderByDescending(m => m.StartDate)
                 .ToList();
@@ -173,25 +174,85 @@ namespace ZemljaSlova.Services
             }
         }
 
-        // TODO: Implement event publishing when membership is created
-        // private void PublishMembershipCreatedEvent(Database.Membership entity)
-        // {
-        //     try
-        //     {
-        //         var bus = RabbitHutch.CreateBus("host=localhost");
-        //         var message = new MembershipCreated { Membership = Mapper.Map<Model.Membership>(entity) };
-        //         bus.PubSub.Publish(message);
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         Console.WriteLine($"Failed to publish membership created event: {ex.Message}");
-        //     }
-        // }
+        private void PublishMembershipCreatedEvent(Database.Membership entity)
+        {
+            try
+            {
+                var memberWithUser = Context.Members
+                    .Include(m => m.User)
+                    .FirstOrDefault(m => m.Id == entity.MemberId);
 
-        // public override void AfterInsert(MembershipInsertRequest request, Database.Membership entity)
-        // {
-        //     base.AfterInsert(request, entity);
-        //     PublishMembershipCreatedEvent(entity);
-        // }
+                if (memberWithUser?.User != null)
+                {
+                    var emailModel = new EmailModel
+                    {
+                        To = memberWithUser.User.Email,
+                        Subject = "Dobrodošli u Zemlju Slova!",
+                        Body = GenerateMembershipEmailBody(memberWithUser.User, entity),
+                        From = "zemljaslova@gmail.com"
+                    };
+
+                    _rabbitMQProducer.SendMessage(emailModel);
+                }
+            }
+            catch (UserException ex)
+            {
+                throw new UserException("Greška pri slanju emaila za članarinu");
+            }
+            catch (Exception ex)
+            {
+                // Log the error but don't fail the membership creation
+                Console.WriteLine($"Failed to send membership email: {ex.Message}");
+            }
+        }
+
+        private string GenerateMembershipEmailBody(Database.User user, Database.Membership membership)
+        {
+            var startDate = membership.StartDate.ToString("dd.MM.yyyy");
+            var endDate = membership.EndDate.ToString("dd.MM.yyyy");
+
+            return $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+                    <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                        <h1 style='color: #2c5aa0; text-align: center;'>Dobrodošli u Zemlju Slova!</h1>
+                        
+                        <p>Poštovani/a <strong>{user.FirstName} {user.LastName}</strong>,</p>
+                        
+                        <p>Čestitamo! Uspješno ste platili vašu članarinu.</p>
+                        
+                        <div style='background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                            <h3 style='color: #2c5aa0; margin-top: 0;'>Detalji članarine:</h3>
+                            <ul style='list-style: none; padding: 0;'>
+                                <li><strong>Datum početka:</strong> {startDate}</li>
+                                <li><strong>Datum završetka:</strong> {endDate}</li>
+                                <li><strong>Status:</strong> <span style='color: #28a745; font-weight: bold;'>Aktivno</span></li>
+                            </ul>
+                        </div>
+                        
+                        <p>Kao član/ica Zemlja Slova, možete:</p>
+                        <ul>
+                            <li>Iznajmljivati knjige</li>
+                            <li>Rezervirati knjige za iznajmljivanje</li>
+                            <li>Sakupljati bodove za Klub čitalaca</li>
+                            <li>Koristiti posebne popuste</li>
+                        </ul>
+                        
+                        <p>Hvala vam što ste odabrali Zemlju Slova!</p>
+                        
+                        <p style='margin-top: 30px; font-size: 14px; color: #666;'>
+                            Srdačan pozdrav,<br>
+                            <strong>Tim Zemlja Slova</strong>
+                        </p>
+                    </div>
+                </body>
+                </html>";
+        }
+
+        public override void AfterInsert(MembershipInsertRequest request, Database.Membership entity)
+        {
+            base.AfterInsert(request, entity);
+            PublishMembershipCreatedEvent(entity);
+        }
     }
 }
