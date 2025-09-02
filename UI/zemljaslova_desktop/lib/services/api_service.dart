@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -109,6 +110,134 @@ class ApiService {
       
       final newHeaders = await this.headers;
       final retryResponse = await http.delete(url, headers: newHeaders);
+      
+      return _handleResponse(retryResponse);
+    }
+    
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> postMultipart(String endpoint, Map<String, dynamic> data, {Uint8List? imageBytes, String? imageFieldName}) async {
+    final url = Uri.parse('$baseUrl/$endpoint');
+    final token = authToken ?? await _storage.read(key: 'jwt');
+    
+    final request = http.MultipartRequest('POST', url);
+    
+    // Add authorization header
+    if (token != null && token.isNotEmpty) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+    
+    // Add regular form fields
+    data.forEach((key, value) {
+      if (value != null) {
+        request.fields[key] = value.toString();
+      }
+    });
+    
+    // Add image file if provided
+    if (imageBytes != null && imageFieldName != null) {
+      request.files.add(http.MultipartFile.fromBytes(
+        imageFieldName,
+        imageBytes,
+        filename: 'image.jpg',
+      )); 
+    }
+    
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+    
+    if (response.statusCode == 401) {
+      await _handleTokenRefresh();
+      
+      // Retry with new token
+      final retryRequest = http.MultipartRequest('POST', url);
+      final newToken = authToken ?? await _storage.read(key: 'jwt');
+      
+      if (newToken != null && newToken.isNotEmpty) {
+        retryRequest.headers['Authorization'] = 'Bearer $newToken';
+      }
+      
+      data.forEach((key, value) {
+        if (value != null) {
+          retryRequest.fields[key] = value.toString();
+        }
+      });
+      
+      if (imageBytes != null && imageFieldName != null) {
+        retryRequest.files.add(http.MultipartFile.fromBytes(
+          imageFieldName,
+          imageBytes,
+          filename: 'image.jpg',
+        ));
+      }
+      
+      final retryStreamedResponse = await retryRequest.send();
+      final retryResponse = await http.Response.fromStream(retryStreamedResponse);
+      
+      return _handleResponse(retryResponse);
+    }
+    
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> putMultipart(String endpoint, Map<String, dynamic> data, {Uint8List? imageBytes, String? imageFieldName}) async {
+    final url = Uri.parse('$baseUrl/$endpoint');
+    final token = authToken ?? await _storage.read(key: 'jwt');
+    
+    final request = http.MultipartRequest('PUT', url);
+    
+    // Add authorization header
+    if (token != null && token.isNotEmpty) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+    
+    // Add regular form fields
+    data.forEach((key, value) {
+      if (value != null) {
+        request.fields[key] = value.toString();
+      }
+    });
+    
+    // Add image file if provided
+    if (imageBytes != null && imageFieldName != null) {
+      request.files.add(http.MultipartFile.fromBytes(
+        imageFieldName,
+        imageBytes,
+        filename: 'image.jpg',
+      ));
+    }
+    
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+    
+    if (response.statusCode == 401) {
+      await _handleTokenRefresh();
+      
+      // Retry with new token
+      final retryRequest = http.MultipartRequest('PUT', url);
+      final newToken = authToken ?? await _storage.read(key: 'jwt');
+      
+      if (newToken != null && newToken.isNotEmpty) {
+        retryRequest.headers['Authorization'] = 'Bearer $newToken';
+      }
+      
+      data.forEach((key, value) {
+        if (value != null) {
+          retryRequest.fields[key] = value.toString();
+        }
+      });
+      
+      if (imageBytes != null && imageFieldName != null) {
+        retryRequest.files.add(http.MultipartFile.fromBytes(
+          imageFieldName,
+          imageBytes,
+          filename: 'image.jpg',
+        ));
+      }
+      
+      final retryStreamedResponse = await retryRequest.send();
+      final retryResponse = await http.Response.fromStream(retryStreamedResponse);
       
       return _handleResponse(retryResponse);
     }

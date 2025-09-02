@@ -8,6 +8,12 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
+// Kestrel configuration to accept larger request bodies
+builder.Services.Configure<Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerOptions>(options =>
+{
+    options.Limits.MaxRequestBodySize = 15 * 1024 * 1024; // 15 MB
+});
+
 // Add services to the container.
 builder.Services.AddTransient<IBookTransactionService, BookTransactionService>();
 builder.Services.AddTransient<IBookService, BookService>();
@@ -47,6 +53,16 @@ builder.Services.AddAuthentication(
 builder.Services.AddControllers(x =>
 {
     x.Filters.Add<ExceptionFilter>();
+});
+
+// Form configuration options for file uploads
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 15 * 1024 * 1024; // 15 MB
+    options.ValueLengthLimit = int.MaxValue;
+    options.ValueCountLimit = int.MaxValue;
+    options.KeyLengthLimit = int.MaxValue;
+    options.MultipartHeadersLengthLimit = int.MaxValue;
 });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

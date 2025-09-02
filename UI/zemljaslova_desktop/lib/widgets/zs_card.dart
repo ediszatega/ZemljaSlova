@@ -193,10 +193,14 @@ class ZSCard extends StatelessWidget {
   ) {
     // Create image widget from book's cover image
     Widget imageWidget;
-    if (book.coverImageUrl != null) {
+    if (book.coverImageUrl != null && book.coverImageUrl!.isNotEmpty) {
       imageWidget = Image.network(
-        book.coverImageUrl,
+        book.coverImageUrl!,
         fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return const Center(child: CircularProgressIndicator());
+        },
         errorBuilder: (context, error, stackTrace) {
           return _buildFallbackBookImage();
         },

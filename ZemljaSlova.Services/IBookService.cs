@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using ZemljaSlova.Model;
 using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
@@ -23,5 +24,7 @@ namespace ZemljaSlova.Services
         Task<bool> RemoveBooksAsync(int bookId, int quantity, int userId, string? data = null);
         Task<bool> RentBooksAsync(int bookId, int quantity, int userId, string? data = null);
         Task<bool> ReturnBooksAsync(int bookId, int quantity, int userId, string? data = null);
+        Book InsertFromForm(IFormCollection form);
+        Book UpdateFromForm(int id, IFormCollection form);
     }
 }

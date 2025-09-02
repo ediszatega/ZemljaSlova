@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import '../models/book.dart';
 import '../models/author.dart';
@@ -107,8 +107,9 @@ class BookService {
     String? genre,
     String? binding,
     String? language,
-    List<int> authorIds,
-  ) async {
+    List<int> authorIds, {
+    Uint8List? imageBytes,
+  }) async {
     try {
       // Convert date string to datetime format if provided
       DateTime? publishDate;
@@ -138,10 +139,16 @@ class BookService {
         'genre': genre,
         'binding': binding,
         'language': language,
-        'authorIds': authorIds,
+        'authorIds': authorIds.join(','),
       };
       
-      final response = await _apiService.put('Book/$id', data);
+      dynamic response;
+      if (imageBytes != null) {
+        response = await _apiService.putMultipart('Book/$id/with-image', data, imageBytes: imageBytes, imageFieldName: 'image');
+      } else {
+        data['authorIds'] = authorIds;
+        response = await _apiService.put('Book/$id', data);
+      }
       return _mapBookFromBackend(response);
     } catch (e) {
       throw Exception('Greška prilikom ažuriranja knjige');
@@ -162,8 +169,9 @@ class BookService {
     String? genre,
     String? binding,
     String? language,
-    List<int> authorIds,
-  ) async {
+    List<int> authorIds, {
+    Uint8List? imageBytes,
+  }) async {
     try {
       // Convert date string to datetime format if provided
       DateTime? publishDate;
@@ -192,10 +200,16 @@ class BookService {
         'genre': genre,
         'binding': binding,
         'language': language,
-        'authorIds': authorIds,
+        'authorIds': authorIds.join(','),
       };
       
-      final response = await _apiService.post('Book', data);
+      dynamic response;
+      if (imageBytes != null) {
+        response = await _apiService.postMultipart('Book/with-image', data, imageBytes: imageBytes, imageFieldName: 'image');
+      } else {
+        data['authorIds'] = authorIds;
+        response = await _apiService.post('Book', data);
+      }
       return _mapBookFromBackend(response);
     } catch (e) {
       throw Exception('Greška prilikom dodavanja knjige');
@@ -213,13 +227,10 @@ class BookService {
 
   Book _mapBookFromBackend(dynamic bookData) {
     String? coverImageUrl;
+    
     if (bookData['image'] != null) {
-      if (bookData['image'] is List) {
-        final bytes = List<int>.from(bookData['image']);
-        coverImageUrl = 'data:image/jpeg;base64,${base64Encode(bytes)}';
-      } else if (bookData['image'] is String) {
-        coverImageUrl = bookData['image'];
-      }
+      final int bookId = bookData['id'] ?? 0;
+      coverImageUrl = '${ApiService.baseUrl}/Book/$bookId/image';
     }
 
     bool isAvailable = bookData['isAvailable'] ?? false;

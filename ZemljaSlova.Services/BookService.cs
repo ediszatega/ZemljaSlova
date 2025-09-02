@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using ZemljaSlova.Model;
 using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
@@ -178,30 +179,38 @@ namespace ZemljaSlova.Services
         
         public override Model.Book Insert(BookInsertRequest request)
         {
-            var entity = Mapper.Map<Database.Book>(request);
-            
-            Context.Books.Add(entity);
-            Context.SaveChanges();
-            
-            if (request.AuthorIds != null && request.AuthorIds.Any())
+            try
             {
-                foreach (var authorId in request.AuthorIds)
+                var entity = Mapper.Map<Database.Book>(request);
+                
+                Context.Books.Add(entity);
+                Context.SaveChanges();
+                
+                if (request.AuthorIds != null && request.AuthorIds.Any())
                 {
-                    var author = Context.Authors.Find(authorId);
-                    if (author != null)
+                    foreach (var authorId in request.AuthorIds)
                     {
-                        Context.BookAuthors.Add(new Database.BookAuthor
+                        var author = Context.Authors.Find(authorId);
+                        if (author != null)
                         {
-                            BookId = entity.Id,
-                            AuthorId = authorId
-                        });
+                            Context.BookAuthors.Add(new Database.BookAuthor
+                            {
+                                BookId = entity.Id,
+                                AuthorId = authorId
+                            });
+                        }
                     }
+                    
+                    Context.SaveChanges();
                 }
                 
-                Context.SaveChanges();
+                var result = GetById(entity.Id);
+                return result;
             }
-            
-            return GetById(entity.Id);
+            catch (UserException)
+            {
+                throw new UserException("Greška prilikom dodavanja knjige");
+            }
         }
         
         public override Model.Book Update(int id, BookUpdateRequest request)
@@ -620,6 +629,103 @@ namespace ZemljaSlova.Services
             {
                 return false;
             }
+        }
+
+        public Model.Book InsertFromForm(IFormCollection form)
+        {
+            try
+            {
+                
+                var request = new BookInsertRequest
+                {
+                    Title = form["title"].FirstOrDefault() ?? "",
+                    Description = form["description"].FirstOrDefault(),
+                    Price = decimal.TryParse(form["price"].FirstOrDefault(), out var price) ? price : null,
+                    DateOfPublish = DateTime.TryParse(form["dateOfPublish"].FirstOrDefault(), out var date) ? date : null,
+                    Edition = int.TryParse(form["edition"].FirstOrDefault(), out var edition) ? edition : null,
+                    Publisher = form["publisher"].FirstOrDefault(),
+                    BookPurpose = form["bookPurpose"].FirstOrDefault() ?? "1",
+                    NumberOfPages = int.TryParse(form["numberOfPages"].FirstOrDefault(), out var pages) ? pages : 0,
+                    Weight = decimal.TryParse(form["weight"].FirstOrDefault(), out var weight) ? weight : null,
+                    Dimensions = form["dimensions"].FirstOrDefault(),
+                    Genre = form["genre"].FirstOrDefault(),
+                    Binding = form["binding"].FirstOrDefault(),
+                    Language = form["language"].FirstOrDefault(),
+                    DiscountId = int.TryParse(form["discountId"].FirstOrDefault(), out var discountId) ? discountId : null
+                };
+
+
+                // Handle author IDs
+                var authorIdsString = form["authorIds"].FirstOrDefault();
+                if (!string.IsNullOrEmpty(authorIdsString))
+                {
+                    request.AuthorIds = authorIdsString.Split(',')
+                        .Where(id => int.TryParse(id.Trim(), out _))
+                        .Select(id => int.Parse(id.Trim()))
+                        .ToList();
+                }
+
+                // Handle image file
+                var imageFile = form.Files["image"];
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    
+                    using var memoryStream = new MemoryStream();
+                    imageFile.CopyTo(memoryStream);
+                    request.Image = memoryStream.ToArray();
+                    
+                }
+
+                var result = Insert(request);
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public Model.Book UpdateFromForm(int id, IFormCollection form)
+        {
+            var request = new BookUpdateRequest
+            {
+                Title = form["title"].FirstOrDefault(),
+                Description = form["description"].FirstOrDefault(),
+                Price = decimal.TryParse(form["price"].FirstOrDefault(), out var price) ? price : null,
+                DateOfPublish = DateTime.TryParse(form["dateOfPublish"].FirstOrDefault(), out var date) ? date : null,
+                Edition = int.TryParse(form["edition"].FirstOrDefault(), out var edition) ? edition : null,
+                Publisher = form["publisher"].FirstOrDefault(),
+                BookPurpose = form["bookPurpose"].FirstOrDefault(),
+                NumberOfPages = int.TryParse(form["numberOfPages"].FirstOrDefault(), out var pages) ? pages : null,
+                Weight = decimal.TryParse(form["weight"].FirstOrDefault(), out var weight) ? weight : null,
+                Dimensions = form["dimensions"].FirstOrDefault(),
+                Genre = form["genre"].FirstOrDefault(),
+                Binding = form["binding"].FirstOrDefault(),
+                Language = form["language"].FirstOrDefault(),
+                DiscountId = int.TryParse(form["discountId"].FirstOrDefault(), out var discountId) ? discountId : null
+            };
+
+            // Handle author IDs
+            var authorIdsString = form["authorIds"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(authorIdsString))
+            {
+                request.AuthorIds = authorIdsString.Split(',')
+                    .Where(id => int.TryParse(id.Trim(), out _))
+                    .Select(id => int.Parse(id.Trim()))
+                    .ToList();
+            }
+
+            // Handle image file
+            var imageFile = form.Files["image"];
+            if (imageFile != null && imageFile.Length > 0)
+            {
+                using var memoryStream = new MemoryStream();
+                imageFile.CopyTo(memoryStream);
+                request.Image = memoryStream.ToArray();
+            }
+
+            return Update(id, request);
         }
     }
 }

@@ -19,7 +19,7 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public TModel Update(int id, TUpdate request)
+        public virtual TModel Update(int id, TUpdate request)
         {
             return _service.Update(id, request);
         }

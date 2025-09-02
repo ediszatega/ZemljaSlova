@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/book.dart';
@@ -8,9 +9,10 @@ import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_input.dart';
 import '../widgets/zs_date_picker.dart';
-import '../widgets/zs_dropdown.dart';
+import '../widgets/image_picker_widget.dart';
+import '../utils/image_utils.dart';
 
-// TODO: add image and discount fields
+// TODO: add discount fields
 class BookEditScreen extends StatefulWidget {
   final Book book;
   
@@ -44,6 +46,8 @@ class _BookEditScreenState extends State<BookEditScreen> {
   final List<int> _selectedAuthorIds = [];
   bool _isLoading = true;
   List<Author> _authors = [];
+  Uint8List? _selectedImage;
+  Uint8List? _initialImage;
 
   @override
   void initState() {
@@ -66,6 +70,12 @@ class _BookEditScreenState extends State<BookEditScreen> {
     
     if (widget.book.authorIds.isNotEmpty) {
       _selectedAuthorIds.addAll(widget.book.authorIds);
+    }
+    
+    // Initialize image if available
+    if (widget.book.coverImageUrl != null) {
+      _initialImage = ImageUtils.base64ToImage(widget.book.coverImageUrl!);
+      _selectedImage = _initialImage;
     }
     
     // Load authors for dropdown after the build is complete
@@ -180,6 +190,21 @@ class _BookEditScreenState extends State<BookEditScreen> {
                                     label: 'Opis',
                                     controller: _descriptionController,
                                     maxLines: 3,
+                                  ),
+                                  
+                                  const SizedBox(height: 20),
+                                  
+                                  // Image picker
+                                  ImagePickerWidget(
+                                    label: 'Slika knjige',
+                                    initialImage: _initialImage,
+                                    onImageSelected: (imageBytes) {
+                                      setState(() {
+                                        _selectedImage = imageBytes;
+                                      });
+                                    },
+                                    width: 200,
+                                    height: 250,
                                   ),
                                   
                                   const SizedBox(height: 20),
@@ -437,6 +462,7 @@ class _BookEditScreenState extends State<BookEditScreen> {
         _bindingController.text.isEmpty ? null : _bindingController.text,
         _languageController.text.isEmpty ? null : _languageController.text,
         _selectedAuthorIds,
+        imageBytes: _selectedImage,
       ).then((success) {
         if (success) {
           // Show success message

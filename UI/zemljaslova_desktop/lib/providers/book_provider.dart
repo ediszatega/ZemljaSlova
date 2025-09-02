@@ -230,8 +230,9 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
     String? genre,
     String? binding,
     String? language,
-    List<int> authorIds,
-  ) async {
+    List<int> authorIds, {
+    dynamic imageBytes,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -253,6 +254,7 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
         binding,
         language,
         authorIds,
+        imageBytes: imageBytes,
       );
       
       await refresh();
@@ -281,8 +283,9 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
     String? genre,
     String? binding,
     String? language,
-    List<int> authorIds,
-  ) async {
+    List<int> authorIds, {
+    dynamic imageBytes,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -303,6 +306,7 @@ class BookProvider with ChangeNotifier implements PaginatedDataProvider<Book> {
         binding,
         language,
         authorIds,
+        imageBytes: imageBytes,
       );
       
       await refresh();

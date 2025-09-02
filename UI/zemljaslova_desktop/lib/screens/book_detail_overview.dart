@@ -5,7 +5,7 @@ import '../providers/book_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/permission_guard.dart';
-import '../utils/error_formatter.dart';
+import '../widgets/image_display_widget.dart';
 import 'book_edit.dart';
 import 'book_inventory_screen.dart';
 import 'book_rental_screen.dart';
@@ -126,23 +126,11 @@ class _BookDetailOverviewState extends State<BookDetailOverview> {
                                 ),
                                 child: AspectRatio(
                                   aspectRatio: 0.7,
-                                  child: Center(
-                                    child: book.coverImageUrl != null
-                                      ? Image.network(
-                                          book.coverImageUrl!,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Image.asset(
-                                          'assets/images/no_image.jpg',
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return const Icon(
-                                              Icons.book,
-                                              size: 120,
-                                              color: Colors.black,
-                                            );
-                                          },
-                                        ),
+                                  child: ImageDisplayWidget.book(
+                                    imageUrl: book.coverImageUrl,
+                                    width: 300,
+                                    height: 400,
+                                    fit: BoxFit.cover,
                                   ),
                                 ),
                               ),

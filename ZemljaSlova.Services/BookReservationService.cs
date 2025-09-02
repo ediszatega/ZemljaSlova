@@ -126,7 +126,7 @@ namespace ZemljaSlova.Services
                     var emailModel = new EmailModel
                     {
                         To = member.User.Email,
-                        Subject = "Potvrda o rezervacije knjige - Zemlja Slova",
+                        Subject = "Potvrda o rezervaciji knjige - Zemlja Slova",
                         Body = GenerateReservationEmailBody(member.User, book, reservation),
                         From = "zemljaslova@gmail.com"
                     };
