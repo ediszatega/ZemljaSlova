@@ -17,5 +17,7 @@ namespace ZemljaSlova.Model
         public string Email { get; set; } = null!;
 
         public string Password { get; set; } = null!;
+
+        public byte[]? Image { get; set; }
     }
 }

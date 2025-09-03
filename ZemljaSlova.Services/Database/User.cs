@@ -17,6 +17,8 @@ public partial class User
 
     public string Password { get; set; } = null!;
 
+    public byte[]? Image { get; set; }
+
     public virtual ICollection<BookTransaction> BookTransactions { get; set; } = new List<BookTransaction>();
 
     public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
