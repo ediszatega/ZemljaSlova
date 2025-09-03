@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
 import '../models/author.dart';
 import 'api_service.dart';
 
@@ -89,8 +90,9 @@ class AuthorService {
     String lastName,
     String? dateOfBirth,
     String? genre,
-    String? biography,
-  ) async {
+    String? biography, {
+    Uint8List? imageBytes,
+  }) async {
     try {
       // Convert date string to datetime format if provided
       DateTime? birthDate;
@@ -113,7 +115,12 @@ class AuthorService {
         'biography': biography,
       };
       
-      final response = await _apiService.post('Author', data);
+      dynamic response;
+      if (imageBytes != null) {
+        response = await _apiService.postMultipart('Author/with-image', data, imageBytes: imageBytes, imageFieldName: 'image');
+      } else {
+        response = await _apiService.post('Author', data);
+      }
       return _mapAuthorFromBackend(response);
     } catch (e) {
       throw Exception('Greška prilikom dodavanja autora');
@@ -126,8 +133,9 @@ class AuthorService {
     String lastName,
     String? dateOfBirth,
     String? genre,
-    String? biography,
-  ) async {
+    String? biography, {
+    Uint8List? imageBytes,
+  }) async {
     try {
       // Convert date string to datetime format if provided
       DateTime? birthDate;
@@ -143,7 +151,6 @@ class AuthorService {
       }
       
       final Map<String, dynamic> data = {
-        'id': id,
         'firstName': firstName,
         'lastName': lastName,
         'dateOfBirth': birthDate?.toIso8601String(),
@@ -151,7 +158,12 @@ class AuthorService {
         'biography': biography,
       };
       
-      final response = await _apiService.put('Author/$id', data);
+      dynamic response;
+      if (imageBytes != null) {
+        response = await _apiService.putMultipart('Author/$id/with-image', data, imageBytes: imageBytes, imageFieldName: 'image');
+      } else {
+        response = await _apiService.put('Author/$id', data);
+      }
       return _mapAuthorFromBackend(response);
     } catch (e) {
       throw Exception('Greška prilikom ažuriranja autora');
@@ -167,11 +179,21 @@ class AuthorService {
     }
   }
 
+  String? getAuthorImageUrl(int id) {
+    return '${ApiService.baseUrl}/Author/$id/image';
+  }
+
   Author _mapAuthorFromBackend(dynamic authorData) {
     String? dateOfBirth;
     if (authorData['dateOfBirth'] != null) {
       final date = DateTime.parse(authorData['dateOfBirth']);
       dateOfBirth = '${date.day}.${date.month}.${date.year}';
+    }
+
+    String? imageUrl;
+    if (authorData['image'] != null) {
+      final int authorId = authorData['id'] ?? 0;
+      imageUrl = '${ApiService.baseUrl}/Author/$authorId/image';
     }
 
     return Author(
@@ -181,6 +203,7 @@ class AuthorService {
       dateOfBirth: dateOfBirth,
       genre: authorData['genre'],
       biography: authorData['biography'],
+      imageUrl: imageUrl,
     );
   }
 } 

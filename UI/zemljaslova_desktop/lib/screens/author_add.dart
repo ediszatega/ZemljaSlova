@@ -1,11 +1,12 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/author.dart';
 import '../providers/author_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_input.dart';
 import '../widgets/zs_date_picker.dart';
+import '../widgets/image_picker_widget.dart';
 
 class AuthorAddScreen extends StatefulWidget {
   const AuthorAddScreen({super.key});
@@ -22,6 +23,8 @@ class _AuthorAddScreenState extends State<AuthorAddScreen> {
   final TextEditingController _dateOfBirthController = TextEditingController();
   final TextEditingController _genreController = TextEditingController();
   final TextEditingController _biographyController = TextEditingController();
+  
+  Uint8List? _selectedImage;
 
   @override
   void dispose() {
@@ -134,6 +137,20 @@ class _AuthorAddScreenState extends State<AuthorAddScreen> {
                               maxLines: 5,
                             ),
                             
+                            const SizedBox(height: 20),
+                            
+                            // Image picker
+                            ImagePickerWidget(
+                              label: 'Slika autora',
+                              width: 200,
+                              height: 250,
+                              onImageSelected: (imageBytes) {
+                                setState(() {
+                                  _selectedImage = imageBytes;
+                                });
+                              },
+                            ),
+                            
                             const SizedBox(height: 40),
                             
                             // Submit button
@@ -192,6 +209,7 @@ class _AuthorAddScreenState extends State<AuthorAddScreen> {
         _dateOfBirthController.text.isEmpty ? null : _dateOfBirthController.text,
         _genreController.text.isEmpty ? null : _genreController.text,
         _biographyController.text.isEmpty ? null : _biographyController.text,
+        imageBytes: _selectedImage,
       ).then((success) {
         if (success) {
           // Show success message

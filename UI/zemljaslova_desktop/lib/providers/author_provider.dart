@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../models/author.dart';
 import '../models/author_filters.dart';
@@ -184,8 +185,9 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
     String lastName,
     String? dateOfBirth,
     String? genre,
-    String? biography,
-  ) async {
+    String? biography, {
+    Uint8List? imageBytes,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -197,6 +199,7 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
         dateOfBirth,
         genre,
         biography,
+        imageBytes: imageBytes,
       );
       
       // Refresh to get updated pagination
@@ -218,8 +221,9 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
     String lastName,
     String? dateOfBirth,
     String? genre,
-    String? biography,
-  ) async {
+    String? biography, {
+    Uint8List? imageBytes,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -232,6 +236,7 @@ class AuthorProvider with ChangeNotifier implements PaginatedDataProvider<Author
         dateOfBirth,
         genre,
         biography,
+        imageBytes: imageBytes,
       );
       
       await refresh();

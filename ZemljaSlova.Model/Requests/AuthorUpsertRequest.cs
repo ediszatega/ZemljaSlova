@@ -15,5 +15,7 @@ namespace ZemljaSlova.Model.Requests
         public string? Genre { get; set; }
 
         public string? Biography { get; set; }
+
+        public byte[]? Image { get; set; }
     }
 }

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/author.dart';
@@ -6,6 +7,8 @@ import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_input.dart';
 import '../widgets/zs_date_picker.dart';
+import '../widgets/image_picker_widget.dart';
+import '../utils/image_utils.dart';
 
 class AuthorEditScreen extends StatefulWidget {
   final Author author;
@@ -27,6 +30,9 @@ class _AuthorEditScreenState extends State<AuthorEditScreen> {
   late TextEditingController _dateOfBirthController;
   late TextEditingController _genreController;
   late TextEditingController _biographyController;
+  
+  Uint8List? _selectedImage;
+  Uint8List? _initialImage;
 
   @override
   void initState() {
@@ -38,6 +44,12 @@ class _AuthorEditScreenState extends State<AuthorEditScreen> {
     _dateOfBirthController = TextEditingController(text: widget.author.dateOfBirth);
     _genreController = TextEditingController(text: widget.author.genre);
     _biographyController = TextEditingController(text: widget.author.biography);
+    
+    // Initialize image if available
+    if (widget.author.imageUrl != null) {
+      _initialImage = ImageUtils.base64ToImage(widget.author.imageUrl!);
+      _selectedImage = _initialImage;
+    }
   }
 
   @override
@@ -148,6 +160,21 @@ class _AuthorEditScreenState extends State<AuthorEditScreen> {
                               maxLines: 5,
                             ),
                             
+                            const SizedBox(height: 20),
+                            
+                            // Image picker
+                            ImagePickerWidget(
+                              label: 'Slika autora',
+                              width: 200,
+                              height: 250,
+                              initialImage: _initialImage,
+                              onImageSelected: (imageBytes) {
+                                setState(() {
+                                  _selectedImage = imageBytes;
+                                });
+                              },
+                            ),
+                            
                             const SizedBox(height: 40),
                             
                             // Submit button
@@ -204,6 +231,7 @@ class _AuthorEditScreenState extends State<AuthorEditScreen> {
         _dateOfBirthController.text.isEmpty ? null : _dateOfBirthController.text,
         _genreController.text.isEmpty ? null : _genreController.text,
         _biographyController.text.isEmpty ? null : _biographyController.text,
+        imageBytes: _selectedImage,
       ).then((success) {
         if (success) {
           // Show success message

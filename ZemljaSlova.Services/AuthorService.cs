@@ -8,6 +8,7 @@ using ZemljaSlova.Model;
 using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services.Database;
+using Microsoft.AspNetCore.Http;
 
 namespace ZemljaSlova.Services
 {
@@ -66,6 +67,80 @@ namespace ZemljaSlova.Services
             {
                 var bookCount = bookAuthors.Count;
                 throw new UserException($"Nije moguće izbrisati autora koji ima knjige povezane sa njim.");
+            }
+        }
+
+        public Model.Author InsertFromForm(IFormCollection form)
+        {
+            try
+            {
+                var request = new AuthorUpsertRequest
+                {
+                    FirstName = form["firstName"].FirstOrDefault() ?? "",
+                    LastName = form["lastName"].FirstOrDefault() ?? "",
+                    Genre = form["genre"].FirstOrDefault(),
+                    Biography = form["biography"].FirstOrDefault()
+                };
+
+                // Handle date of birth
+                var dateOfBirthString = form["dateOfBirth"].FirstOrDefault();
+                if (!string.IsNullOrEmpty(dateOfBirthString) && DateTime.TryParse(dateOfBirthString, out var dateOfBirth))
+                {
+                    request.DateOfBirth = dateOfBirth;
+                }
+
+                // Handle image file
+                var imageFile = form.Files["image"];
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    using var memoryStream = new MemoryStream();
+                    imageFile.CopyTo(memoryStream);
+                    request.Image = memoryStream.ToArray();
+                }
+
+                var result = Insert(request);
+                
+                return result;
+            }
+            catch (UserException)
+            {
+                throw new UserException("Greška prilikom dodavanja autora");
+            }
+        }
+
+        public Model.Author UpdateFromForm(int id, IFormCollection form)
+        {
+            try
+            {
+                var request = new AuthorUpsertRequest
+                {
+                    FirstName = form["firstName"].FirstOrDefault() ?? "",
+                    LastName = form["lastName"].FirstOrDefault() ?? "",
+                    Genre = form["genre"].FirstOrDefault(),
+                    Biography = form["biography"].FirstOrDefault()
+                };
+
+                // Handle date of birth
+                var dateOfBirthString = form["dateOfBirth"].FirstOrDefault();
+                if (!string.IsNullOrEmpty(dateOfBirthString) && DateTime.TryParse(dateOfBirthString, out var dateOfBirth))
+                {
+                    request.DateOfBirth = dateOfBirth;
+                }
+
+                // Handle image file
+                var imageFile = form.Files["image"];
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    using var memoryStream = new MemoryStream();
+                    imageFile.CopyTo(memoryStream);
+                    request.Image = memoryStream.ToArray();
+                }
+
+                return Update(id, request);
+            }
+            catch (UserException)
+            {
+                throw new UserException("Greška prilikom ažuriranja autora");
             }
         }
     }

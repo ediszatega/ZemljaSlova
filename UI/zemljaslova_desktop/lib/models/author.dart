@@ -10,6 +10,7 @@ class Author {
   final String? dateOfBirth;
   final String? genre;
   final String? biography;
+  final String? imageUrl;
 
   Author({
     required this.id,
@@ -18,6 +19,7 @@ class Author {
     this.dateOfBirth,
     this.genre,
     this.biography,
+    this.imageUrl,
   });
 
   String get fullName => '$firstName $lastName';

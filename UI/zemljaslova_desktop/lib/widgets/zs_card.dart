@@ -249,8 +249,23 @@ class ZSCard extends StatelessWidget {
     dynamic author, 
     {VoidCallback? onTap}
   ) {
-    // Create image widget using fallback since author doesn't have profile image
-    Widget imageWidget = _buildFallbackAuthorImage();
+    // Create image widget from author's profile image
+    Widget imageWidget;
+    if (author.imageUrl != null && author.imageUrl!.isNotEmpty) {
+      imageWidget = Image.network(
+        author.imageUrl!,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return const Center(child: CircularProgressIndicator());
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return _buildFallbackAuthorImage();
+        },
+      );
+    } else {
+      imageWidget = _buildFallbackAuthorImage();
+    }
     
     // Additional info to display - genre if available
     String? subtitle = author.genre != null ? author.genre : null;

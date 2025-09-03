@@ -5,7 +5,6 @@ import '../models/author.dart';
 import '../providers/author_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/permission_guard.dart';
-import 'authors_overview.dart';
 import 'author_edit.dart';
 
 class AuthorDetailOverview extends StatelessWidget {
@@ -72,13 +71,22 @@ class AuthorDetailOverview extends StatelessWidget {
                           ),
                           child: AspectRatio(
                             aspectRatio: 1,
-                            child: Center(
-                              child: const Icon(
-                                Icons.person,
-                                size: 120,
-                                color: Colors.black,
-                              ),
-                            ),
+                            child: author.imageUrl != null && author.imageUrl!.isNotEmpty
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.network(
+                                      author.imageUrl!,
+                                      fit: BoxFit.cover,
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) return child;
+                                        return const Center(child: CircularProgressIndicator());
+                                      },
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return _buildFallbackAuthorImage();
+                                      },
+                                    ),
+                                  )
+                                : _buildFallbackAuthorImage(),
                           ),
                         ),
                       ),
@@ -275,6 +283,16 @@ class AuthorDetailOverview extends StatelessWidget {
         );
       }
     }
+  }
+  
+  Widget _buildFallbackAuthorImage() {
+    return const Center(
+      child: Icon(
+        Icons.person,
+        size: 120,
+        color: Colors.black,
+      ),
+    );
   }
 }
 
