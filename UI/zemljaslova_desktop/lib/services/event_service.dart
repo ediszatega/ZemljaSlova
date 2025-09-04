@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import '../models/event.dart';
 import '../models/ticket_type.dart';
@@ -95,8 +95,8 @@ class EventService {
     required DateTime endAt,
     String? organizer,
     String? lecturers,
-    List<int>? coverImage,
     int? maxNumberOfPeople,
+    Uint8List? imageBytes,
   }) async {
     try {
       final Map<String, dynamic> data = {
@@ -107,11 +107,13 @@ class EventService {
         'endAt': endAt.toIso8601String(),
         'organizer': organizer,
         'lecturers': lecturers,
-        'coverImage': coverImage,
         'maxNumberOfPeople': maxNumberOfPeople,
       };
       
-      final response = await _apiService.post('Event', data);
+      final response = imageBytes != null
+          ? await _apiService.postMultipart('Event/with-image', data,
+              imageBytes: imageBytes, imageFieldName: 'image')
+          : await _apiService.post('Event', data);
         return _mapEventFromBackend(response);
     } catch (e) {
       throw Exception('Greška prilikom dodavanja događaja.');
@@ -127,8 +129,8 @@ class EventService {
     required DateTime endAt,
     String? organizer,
     String? lecturers,
-    List<int>? coverImage,
     int? maxNumberOfPeople,
+    Uint8List? imageBytes,
   }) async {
     try {
       final Map<String, dynamic> data = {
@@ -140,11 +142,13 @@ class EventService {
         'endAt': endAt.toIso8601String(),
         'organizer': organizer,
         'lecturers': lecturers,
-        'coverImage': coverImage,
         'maxNumberOfPeople': maxNumberOfPeople,
       };
       
-      final response = await _apiService.put('Event/$id', data);
+      final response = imageBytes != null
+          ? await _apiService.putMultipart('Event/$id/with-image', data,
+              imageBytes: imageBytes, imageFieldName: 'image')
+          : await _apiService.put('Event/$id', data);
       
       return _mapEventFromBackend(response);
     } catch (e) {
@@ -280,12 +284,15 @@ class EventService {
 
   Event _mapEventFromBackend(dynamic eventData) {
     String? coverImageUrl;
-    if (eventData['coverImage'] != null) {
-      if (eventData['coverImage'] is List) {
-        final bytes = List<int>.from(eventData['coverImage']);
-        coverImageUrl = 'data:image/jpeg;base64,${base64Encode(bytes)}';
-      } else if (eventData['coverImage'] is String) {
-        coverImageUrl = eventData['coverImage'];
+    
+    // Check if event has an image
+    dynamic imageData = eventData['coverImage'];
+    
+    if (imageData != null) {
+      // Get the event ID to create the image URL
+      int eventId = eventData['id'] ?? 0;
+      if (eventId > 0) {
+        coverImageUrl = '${ApiService.baseUrl}/Event/$eventId/image';
       }
     }
 

@@ -4,6 +4,7 @@ using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace ZemljaSlova.API.Controllers
 {
@@ -45,6 +46,40 @@ namespace ZemljaSlova.API.Controllers
             {
                 return BadRequest(new { success = false, message = "Failed to purchase tickets. Insufficient quantity or invalid request." });
             }
+        }
+
+        [HttpGet("{id}/image")]
+        public IActionResult GetEventImage(int id)
+        {
+            try
+            {
+                var eventEntity = _eventService.GetById(id);
+                if (eventEntity?.CoverImage == null || eventEntity.CoverImage.Length == 0)
+                {
+                    return NotFound("Slika nije pronađena");
+                }
+
+                return File(eventEntity.CoverImage, "image/jpeg");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Greška prilikom dobavljanja slike");
+            }
+        }
+
+        [HttpPost("with-image")]
+        [Consumes("multipart/form-data")]
+        [AllowAnonymous]
+        public async Task<Model.Event> CreateEventWithImage()
+        {
+            return await _eventService.CreateEventFromForm(Request.Form);
+        }
+
+        [HttpPut("{id}/with-image")]
+        [Consumes("multipart/form-data")]
+        public async Task<Model.Event> UpdateEventWithImage(int id)
+        {
+            return await _eventService.UpdateEventFromForm(id, Request.Form);
         }
     }
 

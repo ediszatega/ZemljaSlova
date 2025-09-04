@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/event_provider.dart';
@@ -5,6 +6,7 @@ import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_input.dart';
 import '../widgets/zs_datetime_picker.dart';
+import '../widgets/image_picker_widget.dart';
 
 class EventAddScreen extends StatefulWidget {
   const EventAddScreen({super.key});
@@ -38,6 +40,8 @@ class _EventAddScreenState extends State<EventAddScreen> {
   bool _isLoading = false;
   DateTime? _startDateTime;
   DateTime? _endDateTime;
+  
+  Uint8List? _selectedImage;
 
   @override
   void dispose() {
@@ -287,6 +291,20 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                     keyboardType: TextInputType.number,
                                   ),
                                   
+                                  const SizedBox(height: 20),
+                                  
+                                  // Cover image picker
+                                  ImagePickerWidget(
+                                    label: 'Naslovna slika',
+                                    onImageSelected: (imageBytes) {
+                                      setState(() {
+                                        _selectedImage = imageBytes;
+                                      });
+                                    },
+                                    width: 200,
+                                    height: 150,
+                                  ),
+                                  
                                   const SizedBox(height: 40),
                                   
                                   // Ticket types section
@@ -527,6 +545,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
         lecturers: _lecturersController.text.isEmpty ? null : _lecturersController.text,
         maxNumberOfPeople: maxPeople,
         ticketTypes: _ticketTypes.isNotEmpty ? _ticketTypes : null,
+        imageBytes: _selectedImage,
       ).then((event) {
         setState(() {
           _isLoading = false;

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../models/event.dart';
 import '../models/ticket_type.dart';
@@ -188,9 +189,9 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
     required DateTime endAt,
     String? organizer,
     String? lecturers,
-    List<int>? coverImage,
     int? maxNumberOfPeople,
     List<Map<String, dynamic>>? ticketTypes,
+    Uint8List? imageBytes,
   }) async {
     _isLoading = true;
     _error = null;
@@ -212,8 +213,8 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
         endAt: endAt,
         organizer: organizer,
         lecturers: lecturers,
-        coverImage: coverImage,
         maxNumberOfPeople: maxNumberOfPeople,
+        imageBytes: imageBytes,
       );
       
       if (newEvent == null) {
@@ -290,10 +291,10 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
     required DateTime endAt,
     String? organizer,
     String? lecturers,
-    List<int>? coverImage,
     int? maxNumberOfPeople,
     List<Map<String, dynamic>>? ticketTypes,
     List<int>? ticketTypesToDelete,
+    Uint8List? imageBytes,
   }) async {
     _isLoading = true;
     _error = null;
@@ -309,8 +310,8 @@ class EventProvider with ChangeNotifier implements PaginatedDataProvider<Event> 
         endAt: endAt,
         organizer: organizer,
         lecturers: lecturers,
-        coverImage: coverImage,
         maxNumberOfPeople: maxNumberOfPeople,
+        imageBytes: imageBytes,
       );
       
       if (updatedEvent == null) {

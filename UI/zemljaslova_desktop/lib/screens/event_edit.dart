@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/event_provider.dart';
@@ -5,7 +6,9 @@ import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_input.dart';
 import '../widgets/zs_datetime_picker.dart';
+import '../widgets/image_picker_widget.dart';
 import '../utils/error_formatter.dart';
+import '../utils/image_utils.dart';
 
 class EventEditScreen extends StatefulWidget {
   final int eventId;
@@ -45,6 +48,9 @@ class _EventEditScreenState extends State<EventEditScreen> {
   
   // Used to track which ticket type is being edited, null means adding a new one
   int? _editingTicketIndex;
+  
+  Uint8List? _selectedImage;
+  Uint8List? _initialImage;
 
   @override
   void initState() {
@@ -85,6 +91,11 @@ class _EventEditScreenState extends State<EventEditScreen> {
                 'initialQuantity': ticketType.initialQuantity,
               });
             }
+          }
+          
+          // Load existing image if available
+          if (event.coverImageUrl != null && event.coverImageUrl!.isNotEmpty) {
+            _initialImage = ImageUtils.base64ToImage(event.coverImageUrl!);
           }
           
           _isLoading = false;
@@ -479,6 +490,21 @@ class _EventEditScreenState extends State<EventEditScreen> {
                                     keyboardType: TextInputType.number,
                                   ),
                                   
+                                  const SizedBox(height: 20),
+                                  
+                                  // Cover image picker
+                                  ImagePickerWidget(
+                                    label: 'Naslovna slika',
+                                    initialImage: _initialImage,
+                                    onImageSelected: (imageBytes) {
+                                      setState(() {
+                                        _selectedImage = imageBytes;
+                                      });
+                                    },
+                                    width: 200,
+                                    height: 150,
+                                  ),
+                                  
                                   const SizedBox(height: 40),
                                   
                                   // Ticket types section
@@ -756,6 +782,7 @@ class _EventEditScreenState extends State<EventEditScreen> {
         maxNumberOfPeople: maxPeople,
         ticketTypes: _ticketTypes.isNotEmpty ? _ticketTypes : null,
         ticketTypesToDelete: _ticketTypesToDelete.isNotEmpty ? _ticketTypesToDelete : null,
+        imageBytes: _selectedImage,
       ).then((event) {
         setState(() {
           _isLoading = false;
