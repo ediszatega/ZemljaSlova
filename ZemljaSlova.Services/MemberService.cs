@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services.Database;
 using Microsoft.EntityFrameworkCore;
 using ZemljaSlova.Services.Utils;
+using Microsoft.AspNetCore.Http;
 
 namespace ZemljaSlova.Services
 {
@@ -290,7 +292,141 @@ namespace ZemljaSlova.Services
                 }
             }
         }
-        
+
+        public async Task<Model.Member> CreateMemberFromForm(IFormCollection form)
+        {
+            Database.Member member;
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    // Extract form data
+                    var firstName = form["firstName"].ToString();
+                    var lastName = form["lastName"].ToString();
+                    var email = form["email"].ToString();
+                    var password = form["password"].ToString();
+                    var gender = form["gender"].ToString();
+                    var dateOfBirth = DateTime.Parse(form["dateOfBirth"].ToString());
+                    var joinedAt = DateTime.Parse(form["joinedAt"].ToString());
+
+                    // Validate password requirements
+                    if (!PasswordValidator.IsValidPassword(password))
+                    {
+                        throw new Exception(PasswordValidator.GetPasswordRequirementsMessage());
+                    }
+
+                    // Handle image upload
+                    byte[] imageBytes = null;
+                    if (form.Files.Count > 0 && form.Files[0].Length > 0)
+                    {
+                        var imageFile = form.Files[0];
+                        using (var memoryStream = new MemoryStream())
+                        {
+                            await imageFile.CopyToAsync(memoryStream);
+                            imageBytes = memoryStream.ToArray();
+                        }
+                    }
+
+                    var user = new UserInsertRequest
+                    {
+                        FirstName = firstName,
+                        LastName = lastName,
+                        Email = email,
+                        Gender = string.IsNullOrEmpty(gender) ? null : gender,
+                        Password = BCrypt.Net.BCrypt.HashPassword(password)
+                    };
+
+                    Model.User createdUser = _userService.Insert(user);
+                    
+                    // Update user with image if provided
+                    if (imageBytes != null)
+                    {
+                        var userEntity = _context.Users.FirstOrDefault(u => u.Id == createdUser.Id);
+                        if (userEntity != null)
+                        {
+                            userEntity.Image = imageBytes;
+                        }
+                    }
+                    
+                    await _context.SaveChangesAsync();
+
+                    member = new Database.Member
+                    {
+                        UserId = createdUser.Id,
+                        DateOfBirth = dateOfBirth,
+                        JoinedAt = joinedAt
+                    };
+
+                    _context.Members.Add(member);
+                    await _context.SaveChangesAsync();
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+
+            return _mapper.Map<Model.Member>(member);
+        }
+
+        public async Task<Model.Member> UpdateMemberFromForm(int id, IFormCollection form)
+        {
+            Database.Member member;
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    // First, get the member with its User
+                    member = await _context.Members
+                        .Include(m => m.User)
+                        .FirstOrDefaultAsync(m => m.Id == id);
+
+                    if (member == null)
+                    {
+                        throw new Exception("Member not found");
+                    }
+
+                    // Extract form data
+                    var firstName = form["firstName"].ToString();
+                    var lastName = form["lastName"].ToString();
+                    var email = form["email"].ToString();
+                    var gender = form["gender"].ToString();
+                    var dateOfBirth = DateTime.Parse(form["dateOfBirth"].ToString());
+
+                    // Handle image upload
+                    if (form.Files.Count > 0 && form.Files[0].Length > 0)
+                    {
+                        var imageFile = form.Files[0];
+                        using (var memoryStream = new MemoryStream())
+                        {
+                            await imageFile.CopyToAsync(memoryStream);
+                            member.User.Image = memoryStream.ToArray();
+                        }
+                    }
+
+                    // Update user data
+                    member.User.FirstName = firstName;
+                    member.User.LastName = lastName;
+                    member.User.Email = email;
+                    member.User.Gender = string.IsNullOrEmpty(gender) ? null : gender;
+
+                    // Update member data
+                    member.DateOfBirth = dateOfBirth;
+                    
+                    await _context.SaveChangesAsync();
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+
+            return _mapper.Map<Model.Member>(member);
+        }
 
     }
 }

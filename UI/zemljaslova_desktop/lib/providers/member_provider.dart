@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../models/member.dart';
 import '../models/member_filters.dart';
@@ -185,8 +186,9 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
     String email,
     String password,
     DateTime dateOfBirth,
-    String? gender,
-  ) async {
+    String? gender, {
+    Uint8List? imageBytes,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -199,6 +201,7 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
         password,
         dateOfBirth,
         gender,
+        imageBytes: imageBytes,
       );
 
       if (member != null) {
@@ -227,8 +230,9 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
     String lastName,
     String email,
     DateTime dateOfBirth,
-    String? gender,
-  ) async {
+    String? gender, {
+    Uint8List? imageBytes,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -241,6 +245,7 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
         email,
         dateOfBirth,
         gender,
+        imageBytes: imageBytes,
       );
 
       if (updatedMember != null) {

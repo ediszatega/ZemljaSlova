@@ -1,13 +1,15 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../providers/member_provider.dart';
-import '../models/member.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_input.dart';
 import '../widgets/zs_date_picker.dart';
 import '../widgets/zs_dropdown.dart';
+import '../widgets/image_picker_widget.dart';
+import '../utils/image_utils.dart';
 
 class MemberEditScreen extends StatefulWidget {
   final int memberId;
@@ -34,7 +36,8 @@ class _MemberEditScreenState extends State<MemberEditScreen> {
   
   bool _isLoading = true;
   DateTime? _dateOfBirth;
-  Member? _member;
+  Uint8List? _selectedImage;
+  Uint8List? _initialImage;
 
   @override
   void initState() {
@@ -54,7 +57,6 @@ class _MemberEditScreenState extends State<MemberEditScreen> {
       
       if (member != null) {
         setState(() {
-          _member = member;
           
           _firstNameController.text = member.firstName;
           _lastNameController.text = member.lastName;
@@ -71,6 +73,12 @@ class _MemberEditScreenState extends State<MemberEditScreen> {
               break;
             default:
               _selectedGender = member.gender;
+          }
+          
+          // Initialize image if available
+          if (member.profileImageUrl != null) {
+            _initialImage = ImageUtils.base64ToImage(member.profileImageUrl!);
+            _selectedImage = _initialImage;
           }
           
           _isLoading = false;
@@ -202,6 +210,21 @@ class _MemberEditScreenState extends State<MemberEditScreen> {
                                   
                                   const SizedBox(height: 20),
                                   
+                                  // Image picker
+                                  ImagePickerWidget(
+                                    label: 'Profilna slika',
+                                    initialImage: _initialImage,
+                                    onImageSelected: (imageBytes) {
+                                      setState(() {
+                                        _selectedImage = imageBytes;
+                                      });
+                                    },
+                                    width: 150,
+                                    height: 150,
+                                  ),
+                                  
+                                  const SizedBox(height: 20),
+                                  
                                   // Gender dropdown
                                   ZSDropdown<String?>(
                                     label: 'Spol',
@@ -322,6 +345,7 @@ class _MemberEditScreenState extends State<MemberEditScreen> {
         _emailController.text,
         _dateOfBirth!,
         backendGender,
+        imageBytes: _selectedImage,
       ).then((member) {
         setState(() {
           _isLoading = false;

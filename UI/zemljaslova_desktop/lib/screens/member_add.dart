@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/member_provider.dart';
@@ -7,6 +8,7 @@ import '../widgets/zs_button.dart';
 import '../widgets/zs_input.dart';
 import '../widgets/zs_date_picker.dart';
 import '../widgets/zs_dropdown.dart';
+import '../widgets/image_picker_widget.dart';
 
 class MemberAddScreen extends StatefulWidget {
   const MemberAddScreen({super.key});
@@ -26,6 +28,7 @@ class _MemberAddScreenState extends State<MemberAddScreen> {
   
   String? _selectedGender;
   final List<String> _genderOptions = ['Muški', 'Ženski'];
+  Uint8List? _selectedImage;
 
   @override
   void dispose() {
@@ -175,6 +178,20 @@ class _MemberAddScreenState extends State<MemberAddScreen> {
                             
                             const SizedBox(height: 20),
                             
+                            // Image picker
+                            ImagePickerWidget(
+                              label: 'Profilna slika',
+                              onImageSelected: (imageBytes) {
+                                setState(() {
+                                  _selectedImage = imageBytes;
+                                });
+                              },
+                              width: 150,
+                              height: 150,
+                            ),
+                            
+                            const SizedBox(height: 20),
+                            
                             // Gender dropdown
                             ZSDropdown<String?>(
                               label: 'Spol',
@@ -300,6 +317,7 @@ class _MemberAddScreenState extends State<MemberAddScreen> {
         _passwordController.text,
         dateOfBirth,
         backendGender,
+        imageBytes: _selectedImage,
       ).then((success) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(

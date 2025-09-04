@@ -4,6 +4,7 @@ import 'package:zemljaslova_desktop/widgets/zs_button.dart';
 import '../models/member.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/permission_guard.dart';
+import '../widgets/image_display_widget.dart';
 import '../providers/auth_provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/member_provider.dart';
@@ -209,17 +210,11 @@ class _MembersDetailOverviewState extends State<MembersDetailOverview> {
                             ),
                             child: AspectRatio(
                               aspectRatio: 1,
-                              child: Center(
-                                child: _member.profileImageUrl != null
-                                  ? Image.network(
-                                      _member.profileImageUrl!,
-                                      fit: BoxFit.cover,
-                                    )
-                                  : const Icon(
-                                      Icons.person,
-                                      size: 120,
-                                      color: Colors.black,
-                                    ),
+                              child: ImageDisplayWidget.profile(
+                                imageUrl: _member.profileImageUrl,
+                                width: double.infinity,
+                                height: double.infinity,
+                                fit: BoxFit.cover,
                               ),
                             ),
                           ),

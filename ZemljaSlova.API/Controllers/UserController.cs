@@ -87,5 +87,24 @@ namespace ZemljaSlova.API.Controllers
                 return BadRequest($"Error refreshing token: {ex.Message}");
             }
         }
+
+        [HttpGet("{id}/image")]
+        public IActionResult GetUserImage(int id)
+        {
+            try
+            {
+                var user = _userService.GetById(id);
+                if (user?.Image == null || user.Image.Length == 0)
+                {
+                    return NotFound("Slika nije pronađena");
+                }
+
+                return File(user.Image, "image/jpeg");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Greška prilikom dobavljanja slike");
+            }
+        }
     }
 }

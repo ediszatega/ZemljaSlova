@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../models/member.dart';
 import 'api_service.dart';
@@ -93,8 +92,9 @@ class MemberService {
     String email,
     String password,
     DateTime dateOfBirth,
-    String? gender,
-  ) async {
+    String? gender, {
+    Uint8List? imageBytes,
+  }) async {
     try {
       final data = {
         'firstName': firstName,
@@ -106,7 +106,10 @@ class MemberService {
         'gender': gender,
       };
       
-      final response = await _apiService.post('Member/CreateMember', data);
+      final response = imageBytes != null
+          ? await _apiService.postMultipart('Member/CreateMember/with-image', data, 
+              imageBytes: imageBytes, imageFieldName: 'image')
+          : await _apiService.post('Member/CreateMember', data);
       
       return _mapMemberFromBackend(response);
       
@@ -121,8 +124,9 @@ class MemberService {
     String lastName,
     String email,
     DateTime dateOfBirth,
-    String? gender,
-  ) async {
+    String? gender, {
+    Uint8List? imageBytes,
+  }) async {
     try {
       final data = {
         'firstName': firstName,
@@ -132,7 +136,10 @@ class MemberService {
         'gender': gender,
       };
       
-      final response = await _apiService.put('Member/UpdateMember/$id', data);
+      final response = imageBytes != null
+          ? await _apiService.putMultipart('Member/UpdateMember/$id/with-image', data,
+              imageBytes: imageBytes, imageFieldName: 'image')
+          : await _apiService.put('Member/UpdateMember/$id', data);
       
       return _mapMemberFromBackend(response);
       
@@ -151,12 +158,15 @@ class MemberService {
   
   Member _mapMemberFromBackend(dynamic memberData) {
     String? profileImageUrl;
-    if (memberData['profileImage'] != null) {
-      if (memberData['profileImage'] is List) {
-        final bytes = List<int>.from(memberData['profileImage']);
-        profileImageUrl = 'data:image/jpeg;base64,${base64Encode(bytes)}';
-      } else if (memberData['profileImage'] is String) {
-        profileImageUrl = memberData['profileImage'];
+    
+    // Check if user has an image
+    dynamic imageData = memberData['user']?['image'] ?? memberData['profileImage'];
+    
+    if (imageData != null) {
+      // Get the user ID to create the image URL
+      int userIdForImage = memberData['userId'] ?? memberData['user']?['id'] ?? 0;
+      if (userIdForImage > 0) {
+        profileImageUrl = '${ApiService.baseUrl}/User/$userIdForImage/image';
       }
     }
     

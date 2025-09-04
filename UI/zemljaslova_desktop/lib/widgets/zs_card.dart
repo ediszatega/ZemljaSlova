@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'image_display_widget.dart';
 
 class ZSCard extends StatelessWidget {
   // Required parameters
@@ -147,13 +148,12 @@ class ZSCard extends StatelessWidget {
   ) {
     // Create image widget from member's profile image
     Widget imageWidget;
-    if (member.profileImageUrl != null) {
-      imageWidget = Image.network(
-        member.profileImageUrl,
+    if (member.profileImageUrl != null && member.profileImageUrl!.isNotEmpty) {
+      imageWidget = ImageDisplayWidget.profile(
+        imageUrl: member.profileImageUrl!,
+        width: double.infinity,
+        height: double.infinity,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildFallbackImage();
-        },
       );
     } else {
       imageWidget = _buildFallbackImage();

@@ -33,6 +33,21 @@ namespace ZemljaSlova.API.Controllers
             return await _memberService.UpdateMember(id, request);
         }
 
+        [HttpPost("CreateMember/with-image")]
+        [Consumes("multipart/form-data")]
+        [AllowAnonymous]
+        public async Task<Model.Member> CreateMemberWithImage()
+        {
+            return await _memberService.CreateMemberFromForm(Request.Form);
+        }
+
+        [HttpPut("UpdateMember/{id}/with-image")]
+        [Consumes("multipart/form-data")]
+        public async Task<Model.Member> UpdateMemberWithImage(int id)
+        {
+            return await _memberService.UpdateMemberFromForm(id, Request.Form);
+        }
+
         [HttpGet("GetMemberFavourites/{memberId}")]
         public ActionResult<List<Model.Favourite>> GetMemberFavourites(int memberId)
         {
