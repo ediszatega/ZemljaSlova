@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/employee_provider.dart';
@@ -6,6 +7,7 @@ import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_input.dart';
 import '../widgets/zs_dropdown.dart';
+import '../widgets/image_picker_widget.dart';
 
 class EmployeeAddScreen extends StatefulWidget {
   const EmployeeAddScreen({super.key});
@@ -28,6 +30,8 @@ class _EmployeeAddScreenState extends State<EmployeeAddScreen> {
   
   String? _selectedAccessLevel;
   final List<String> _accessLevelOptions = ['Admin', 'Uposlenik'];
+  
+  Uint8List? _selectedImage;
   @override
   void dispose() {
     _firstNameController.dispose();
@@ -212,6 +216,20 @@ class _EmployeeAddScreenState extends State<EmployeeAddScreen> {
                               },
                             ),
                             
+                            const SizedBox(height: 20),
+                            
+                            // Profile image picker
+                            ImagePickerWidget(
+                              label: 'Profilna slika',
+                              onImageSelected: (imageBytes) {
+                                setState(() {
+                                  _selectedImage = imageBytes;
+                                });
+                              },
+                              width: 150,
+                              height: 150,
+                            ),
+                            
                             const SizedBox(height: 40),
                             
                             // Submit button
@@ -305,6 +323,7 @@ class _EmployeeAddScreenState extends State<EmployeeAddScreen> {
         _passwordController.text,
         accessLevel,
         backendGender,
+        imageBytes: _selectedImage,
       ).then((success) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(

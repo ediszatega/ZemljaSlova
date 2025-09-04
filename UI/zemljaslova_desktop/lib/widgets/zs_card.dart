@@ -300,17 +300,15 @@ class ZSCard extends StatelessWidget {
   static Widget fromEmployee(
     BuildContext context, 
     dynamic employee, 
-    {VoidCallback? onTap}
+    {VoidCallback? onTap, bool? isActive, bool hideStatus = false}
   ) {
-    // Create image widget from employee's profile image
     Widget imageWidget;
-    if (employee.profileImageUrl != null) {
-      imageWidget = Image.network(
-        employee.profileImageUrl,
+    if (employee.profileImageUrl != null && employee.profileImageUrl!.isNotEmpty) {
+      imageWidget = ImageDisplayWidget.profile(
+        imageUrl: employee.profileImageUrl!,
+        width: double.infinity,
+        height: double.infinity,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildFallbackImage();
-        },
       );
     } else {
       imageWidget = _buildFallbackImage();
@@ -320,6 +318,7 @@ class ZSCard extends StatelessWidget {
       title: employee.fullName,
       subtitle: employee.displayAccessLevel,
       image: imageWidget,
+      isActive: hideStatus ? null : (isActive ?? employee.isActive),
       onTap: onTap,
     );
   }

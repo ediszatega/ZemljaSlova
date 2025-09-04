@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../models/employee.dart';
 import '../models/employee_filters.dart';
@@ -186,8 +187,9 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
     String email,
     String password,
     String accessLevel,
-    String? gender,
-  ) async {
+    String? gender, {
+    Uint8List? imageBytes,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -200,6 +202,7 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
         password,
         accessLevel,
         gender,
+        imageBytes: imageBytes,
       );
 
       if (employee != null) {
@@ -228,8 +231,9 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
     String lastName,
     String email,
     String accessLevel,
-    String? gender,
-  ) async {
+    String? gender, {
+    Uint8List? imageBytes,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -242,6 +246,7 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
         email,
         accessLevel,
         gender,
+        imageBytes: imageBytes,
       );
 
       if (updatedEmployee != null) {

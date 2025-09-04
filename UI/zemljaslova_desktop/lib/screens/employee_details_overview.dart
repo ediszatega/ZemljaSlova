@@ -5,10 +5,10 @@ import '../models/employee.dart';
 import '../widgets/sidebar.dart';
 import '../providers/user_provider.dart';
 import '../providers/employee_provider.dart';
-import 'employees_overview.dart';
 import 'employee_edit.dart';
 import 'change_password_screen.dart';
 import '../widgets/permission_guard.dart';
+import '../widgets/image_display_widget.dart';
 
 class EmployeeDetailsOverview extends StatefulWidget {
   final Employee employee;
@@ -143,17 +143,11 @@ class _EmployeeDetailsOverviewState extends State<EmployeeDetailsOverview> {
                             ),
                             child: AspectRatio(
                               aspectRatio: 1,
-                              child: Center(
-                                child: _employee.profileImageUrl != null
-                                  ? Image.network(
-                                      _employee.profileImageUrl!,
-                                      fit: BoxFit.cover,
-                                    )
-                                  : const Icon(
-                                      Icons.person,
-                                      size: 120,
-                                      color: Colors.black,
-                                    ),
+                              child: ImageDisplayWidget.profile(
+                                imageUrl: _employee.profileImageUrl,
+                                width: double.infinity,
+                                height: double.infinity,
+                                fit: BoxFit.cover,
                               ),
                             ),
                           ),

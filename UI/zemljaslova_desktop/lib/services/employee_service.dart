@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import '../models/employee.dart';
 import 'api_service.dart';
@@ -93,8 +93,9 @@ class EmployeeService {
     String email,
     String password,
     String accessLevel,
-    String? gender,
-  ) async {
+    String? gender, {
+    Uint8List? imageBytes,
+  }) async {
     try {
       final data = {
         'firstName': firstName,
@@ -105,7 +106,10 @@ class EmployeeService {
         'gender': gender,
       };
       
-      final response = await _apiService.post('Employee/CreateEmployee', data);
+      final response = imageBytes != null
+          ? await _apiService.postMultipart('Employee/CreateEmployee/with-image', data,
+              imageBytes: imageBytes, imageFieldName: 'image')
+          : await _apiService.post('Employee/CreateEmployee', data);
       
       return _mapEmployeeFromBackend(response);
     } catch (e) {
@@ -119,8 +123,9 @@ class EmployeeService {
     String lastName,
     String email,
     String accessLevel,
-    String? gender,
-  ) async {
+    String? gender, {
+    Uint8List? imageBytes,
+  }) async {
     try {
       final data = {
         'firstName': firstName,
@@ -130,7 +135,10 @@ class EmployeeService {
         'accessLevel': accessLevel
       };
       
-      final response = await _apiService.put('Employee/UpdateEmployee/$id', data);
+      final response = imageBytes != null
+          ? await _apiService.putMultipart('Employee/UpdateEmployee/$id/with-image', data,
+              imageBytes: imageBytes, imageFieldName: 'image')
+          : await _apiService.put('Employee/UpdateEmployee/$id', data);
       
       return _mapEmployeeFromBackend(response);
     } catch (e) {
@@ -149,12 +157,15 @@ class EmployeeService {
   
   Employee _mapEmployeeFromBackend(dynamic employeeData) {
     String? profileImageUrl;
-    if (employeeData['profileImage'] != null) {
-      if (employeeData['profileImage'] is List) {
-        final bytes = List<int>.from(employeeData['profileImage']);
-        profileImageUrl = 'data:image/jpeg;base64,${base64Encode(bytes)}';
-      } else if (employeeData['profileImage'] is String) {
-        profileImageUrl = employeeData['profileImage'];
+    
+    // Check if user has an image
+    dynamic imageData = employeeData['user']?['image'] ?? employeeData['profileImage'];
+    
+    if (imageData != null) {
+      // Get the employee ID to create the image URL
+      int employeeId = employeeData['id'] ?? 0;
+      if (employeeId > 0) {
+        profileImageUrl = '${ApiService.baseUrl}/Employee/$employeeId/image';
       }
     }
     

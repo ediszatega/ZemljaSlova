@@ -10,6 +10,8 @@ using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services.Database;
 using Microsoft.EntityFrameworkCore;
 using ZemljaSlova.Services.Utils;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace ZemljaSlova.Services
 {
@@ -243,7 +245,106 @@ namespace ZemljaSlova.Services
                 }
             }
         }
-        
+
+        public async Task<Model.Employee> CreateEmployeeFromForm(IFormCollection form)
+        {
+            // Extract form data
+            string firstName = form["firstName"].FirstOrDefault() ?? "";
+            string lastName = form["lastName"].FirstOrDefault() ?? "";
+            string email = form["email"].FirstOrDefault() ?? "";
+            string password = form["password"].FirstOrDefault() ?? "";
+            string accessLevel = form["accessLevel"].FirstOrDefault() ?? "";
+            string? gender = form["gender"].FirstOrDefault();
+
+            // Handle image file
+            byte[] imageBytes = null;
+            if (form.Files.Count > 0 && form.Files[0].Length > 0)
+            {
+                var imageFile = form.Files[0];
+                using (var memoryStream = new MemoryStream())
+                {
+                    await imageFile.CopyToAsync(memoryStream);
+                    imageBytes = memoryStream.ToArray();
+                }
+            }
+
+            // Create user first
+            var user = new UserInsertRequest
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                Email = email,
+                Password = password,
+                Gender = gender
+            };
+
+            Model.User createdUser = _userService.Insert(user);
+
+            // Update user with image if provided
+            if (imageBytes != null)
+            {
+                var userEntity = _context.Users.FirstOrDefault(u => u.Id == createdUser.Id);
+                if (userEntity != null)
+                {
+                    userEntity.Image = imageBytes;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Create employee
+            var employee = new Database.Employee
+            {
+                UserId = createdUser.Id,
+                AccessLevel = accessLevel
+            };
+
+            _context.Employees.Add(employee);
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<Model.Employee>(employee);
+        }
+
+        public async Task<Model.Employee> UpdateEmployeeFromForm(int id, IFormCollection form)
+        {
+            var employee = await _context.Employees
+                .Include(e => e.User)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (employee == null)
+            {
+                throw new UserException("Uposlenik nije pronađen.");
+            }
+
+            // Extract form data
+            string firstName = form["firstName"].FirstOrDefault() ?? "";
+            string lastName = form["lastName"].FirstOrDefault() ?? "";
+            string email = form["email"].FirstOrDefault() ?? "";
+            string accessLevel = form["accessLevel"].FirstOrDefault() ?? "";
+            string? gender = form["gender"].FirstOrDefault();
+
+            // Update user data
+            employee.User.FirstName = firstName;
+            employee.User.LastName = lastName;
+            employee.User.Email = email;
+            employee.User.Gender = gender;
+            employee.AccessLevel = accessLevel;
+
+            // Handle image file
+            if (form.Files.Count > 0 && form.Files[0].Length > 0)
+            {
+                var imageFile = form.Files[0];
+                using (var memoryStream = new MemoryStream())
+                {
+                    await imageFile.CopyToAsync(memoryStream);
+                    employee.User.Image = memoryStream.ToArray();
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<Model.Employee>(employee);
+        }
 
     }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ZemljaSlova.Model;
 using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
+using Microsoft.AspNetCore.Http;
 
 namespace ZemljaSlova.Services
 {
@@ -16,5 +17,9 @@ namespace ZemljaSlova.Services
         public Task<Model.Employee> UpdateEmployee(int id, EmployeeUpdateRequest request);
         
         public Model.Employee GetByUserId(int userId);
+        
+        public Task<Model.Employee> CreateEmployeeFromForm(IFormCollection form);
+        
+        public Task<Model.Employee> UpdateEmployeeFromForm(int id, IFormCollection form);
     }
 }

@@ -5,6 +5,7 @@ using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services;
 using Microsoft.AspNetCore.Authorization;
 using ZemljaSlova.Model.Enums;
+using Microsoft.AspNetCore.Http;
 
 namespace ZemljaSlova.API.Controllers
 {
@@ -32,6 +33,14 @@ namespace ZemljaSlova.API.Controllers
                 return StatusCode(500, "An error occurred while creating the employee.");
             }
         }
+
+        [HttpPost("CreateEmployee/with-image")]
+        [Consumes("multipart/form-data")]
+        [AllowAnonymous]
+        public async Task<Model.Employee> CreateEmployeeWithImage()
+        {
+            return await _employeeService.CreateEmployeeFromForm(Request.Form);
+        }
         
         [HttpPut("UpdateEmployee/{id}")]
         public async Task<ActionResult<Model.Employee>> UpdateEmployee(int id, [FromBody] EmployeeUpdateRequest request)
@@ -45,6 +54,13 @@ namespace ZemljaSlova.API.Controllers
             {
                 return StatusCode(500, "An error occurred while updating the employee.");
             }
+        }
+
+        [HttpPut("UpdateEmployee/{id}/with-image")]
+        [Consumes("multipart/form-data")]
+        public async Task<Model.Employee> UpdateEmployeeWithImage(int id)
+        {
+            return await _employeeService.UpdateEmployeeFromForm(id, Request.Form);
         }
         
         [HttpGet("GetEmployeeByUserId/{userId}")]
@@ -70,6 +86,25 @@ namespace ZemljaSlova.API.Controllers
         public override async Task<Model.Employee> Delete(int id)
         {
             return await _employeeService.Delete(id);
+        }
+
+        [HttpGet("{id}/image")]
+        public IActionResult GetEmployeeImage(int id)
+        {
+            try
+            {
+                var employee = _employeeService.GetById(id);
+                if (employee?.User?.Image == null || employee.User.Image.Length == 0)
+                {
+                    return NotFound("Slika nije pronađena");
+                }
+
+                return File(employee.User.Image, "image/jpeg");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Greška prilikom dobavljanja slike");
+            }
         }
     }
 }

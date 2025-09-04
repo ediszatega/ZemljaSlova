@@ -1,12 +1,14 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../providers/employee_provider.dart';
-import '../models/employee.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_input.dart';
 import '../widgets/zs_dropdown.dart';
+import '../widgets/image_picker_widget.dart';
+import '../utils/image_utils.dart';
 
 class EmployeeEditScreen extends StatefulWidget {
   final int employeeId;
@@ -34,7 +36,9 @@ class _EmployeeEditScreenState extends State<EmployeeEditScreen> {
   final List<String> _accessLevelOptions = ['Admin', 'Uposlenik'];
   
   bool _isLoading = true;
-  Employee? _employee;
+  
+  Uint8List? _selectedImage;
+  Uint8List? _initialImage;
 
   @override
   void initState() {
@@ -56,7 +60,6 @@ class _EmployeeEditScreenState extends State<EmployeeEditScreen> {
       if (employee != null) {
         
         setState(() {
-          _employee = employee;
           
           _firstNameController.text = employee.firstName;
           _lastNameController.text = employee.lastName;
@@ -83,6 +86,11 @@ class _EmployeeEditScreenState extends State<EmployeeEditScreen> {
               break;
             default:
               _selectedAccessLevel = 'Uposlenik';
+          }
+          
+          // Load existing image if available
+          if (employee.profileImageUrl != null && employee.profileImageUrl!.isNotEmpty) {
+            _initialImage = ImageUtils.base64ToImage(employee.profileImageUrl!);
           }
           
           _isLoading = false;
@@ -249,6 +257,21 @@ class _EmployeeEditScreenState extends State<EmployeeEditScreen> {
                                     },
                                   ),
                                   
+                                  const SizedBox(height: 20),
+                                  
+                                  // Profile image picker
+                                  ImagePickerWidget(
+                                    label: 'Profilna slika',
+                                    initialImage: _initialImage,
+                                    onImageSelected: (imageBytes) {
+                                      setState(() {
+                                        _selectedImage = imageBytes;
+                                      });
+                                    },
+                                    width: 150,
+                                    height: 150,
+                                  ),
+                                  
                                   const SizedBox(height: 40),
                                   
                                   // Submit buttons
@@ -344,6 +367,7 @@ class _EmployeeEditScreenState extends State<EmployeeEditScreen> {
         _emailController.text,
         accessLevel,
         backendGender,
+        imageBytes: _selectedImage,
       ).then((employee) {
         setState(() {
           _isLoading = false;
