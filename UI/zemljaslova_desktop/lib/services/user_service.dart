@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'api_service.dart';
 import '../utils/authorization.dart';
 
@@ -71,10 +70,21 @@ class UserService {
     String? gender;
     String accessLevel = '';
     int employeeId = 0;
+    String? profileImageUrl;
     
     // Extract employee data
     employeeId = employeeData['id'] ?? 0;
     accessLevel = employeeData['accessLevel'] ?? '';
+    
+    // Check if user has an image
+    dynamic imageData = employeeData['user']?['image'] ?? employeeData['profileImage'];
+    
+    if (imageData != null) {
+      // Get the employee ID to create the image URL
+      if (employeeId > 0) {
+        profileImageUrl = '${ApiService.baseUrl}/Employee/$employeeId/image';
+      }
+    }
     
     // Extract user data
     if (employeeData['user'] is Map) {
@@ -106,6 +116,7 @@ class UserService {
       'position': position,
       'accessLevel': accessLevel,
       'employeeId': employeeId,
+      'profileImageUrl': profileImageUrl,
     };
   }
 } 

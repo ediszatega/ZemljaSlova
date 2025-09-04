@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
+import '../widgets/image_display_widget.dart';
 import '../providers/auth_provider.dart';
 import '../providers/user_provider.dart';
-import '../screens/login_screen.dart';
 import '../screens/change_password_screen.dart';
 import '../services/user_service.dart';
 import '../utils/authorization.dart';
-import 'package:flutter/foundation.dart';
 
 class ProfileOverview extends StatefulWidget {
   const ProfileOverview({super.key});
@@ -181,12 +180,11 @@ class _ProfileOverviewState extends State<ProfileOverview> {
                                         ),
                                         child: AspectRatio(
                                           aspectRatio: 1,
-                                          child: Center(
-                                            child: const Icon(
-                                              Icons.person,
-                                              size: 120,
-                                              color: Colors.black,
-                                            ),
+                                          child: ImageDisplayWidget.profile(
+                                            imageUrl: currentUser['profileImageUrl'],
+                                            width: double.infinity,
+                                            height: double.infinity,
+                                            fit: BoxFit.cover,
                                           ),
                                         ),
                                       ),
