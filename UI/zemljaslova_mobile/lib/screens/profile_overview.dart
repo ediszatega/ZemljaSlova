@@ -14,6 +14,7 @@ import '../widgets/zs_button.dart';
 import '../widgets/book_club_section.dart';
 import '../widgets/image_display_widget.dart';
 import '../services/user_service.dart';
+import 'profile_edit.dart';
 
 class ProfileOverview extends StatefulWidget {
   const ProfileOverview({super.key});
@@ -118,7 +119,7 @@ class _ProfileOverviewState extends State<ProfileOverview> {
               const SizedBox(height: 24),
               _buildPersonalInfoCard(context, member),
               const SizedBox(height: 24),
-              _buildActionButtons(context),
+              _buildActionButtons(context, member),
               const SizedBox(height: 32),
             ],
           ),
@@ -397,7 +398,7 @@ class _ProfileOverviewState extends State<ProfileOverview> {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
+  Widget _buildActionButtons(BuildContext context, Member member) {
     return Column(
       children: [
         // Change Password Button
@@ -451,7 +452,16 @@ class _ProfileOverviewState extends State<ProfileOverview> {
         ZSButton(
           text: 'Uredi profil',
           onPressed: () {
-            // TODO: Navigate to edit profile screen
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => ProfileEditScreen(member: member),
+              ),
+            ).then((result) {
+              // Refresh member data if profile was updated
+              if (result == true) {
+                _loadMemberData();
+              }
+            });
           },
           backgroundColor: Colors.green.shade50,
           foregroundColor: Colors.green,

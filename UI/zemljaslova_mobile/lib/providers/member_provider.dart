@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../models/member.dart';
 import '../services/member_service.dart';
@@ -102,6 +103,7 @@ class MemberProvider with ChangeNotifier {
     required String email,
     required DateTime dateOfBirth,
     String? gender,
+    Uint8List? imageBytes,
   }) async {
     _setLoading(true);
     _clearError();
@@ -114,6 +116,7 @@ class MemberProvider with ChangeNotifier {
         email: email,
         dateOfBirth: dateOfBirth,
         gender: gender,
+        imageBytes: imageBytes,
       );
 
       if (member != null) {

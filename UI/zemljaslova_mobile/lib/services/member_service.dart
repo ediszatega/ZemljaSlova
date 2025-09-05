@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import '../models/member.dart';
 import 'api_service.dart';
 
@@ -60,6 +61,7 @@ class MemberService {
     required String email,
     required DateTime dateOfBirth,
     String? gender,
+    Uint8List? imageBytes,
   }) async {
     try {
       final data = {
@@ -70,7 +72,10 @@ class MemberService {
         'gender': gender,
       };
       
-      final response = await _apiService.put('Member/UpdateMember/$id', data);
+      final response = imageBytes != null
+          ? await _apiService.putMultipart('Member/UpdateMember/$id/with-image', data,
+              imageBytes: imageBytes, imageFieldName: 'image')
+          : await _apiService.put('Member/UpdateMember/$id', data);
       
       return _mapMemberFromBackend(response);
     } catch (e) {
