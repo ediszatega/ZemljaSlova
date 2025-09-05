@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import '../models/member.dart';
 import 'api_service.dart';
 
@@ -82,6 +81,17 @@ class MemberService {
   Member _mapMemberFromBackend(dynamic memberData) {
     // Extract member specific data
     int userId = memberData['userId'] ?? 0;
+    String? profileImageUrl;
+    
+    // Check if user has an image
+    dynamic imageData = memberData['user']?['image'] ?? memberData['profileImage'];
+    
+    if (imageData != null) {
+      // Get the user ID to create the image URL
+      if (userId > 0) {
+        profileImageUrl = '${ApiService.baseUrl}/User/$userId/image';
+      }
+    }
     
     // Parse dates
     DateTime dateOfBirth = DateTime.now();
@@ -128,7 +138,7 @@ class MemberService {
       email: email,
       gender: gender,
       isActive: isActive,
-      profileImageUrl: null,
+      profileImageUrl: profileImageUrl,
     );
   }
 } 

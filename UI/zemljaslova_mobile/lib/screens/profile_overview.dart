@@ -12,6 +12,7 @@ import '../screens/membership_purchase_screen.dart';
 import '../screens/member_transaction_history.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/book_club_section.dart';
+import '../widgets/image_display_widget.dart';
 import '../services/user_service.dart';
 
 class ProfileOverview extends StatefulWidget {
@@ -42,7 +43,6 @@ class _ProfileOverviewState extends State<ProfileOverview> {
 
   void _loadMemberData() {
     final memberProvider = context.read<MemberProvider>();
-    final membershipProvider = context.read<MembershipProvider>();
     
     if (Authorization.userId != null) {
       memberProvider.getMemberByUserId(Authorization.userId!);
@@ -163,23 +163,15 @@ class _ProfileOverviewState extends State<ProfileOverview> {
               color: Colors.grey.shade200,
               shape: BoxShape.circle,
             ),
-            child: member.profileImageUrl != null
-                ? ClipOval(
-                    child: Image.network(
-                      member.profileImageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
-                        Icons.person,
-                        size: 50,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  )
-                : const Icon(
-                    Icons.person,
-                    size: 50,
-                    color: Colors.grey,
-                  ),
+            child: ClipOval(
+              child: ImageDisplayWidget.profile(
+                imageUrl: member.profileImageUrl,
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
+                borderRadius: BorderRadius.circular(50),
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           
