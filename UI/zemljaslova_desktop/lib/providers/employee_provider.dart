@@ -272,6 +272,51 @@ class EmployeeProvider with ChangeNotifier implements PaginatedDataProvider<Empl
     }
   }
   
+  Future<Employee?> updateSelfProfile(
+    int id,
+    String firstName,
+    String lastName,
+    String email,
+    String? gender, {
+    Uint8List? imageBytes,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final updatedEmployee = await _employeeService.updateSelfProfile(
+        id,
+        firstName,
+        lastName,
+        email,
+        gender,
+        imageBytes: imageBytes,
+      );
+
+      if (updatedEmployee != null) {
+        final index = _employees.indexWhere((employee) => employee.id == id);
+        if (index >= 0) {
+          _employees[index] = updatedEmployee;
+        }
+        
+        _isLoading = false;
+        notifyListeners();
+        return updatedEmployee;
+      }
+
+      _error = 'Greška prilikom ažuriranja profila.';
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    }
+  }
+  
   Future<bool> deleteEmployee(int id) async {
     _isLoading = true;
     _error = null;

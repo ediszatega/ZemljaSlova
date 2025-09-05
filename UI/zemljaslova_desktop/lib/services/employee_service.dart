@@ -146,6 +146,33 @@ class EmployeeService {
     }
   }
   
+  Future<Employee?> updateSelfProfile(
+    int id,
+    String firstName,
+    String lastName,
+    String email,
+    String? gender, {
+    Uint8List? imageBytes,
+  }) async {
+    try {
+      final data = {
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email,
+        'gender': gender,
+      };
+      
+      final response = imageBytes != null
+          ? await _apiService.putMultipart('Employee/UpdateSelfProfile/$id/with-image', data,
+              imageBytes: imageBytes, imageFieldName: 'image')
+          : await _apiService.put('Employee/UpdateSelfProfile/$id', data);
+      
+      return _mapEmployeeFromBackend(response);
+    } catch (e) {
+      throw Exception('Greška prilikom ažuriranja profila.');
+    }
+  }
+  
   Future<bool> deleteEmployee(int id) async {
     try {
       await _apiService.delete('Employee/$id');
@@ -165,7 +192,8 @@ class EmployeeService {
       // Get the employee ID to create the image URL
       int employeeId = employeeData['id'] ?? 0;
       if (employeeId > 0) {
-        profileImageUrl = '${ApiService.baseUrl}/Employee/$employeeId/image';
+        // Add timestamp to prevent caching issues
+        profileImageUrl = '${ApiService.baseUrl}/Employee/$employeeId/image?t=${DateTime.now().millisecondsSinceEpoch}';
       }
     }
     

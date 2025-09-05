@@ -346,5 +346,66 @@ namespace ZemljaSlova.Services
             return _mapper.Map<Model.Employee>(employee);
         }
 
+        public async Task<Model.Employee> UpdateSelfProfile(int id, EmployeeSelfUpdateRequest request)
+        {
+            var employee = await _context.Employees
+                .Include(e => e.User)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (employee == null)
+            {
+                throw new UserException("Uposlenik nije pronađen.");
+            }
+
+            // Update user data (excluding access level)
+            employee.User.FirstName = request.FirstName;
+            employee.User.LastName = request.LastName;
+            employee.User.Email = request.Email;
+            employee.User.Gender = request.Gender;
+
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<Model.Employee>(employee);
+        }
+
+        public async Task<Model.Employee> UpdateSelfProfileFromForm(int id, IFormCollection form)
+        {
+            var employee = await _context.Employees
+                .Include(e => e.User)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (employee == null)
+            {
+                throw new UserException("Uposlenik nije pronađen.");
+            }
+
+            // Extract form data (excluding access level)
+            string firstName = form["firstName"].FirstOrDefault() ?? "";
+            string lastName = form["lastName"].FirstOrDefault() ?? "";
+            string email = form["email"].FirstOrDefault() ?? "";
+            string? gender = form["gender"].FirstOrDefault();
+
+            // Update user data (excluding access level)
+            employee.User.FirstName = firstName;
+            employee.User.LastName = lastName;
+            employee.User.Email = email;
+            employee.User.Gender = gender;
+
+            // Handle image file
+            if (form.Files.Count > 0 && form.Files[0].Length > 0)
+            {
+                var imageFile = form.Files[0];
+                using (var memoryStream = new MemoryStream())
+                {
+                    await imageFile.CopyToAsync(memoryStream);
+                    employee.User.Image = memoryStream.ToArray();
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<Model.Employee>(employee);
+        }
+
     }
 }

@@ -82,7 +82,8 @@ class UserService {
     if (imageData != null) {
       // Get the employee ID to create the image URL
       if (employeeId > 0) {
-        profileImageUrl = '${ApiService.baseUrl}/Employee/$employeeId/image';
+        // Add timestamp to prevent caching issues
+        profileImageUrl = '${ApiService.baseUrl}/Employee/$employeeId/image?t=${DateTime.now().millisecondsSinceEpoch}';
       }
     }
     

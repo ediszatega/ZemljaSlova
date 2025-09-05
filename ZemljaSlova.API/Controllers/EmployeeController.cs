@@ -62,6 +62,27 @@ namespace ZemljaSlova.API.Controllers
         {
             return await _employeeService.UpdateEmployeeFromForm(id, Request.Form);
         }
+
+        [HttpPut("UpdateSelfProfile/{id}")]
+        public async Task<ActionResult<Model.Employee>> UpdateSelfProfile(int id, [FromBody] EmployeeSelfUpdateRequest request)
+        {
+            try
+            {
+                var employee = await _employeeService.UpdateSelfProfile(id, request);
+                return Ok(employee);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Greška prilikom ažuriranja profila zaposlenog.");
+            }
+        }
+
+        [HttpPut("UpdateSelfProfile/{id}/with-image")]
+        [Consumes("multipart/form-data")]
+        public async Task<Model.Employee> UpdateSelfProfileWithImage(int id)
+        {
+            return await _employeeService.UpdateSelfProfileFromForm(id, Request.Form);
+        }
         
         [HttpGet("GetEmployeeByUserId/{userId}")]
         public ActionResult<Model.Employee> GetEmployeeByUserId(int userId)

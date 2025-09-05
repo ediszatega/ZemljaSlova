@@ -21,5 +21,9 @@ namespace ZemljaSlova.Services
         public Task<Model.Employee> CreateEmployeeFromForm(IFormCollection form);
         
         public Task<Model.Employee> UpdateEmployeeFromForm(int id, IFormCollection form);
+        
+        public Task<Model.Employee> UpdateSelfProfile(int id, EmployeeSelfUpdateRequest request);
+        
+        public Task<Model.Employee> UpdateSelfProfileFromForm(int id, IFormCollection form);
     }
 }

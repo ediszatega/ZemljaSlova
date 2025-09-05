@@ -6,6 +6,7 @@ import '../widgets/image_display_widget.dart';
 import '../providers/auth_provider.dart';
 import '../providers/user_provider.dart';
 import '../screens/change_password_screen.dart';
+import '../screens/profile_edit.dart';
 import '../services/user_service.dart';
 import '../utils/authorization.dart';
 
@@ -295,7 +296,17 @@ class _ProfileOverviewState extends State<ProfileOverview> {
                                       borderColor: Colors.grey.shade300,
                                       width: 410,
                                       topPadding: 5,
-                                      onPressed: () {},
+                                      onPressed: () async {
+                                        await Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) => const ProfileEditScreen(),
+                                          ),
+                                        );
+                                        
+                                        // Refresh the profile data when returning from edit screen
+                                        final userProvider = Provider.of<UserProvider>(context, listen: false);
+                                        await userProvider.loadCurrentUserProfile();
+                                      },
                                     ),
                                   ],
                                 ),
