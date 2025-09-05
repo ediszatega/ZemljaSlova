@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import '../models/book.dart';
 import '../models/author.dart';
 import 'api_service.dart';
@@ -93,12 +91,15 @@ class BookService {
 
   Book _mapBookFromBackend(dynamic bookData) {
     String? coverImageUrl;
-    if (bookData['image'] != null) {
-      if (bookData['image'] is List) {
-        final bytes = List<int>.from(bookData['image']);
-        coverImageUrl = 'data:image/jpeg;base64,${base64Encode(bytes)}';
-      } else if (bookData['image'] is String) {
-        coverImageUrl = bookData['image'];
+    
+    // Check if book has an image
+    dynamic imageData = bookData['image'];
+    
+    if (imageData != null) {
+      // Get the book ID to create the image URL
+      int bookId = bookData['id'] ?? 0;
+      if (bookId > 0) {
+        coverImageUrl = '${ApiService.baseUrl}/Book/$bookId/image';
       }
     }
 

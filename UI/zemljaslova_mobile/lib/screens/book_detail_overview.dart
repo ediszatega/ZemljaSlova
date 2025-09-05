@@ -9,6 +9,7 @@ import '../providers/member_provider.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/top_branding.dart';
 import '../widgets/bottom_navigation.dart';
+import '../widgets/image_display_widget.dart';
 import '../utils/snackbar_util.dart';
 import '../utils/authorization.dart';
 import 'book_availability.dart';
@@ -136,15 +137,12 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
                   border: Border.all(color: Colors.grey.shade300),
                 ),
                 clipBehavior: Clip.antiAlias,
-                child: book.coverImageUrl != null
-                    ? Image.network(
-                        book.coverImageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return _buildFallbackImage();
-                        },
-                      )
-                    : _buildFallbackImage(),
+                child: ImageDisplayWidget.book(
+                  imageUrl: book.coverImageUrl,
+                  width: double.infinity,
+                  height: double.infinity,
+                  fit: BoxFit.cover,
+                ),
               ),
               Positioned(
                 top: 8,
@@ -564,17 +562,6 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
     } finally {
       setState(() { _isCheckingAvailability = false; });
     }
-  }
-  
-  Widget _buildFallbackImage() {
-    return Container(
-      color: Colors.grey.shade200,
-      child: const Icon(
-        Icons.book,
-        size: 60,
-        color: Colors.black54,
-      ),
-    );
   }
 
   void _addBookToCart(Book book) {

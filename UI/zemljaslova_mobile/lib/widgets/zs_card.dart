@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'image_display_widget.dart';
 
 class ZSCard extends StatelessWidget {
   // Required parameters
@@ -145,46 +145,18 @@ class ZSCard extends StatelessWidget {
     {VoidCallback? onTap, bool? isActive, bool hideStatus = false}
   ) {
     // Create image widget from member's profile image
-    Widget imageWidget;
-    if (member.profileImageUrl != null) {
-      imageWidget = CachedNetworkImage(
-        imageUrl: member.profileImageUrl,
-        fit: BoxFit.cover,
-        placeholder: (context, url) => Container(
-          color: Colors.grey.shade200,
-          child: const Center(
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-        errorWidget: (context, url, error) => _buildFallbackImage(),
-      );
-    } else {
-      imageWidget = _buildFallbackImage();
-    }
+    Widget imageWidget = ImageDisplayWidget.profile(
+      imageUrl: member.profileImageUrl,
+      width: double.infinity,
+      height: double.infinity,
+      fit: BoxFit.cover,
+    );
     
     return ZSCard(
       title: member.fullName,
       image: imageWidget,
       isActive: hideStatus ? null : (isActive ?? member.isActive), // Hide status completely if hideStatus is true
       onTap: onTap,
-    );
-  }
-  
-  // Helper method for fallback image
-  static Widget _buildFallbackImage() {
-    return Image.asset(
-      'assets/images/no_profile_image.jpg',
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) {
-        return Container(
-          color: Colors.grey.shade200,
-          child: const Icon(
-            Icons.person,
-            size: 120,
-            color: Colors.black54,
-          ),
-        );
-      },
     );
   }
   
@@ -195,22 +167,12 @@ class ZSCard extends StatelessWidget {
     {VoidCallback? onTap}
   ) {
     // Create image widget from book's cover image
-    Widget imageWidget;
-    if (book.coverImageUrl != null) {
-      imageWidget = CachedNetworkImage(
-        imageUrl: book.coverImageUrl,
-        fit: BoxFit.cover,
-        placeholder: (context, url) => Container(
-          color: Colors.grey.shade200,
-          child: const Center(
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-        errorWidget: (context, url, error) => _buildFallbackBookImage(),
-      );
-    } else {
-      imageWidget = _buildFallbackBookImage();
-    }
+    Widget imageWidget = ImageDisplayWidget.book(
+      imageUrl: book.coverImageUrl,
+      width: double.infinity,
+      height: double.infinity,
+      fit: BoxFit.cover,
+    );
     
     String? additionalText;
     if (book.price != null) {
@@ -225,24 +187,6 @@ class ZSCard extends StatelessWidget {
       additionalText: additionalText,
       image: imageWidget,
       onTap: onTap,
-    );
-  }
-  
-  // Helper method for fallback book image
-  static Widget _buildFallbackBookImage() {
-    return Image.asset(
-      'assets/images/no_image.jpg',
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) {
-        return Container(
-          color: Colors.grey.shade200,
-          child: const Icon(
-            Icons.book,
-            size: 120,
-            color: Colors.black54,
-          ),
-        );
-      },
     );
   }
 
@@ -291,22 +235,12 @@ class ZSCard extends StatelessWidget {
     {VoidCallback? onTap}
   ) {
     // Create image widget from employee's profile image
-    Widget imageWidget;
-    if (employee.profileImageUrl != null) {
-      imageWidget = CachedNetworkImage(
-        imageUrl: employee.profileImageUrl,
-        fit: BoxFit.cover,
-        placeholder: (context, url) => Container(
-          color: Colors.grey.shade200,
-          child: const Center(
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-        errorWidget: (context, url, error) => _buildFallbackImage(),
-      );
-    } else {
-      imageWidget = _buildFallbackImage();
-    }
+    Widget imageWidget = ImageDisplayWidget.profile(
+      imageUrl: employee.profileImageUrl,
+      width: double.infinity,
+      height: double.infinity,
+      fit: BoxFit.cover,
+    );
     
     return ZSCard(
       title: employee.fullName,
