@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import '../models/event.dart';
 import '../models/ticket_type.dart';
 import 'api_service.dart';
@@ -89,12 +87,15 @@ class EventService {
 
   Event _mapEventFromBackend(dynamic eventData) {
     String? coverImageUrl;
-    if (eventData['coverImage'] != null) {
-      if (eventData['coverImage'] is List) {
-        final bytes = List<int>.from(eventData['coverImage']);
-        coverImageUrl = 'data:image/jpeg;base64,${base64Encode(bytes)}';
-      } else if (eventData['coverImage'] is String) {
-        coverImageUrl = eventData['coverImage'];
+    
+    // Check if event has a cover image
+    dynamic imageData = eventData['coverImage'];
+    
+    if (imageData != null) {
+      // Get the event ID to create the image URL
+      int eventId = eventData['id'] ?? 0;
+      if (eventId > 0) {
+        coverImageUrl = '${ApiService.baseUrl}/Event/$eventId/image';
       }
     }
 

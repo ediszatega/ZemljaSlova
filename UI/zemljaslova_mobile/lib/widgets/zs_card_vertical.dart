@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'image_display_widget.dart';
 
 class ZSCardVertical extends StatelessWidget {
   // Required parameters
@@ -137,24 +137,12 @@ class ZSCardVertical extends StatelessWidget {
     {VoidCallback? onTap}
   ) {
     // Create image widget from event's image
-    Widget imageWidget;
-    if (event.coverImageUrl != null) {
-      imageWidget = CachedNetworkImage(
-        imageUrl: event.coverImageUrl,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: double.infinity,
-        placeholder: (context, url) => Container(
-          color: Colors.grey.shade200,
-          child: const Center(
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-        errorWidget: (context, url, error) => _buildFallbackEventImage(),
-      );
-    } else {
-      imageWidget = _buildFallbackEventImage();
-    }
+    Widget imageWidget = ImageDisplayWidget.event(
+      imageUrl: event.coverImageUrl,
+      width: double.infinity,
+      height: double.infinity,
+      fit: BoxFit.cover,
+    );
     
     // Format date
     String formattedDate = '${event.startAt.day}.${event.startAt.month}.${event.startAt.year}';
@@ -192,20 +180,6 @@ class ZSCardVertical extends StatelessWidget {
       image: imageWidget,
       price: priceText,
       onTap: onTap,
-    );
-  }
-  
-  // Helper method for fallback event image
-  static Widget _buildFallbackEventImage() {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      color: Colors.grey.shade200,
-      child: const Icon(
-        Icons.event,
-        size: 40,
-        color: Colors.black54,
-      ),
     );
   }
 } 
