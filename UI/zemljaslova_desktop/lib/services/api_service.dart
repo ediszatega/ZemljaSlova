@@ -131,7 +131,11 @@ class ApiService {
     // Add regular form fields
     data.forEach((key, value) {
       if (value != null) {
-        request.fields[key] = value.toString();
+        if (value is double) {
+          request.fields[key] = value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 2);
+        } else {
+          request.fields[key] = value.toString();
+        }
       }
     });
     
@@ -160,7 +164,11 @@ class ApiService {
       
       data.forEach((key, value) {
         if (value != null) {
-          retryRequest.fields[key] = value.toString();
+          if (value is double) {
+            retryRequest.fields[key] = value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 2);
+          } else {
+            retryRequest.fields[key] = value.toString();
+          }
         }
       });
       
@@ -195,7 +203,11 @@ class ApiService {
     // Add regular form fields
     data.forEach((key, value) {
       if (value != null) {
-        request.fields[key] = value.toString();
+        if (value is double) {
+          request.fields[key] = value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 2);
+        } else {
+          request.fields[key] = value.toString();
+        }
       }
     });
     
@@ -224,7 +236,11 @@ class ApiService {
       
       data.forEach((key, value) {
         if (value != null) {
-          retryRequest.fields[key] = value.toString();
+          if (value is double) {
+            retryRequest.fields[key] = value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 2);
+          } else {
+            retryRequest.fields[key] = value.toString();
+          }
         }
       });
       
