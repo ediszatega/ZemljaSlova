@@ -287,17 +287,17 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("OrderItem");
 
-            entity.HasOne(d => d.Book).WithMany()
+            entity.HasOne(d => d.Book).WithMany(p => p.OrderItems)
                 .HasForeignKey(d => d.BookId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_OrderItem_Book");
 
-            entity.HasOne(d => d.Discount).WithMany()
+            entity.HasOne(d => d.Discount).WithMany(p => p.OrderItems)
                 .HasForeignKey(d => d.DiscountId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_OrderItem_Discount");
 
-            entity.HasOne(d => d.Membership).WithMany()
+            entity.HasOne(d => d.Membership).WithMany(p => p.OrderItems)
                 .HasForeignKey(d => d.MembershipId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_OrderItem_Membership");
