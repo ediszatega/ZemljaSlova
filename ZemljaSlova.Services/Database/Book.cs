@@ -47,5 +47,7 @@ public partial class Book
 
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 
+    public virtual ICollection<Recommendation> Recommendations { get; set; } = new List<Recommendation>();
+
     public virtual ICollection<Author> Authors { get; set; } = new List<Author>();
 }

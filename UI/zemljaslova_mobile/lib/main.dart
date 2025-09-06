@@ -19,6 +19,8 @@ import 'services/member_service.dart';
 import 'services/membership_service.dart';
 import 'services/author_service.dart';
 import 'services/book_club_service.dart';
+import 'services/recommendation_service.dart';
+import 'providers/recommendation_provider.dart';
 import 'widgets/mobile_layout.dart';
 import 'screens/login_screen.dart';
 
@@ -85,6 +87,14 @@ class ZemljaSlova extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => BookClubProvider(
             BookClubService(apiService),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => RecommendationProvider(
+            recommendationService: RecommendationService(
+              apiService,
+              BookService(apiService),
+            ),
           ),
         ),
       ],

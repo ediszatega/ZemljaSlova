@@ -43,6 +43,8 @@ public partial class _200036Context : DbContext
 
     public virtual DbSet<OrderItem> OrderItems { get; set; }
 
+    public virtual DbSet<Recommendation> Recommendations { get; set; }
+
     public virtual DbSet<Ticket> Tickets { get; set; }
 
     public virtual DbSet<TicketType> TicketTypes { get; set; }
@@ -159,8 +161,6 @@ public partial class _200036Context : DbContext
             entity.Property(e => e.EndDate).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.StartDate).HasColumnType("datetime");
-
-            entity.Ignore("OrderItems");
         });
 
         modelBuilder.Entity<Employee>(entity =>
@@ -227,8 +227,6 @@ public partial class _200036Context : DbContext
                 .HasForeignKey(d => d.MemberId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Membership_Member");
-
-            entity.Ignore("OrderItems");
         });
 
         modelBuilder.Entity<Notification>(entity =>
@@ -318,6 +316,21 @@ public partial class _200036Context : DbContext
                 .HasForeignKey(d => d.VoucherId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_OrderItem_Voucher");
+        });
+
+        modelBuilder.Entity<Recommendation>(entity =>
+        {
+            entity.ToTable("Recommendation");
+
+            entity.HasOne(d => d.Book).WithMany(p => p.Recommendations)
+                .HasForeignKey(d => d.BookId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Recommendation_Book");
+
+            entity.HasOne(d => d.Member).WithMany(p => p.Recommendations)
+                .HasForeignKey(d => d.MemberId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Recommendation_Member");
         });
 
         modelBuilder.Entity<Ticket>(entity =>

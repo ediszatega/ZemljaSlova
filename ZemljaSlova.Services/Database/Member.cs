@@ -21,6 +21,8 @@ public partial class Member
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
+    public virtual ICollection<Recommendation> Recommendations { get; set; } = new List<Recommendation>();
+
     public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 
     public virtual User User { get; set; } = null!;

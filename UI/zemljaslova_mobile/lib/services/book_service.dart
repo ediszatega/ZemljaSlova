@@ -58,7 +58,7 @@ class BookService {
         final totalCount = response['count'] as int;
         
         final books = booksList
-            .map((bookJson) => _mapBookFromBackend(bookJson))
+            .map((bookJson) => mapBookFromBackend(bookJson))
             .toList();
             
         return {
@@ -83,13 +83,13 @@ class BookService {
       final response = await _apiService.get('Book/$id?IsAuthorIncluded=true');
       
       if (response != null) {
-        return _mapBookFromBackend(response);
+        return mapBookFromBackend(response);
       }
       
     throw Exception('Knjiga nije pronađena');
   }
 
-  Book _mapBookFromBackend(dynamic bookData) {
+  Book mapBookFromBackend(dynamic bookData) {
     String? coverImageUrl;
     
     // Check if book has an image

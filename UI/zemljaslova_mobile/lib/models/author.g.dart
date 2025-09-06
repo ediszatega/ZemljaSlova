@@ -13,6 +13,7 @@ Author _$AuthorFromJson(Map<String, dynamic> json) => Author(
   dateOfBirth: json['dateOfBirth'] as String?,
   genre: json['genre'] as String?,
   biography: json['biography'] as String?,
+  imageUrl: json['imageUrl'] as String?,
 );
 
 Map<String, dynamic> _$AuthorToJson(Author instance) => <String, dynamic>{
@@ -22,4 +23,5 @@ Map<String, dynamic> _$AuthorToJson(Author instance) => <String, dynamic>{
   'dateOfBirth': instance.dateOfBirth,
   'genre': instance.genre,
   'biography': instance.biography,
+  'imageUrl': instance.imageUrl,
 };

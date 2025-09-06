@@ -2,9 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/book_provider.dart';
+import '../providers/recommendation_provider.dart';
+import '../providers/member_provider.dart';
+import '../utils/authorization.dart';
+import '../widgets/zs_card.dart';
+import 'book_detail_overview.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (Authorization.userId != null) {
+        _loadRecommendations(context);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +36,12 @@ class HomeScreen extends StatelessWidget {
           _buildWelcomeBox(context),
           
           const SizedBox(height: 24),
+
+          // Recommendations section (only for logged in users)
+          if (Authorization.userId != null) ...[
+            _buildRecommendationsSection(context),
+            const SizedBox(height: 24),
+          ],
 
           _buildNavigationTabs(context),
         ],
@@ -201,6 +227,166 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildRecommendationsSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Preporučene knjige za vas',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            TextButton(
+              onPressed: () => _loadRecommendations(context),
+              child: const Text(
+                'Osvježi',
+                style: TextStyle(fontSize: 14),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Consumer2<RecommendationProvider, MemberProvider>(
+          builder: (context, recommendationProvider, memberProvider, child) {
+            if (recommendationProvider.isLoading) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(32.0),
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
+            
+            if (recommendationProvider.error != null) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      color: Colors.grey.shade600,
+                      size: 48,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Nije moguće učitati preporuke',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 14,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => _loadRecommendations(context),
+                      child: const Text('Pokušaj ponovo'),
+                    ),
+                  ],
+                ),
+              );
+            }
+            
+            final books = recommendationProvider.recommendedBooks;
+            
+            if (books.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.recommend_outlined,
+                      color: Colors.grey.shade600,
+                      size: 48,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Nema dostupnih preporuka',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Još uvijek nemamo personalizirane preporuke za vas',
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 12,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    TextButton(
+                      onPressed: () => _loadRecommendations(context),
+                      child: const Text('Generiraj preporuke'),
+                    ),
+                  ],
+                ),
+              );
+            }
+            
+            return SizedBox(
+              height: 280,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                itemCount: books.length,
+                itemBuilder: (context, index) {
+                  final book = books[index];
+                  return Container(
+                    width: 160,
+                    margin: const EdgeInsets.only(right: 12),
+                    child: ZSCard.fromBook(
+                      context,
+                      book,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BookDetailOverviewScreen(
+                              book: book,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  void _loadRecommendations(BuildContext context) async {
+    final memberProvider = Provider.of<MemberProvider>(context, listen: false);
+    final recommendationProvider = Provider.of<RecommendationProvider>(context, listen: false);
+    
+    if (Authorization.userId != null) {
+      // Ensure member data is loaded
+      if (memberProvider.currentMember == null) {
+        await memberProvider.getMemberByUserId(Authorization.userId!);
+      }
+      
+      if (memberProvider.currentMember != null) {
+        await recommendationProvider.loadRecommendedBooks(memberProvider.currentMember!.id);
+      }
+    }
   }
 
 

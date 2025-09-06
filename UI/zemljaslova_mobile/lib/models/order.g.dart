@@ -70,6 +70,7 @@ OrderItem _$OrderItemFromJson(Map<String, dynamic> json) => OrderItem(
       json['membership'] == null
           ? null
           : Membership.fromJson(json['membership'] as Map<String, dynamic>),
+  pointsEarned: (json['pointsEarned'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$OrderItemToJson(OrderItem instance) => <String, dynamic>{
@@ -85,4 +86,5 @@ Map<String, dynamic> _$OrderItemToJson(OrderItem instance) => <String, dynamic>{
   'voucher': instance.voucher,
   'ticketType': instance.ticketType,
   'membership': instance.membership,
+  'pointsEarned': instance.pointsEarned,
 };
