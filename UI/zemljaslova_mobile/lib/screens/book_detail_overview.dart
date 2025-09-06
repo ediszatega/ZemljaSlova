@@ -6,6 +6,7 @@ import '../providers/book_provider.dart';
 import '../providers/cart_provider.dart';
 import '../providers/favourite_provider.dart';
 import '../providers/member_provider.dart';
+import '../providers/membership_provider.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/top_branding.dart';
 import '../widgets/bottom_navigation.dart';
@@ -372,6 +373,15 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
     final memberProvider = Provider.of<MemberProvider>(context, listen: false);
     if (memberProvider.currentMember == null) {
       SnackBarUtil.showTopSnackBar(context, 'Morate biti prijavljeni kao član.');
+      return;
+    }
+    
+    // Check if member has active membership
+    final membershipProvider = Provider.of<MembershipProvider>(context, listen: false);
+    final hasActiveMembership = await membershipProvider.getActiveMembership(memberProvider.currentMember!.id);
+    
+    if (!hasActiveMembership || !membershipProvider.hasActiveMembership) {
+      SnackBarUtil.showTopSnackBar(context, 'Morate imati aktivnu članarinu da biste mogli rezervirati knjige za iznajmljivanje.');
       return;
     }
     

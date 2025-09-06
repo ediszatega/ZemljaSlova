@@ -17,11 +17,13 @@ namespace ZemljaSlova.Services
     {
         private readonly IBookService _bookService;
         private readonly IRabbitMQProducer _rabbitMQProducer;
+        private readonly IMembershipService _membershipService;
 
-        public BookReservationService(_200036Context context, IMapper mapper, IBookService bookService, IRabbitMQProducer rabbitMQProducer) : base(context, mapper)
+        public BookReservationService(_200036Context context, IMapper mapper, IBookService bookService, IRabbitMQProducer rabbitMQProducer, IMembershipService membershipService) : base(context, mapper)
         {
             _bookService = bookService;
             _rabbitMQProducer = rabbitMQProducer;
+            _membershipService = membershipService;
         }
 
         public async Task<Model.BookReservation> ReserveAsync(int memberId, int bookId)
@@ -35,6 +37,12 @@ namespace ZemljaSlova.Services
                 if (member == null)
                 {
                     throw new ArgumentException("Member not found");
+                }
+
+                // Validate member has active membership
+                if (!_membershipService.HasActiveMembership(memberId))
+                {
+                    throw new InvalidOperationException("Member must have an active membership to reserve books for rent.");
                 }
 
                 // Validate book exists and is rental type
