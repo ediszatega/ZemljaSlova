@@ -50,6 +50,7 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpGet("{id}/image")]
+        [AllowAnonymous]
         public IActionResult GetEventImage(int id)
         {
             try

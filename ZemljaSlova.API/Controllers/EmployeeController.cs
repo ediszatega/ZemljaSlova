@@ -109,6 +109,7 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpGet("{id}/image")]
+        [AllowAnonymous]
         public IActionResult GetEmployeeImage(int id)
         {
             try

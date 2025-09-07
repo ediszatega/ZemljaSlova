@@ -22,14 +22,14 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpPost("employee_login")]
-        [Authorize(Roles = UserRoles.Admin + "," + UserRoles.Employee)]
+        [AllowAnonymous]
         public AuthResponse EmployeeLogin([FromBody] LoginRequest request)
         {
             return _userService.AuthenticateUser(request.Email, request.Password, "employee");
         }
 
 		[HttpPost("member_login")]
-		[Authorize(Roles = UserRoles.Member)]
+		[AllowAnonymous]
 		public AuthResponse MemberLogin([FromBody] LoginRequest request)
 		{
             return _userService.AuthenticateUser(request.Email, request.Password, "member");
@@ -88,6 +88,7 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpGet("{id}/image")]
+        [AllowAnonymous]
         public IActionResult GetUserImage(int id)
         {
             try

@@ -79,6 +79,7 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpGet("{id}/image")]
+        [AllowAnonymous]
         public IActionResult GetBookImage(int id)
         {
             try
