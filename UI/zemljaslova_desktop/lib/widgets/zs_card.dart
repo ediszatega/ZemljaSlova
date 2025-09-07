@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'image_display_widget.dart';
+import '../models/book.dart';
 
 class ZSCard extends StatelessWidget {
   // Required parameters
@@ -74,7 +75,7 @@ class ZSCard extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,
-                          maxLines: 2,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         
@@ -210,10 +211,8 @@ class ZSCard extends StatelessWidget {
     }
     
     String? additionalText;
-    if (book.price != null) {
+    if (book.bookPurpose == BookPurpose.sell && book.price != null && book.price! > 0) {
       additionalText = '${book.price.toStringAsFixed(2)} KM';
-    } else {
-      additionalText = 'Knjiga za iznajmljivanje';
     }
     
     return ZSCard(
