@@ -20,7 +20,8 @@ class UserService {
         'newPasswordConfirmation': newPasswordConfirmation,
       };
       
-      return await _apiService.post('User/change_password', data);
+      await _apiService.post('User/change_password', data);
+      return true;
     } catch (e) {
       throw Exception('Greška prilikom promjene lozinke.');
     }
@@ -38,7 +39,8 @@ class UserService {
         'newPasswordConfirmation': newPasswordConfirmation,
       };
       
-      return await _apiService.post('User/admin_change_password', data);
+      await _apiService.post('User/admin_change_password', data);
+      return true;
     } catch (e) {
       throw Exception('Greška prilikom promjene lozinke.');
     }

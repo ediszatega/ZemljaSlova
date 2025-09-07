@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'api_service.dart';
 
 class UserService {
@@ -20,8 +19,9 @@ class UserService {
         'newPasswordConfirmation': newPasswordConfirmation,
       };
       
-      return await _apiService.post('User/change_password', data);
+      await _apiService.post('User/change_password', data);
       
+      return true;
     } catch (e) {
       throw Exception('Greška prilikom promjene lozinke.');
     }
