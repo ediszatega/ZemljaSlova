@@ -5,7 +5,7 @@ import '../providers/event_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_input.dart';
-import '../widgets/zs_datetime_picker.dart';
+import '../widgets/zs_date_picker.dart';
 import '../widgets/image_picker_widget.dart';
 
 class EventAddScreen extends StatefulWidget {
@@ -124,18 +124,18 @@ class _EventAddScreenState extends State<EventAddScreen> {
     });
   }
   
-  // Date/time picker helpers
-  void _selectStartDateTime(DateTime dateTime) {
+  // Date picker helpers
+  void _selectStartDate(DateTime date) {
     setState(() {
-      _startDateTime = dateTime;
-      _startAtController.text = '${dateTime.day}.${dateTime.month}.${dateTime.year} ${dateTime.hour}:${dateTime.minute}';
+      _startDateTime = date;
+      _startAtController.text = '${date.day}.${date.month}.${date.year}';
     });
   }
   
-  void _selectEndDateTime(DateTime dateTime) {
+  void _selectEndDate(DateTime date) {
     setState(() {
-      _endDateTime = dateTime;
-      _endAtController.text = '${dateTime.day}.${dateTime.month}.${dateTime.year} ${dateTime.hour}:${dateTime.minute}';
+      _endDateTime = date;
+      _endAtController.text = '${date.day}.${date.month}.${date.year}';
     });
   }
 
@@ -238,11 +238,12 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                   
                                   const SizedBox(height: 20),
                                   
-                                  // Start date and time field with datetime picker
-                                  ZSDatetimePicker(
+                                  // Start date field with date picker
+                                  ZSDatePicker(
                                     label: 'Početak događaja*',
                                     controller: _startAtController,
-                                    onDateTimeSelected: _selectStartDateTime,
+                                    lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+                                    onDateSelected: _selectStartDate,
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return 'Unesite početak događaja';
@@ -253,11 +254,12 @@ class _EventAddScreenState extends State<EventAddScreen> {
                                   
                                   const SizedBox(height: 20),
                                   
-                                  // End date and time field with datetime picker
-                                  ZSDatetimePicker(
+                                  // End date field with date picker
+                                  ZSDatePicker(
                                     label: 'Kraj događaja*',
                                     controller: _endAtController,
-                                    onDateTimeSelected: _selectEndDateTime,
+                                    lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+                                    onDateSelected: _selectEndDate,
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return 'Unesite kraj događaja';
@@ -502,11 +504,11 @@ class _EventAddScreenState extends State<EventAddScreen> {
   
   void _submitEvent() {
     if (_formKey.currentState!.validate()) {
-      // Validate event times
+      // Validate event dates
       if (_startDateTime == null || _endDateTime == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Unesite vrijeme početka i kraja događaja'),
+            content: Text('Unesite datum početka i kraja događaja'),
             backgroundColor: Colors.red,
           ),
         );
@@ -516,7 +518,7 @@ class _EventAddScreenState extends State<EventAddScreen> {
       if (_startDateTime!.isAfter(_endDateTime!)) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Vrijeme početka ne može biti nakon vremena završetka'),
+            content: Text('Datum početka ne može biti nakon datuma završetka'),
             backgroundColor: Colors.red,
           ),
         );

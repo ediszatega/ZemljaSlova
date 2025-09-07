@@ -184,7 +184,7 @@ class _EventDetailOverviewState extends State<EventDetailOverview> {
                                                   ),
                                                 ),
                                                 Text(
-                                                  '${event.startAt.day}.${event.startAt.month}.${event.startAt.year} ${event.startAt.hour}:${event.startAt.minute.toString().padLeft(2, '0')}',
+                                                  '${event.startAt.day}.${event.startAt.month}.${event.startAt.year}',
                                                   style: const TextStyle(
                                                     fontSize: 16,
                                                     fontWeight: FontWeight.bold,
@@ -224,7 +224,7 @@ class _EventDetailOverviewState extends State<EventDetailOverview> {
                                                   ),
                                                 ),
                                                 Text(
-                                                  '${event.endAt.day}.${event.endAt.month}.${event.endAt.year} ${event.endAt.hour}:${event.endAt.minute.toString().padLeft(2, '0')}',
+                                                  '${event.endAt.day}.${event.endAt.month}.${event.endAt.year}',
                                                   style: const TextStyle(
                                                     fontSize: 16,
                                                     fontWeight: FontWeight.bold,
