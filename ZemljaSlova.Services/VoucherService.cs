@@ -163,6 +163,24 @@ namespace ZemljaSlova.Services
             return voucher != null ? Mapper.Map<Model.Voucher>(voucher) : null;
         }
 
+        public async Task<bool> MarkVoucherAsUsed(int voucherId)
+        {
+            var voucher = await Context.Vouchers.FindAsync(voucherId);
+            if (voucher == null)
+            {
+                return false;
+            }
+
+            if (voucher.IsUsed)
+            {
+                return false; // Already used
+            }
+
+            voucher.IsUsed = true;
+            await Context.SaveChangesAsync();
+            return true;
+        }
+
         private string GenerateVoucherCodeWithTimestamp(decimal value)
         {
             var timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds();

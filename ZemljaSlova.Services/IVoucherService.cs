@@ -15,5 +15,6 @@ namespace ZemljaSlova.Services
         Voucher InsertAdminVoucher(VoucherAdminInsertRequest request);
         Task<Voucher> Delete(int id);
         Task<Voucher?> GetVoucherByCode(string code);
+        Task<bool> MarkVoucherAsUsed(int voucherId);
     }
 }

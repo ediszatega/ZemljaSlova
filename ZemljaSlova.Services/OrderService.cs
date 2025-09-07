@@ -72,7 +72,7 @@ namespace ZemljaSlova.Services
             try
             {
                 // Retrieve the payment intent if provided to verify it was successful
-                if (!string.IsNullOrEmpty(request.PaymentIntentId))
+                if (!string.IsNullOrEmpty(request.PaymentIntentId) && !request.PaymentIntentId.StartsWith("voucher_covered"))
                 {
                     var paymentIntentService = new PaymentIntentService();
                     var paymentIntent = await paymentIntentService.GetAsync(request.PaymentIntentId);
@@ -84,6 +84,11 @@ namespace ZemljaSlova.Services
 
                     // Update payment info
                     request.PaymentStatus = paymentIntent.Status;
+                }
+                else if (request.PaymentIntentId?.StartsWith("voucher_covered") == true)
+                {
+                    // Voucher covered the entire amount, no actual payment needed
+                    request.PaymentStatus = "succeeded";
                 }
 
                 // Create the order
@@ -275,6 +280,12 @@ namespace ZemljaSlova.Services
                 }
 
                 await Context.SaveChangesAsync();
+
+                // Mark applied voucher as used if one was applied
+                if (request.AppliedVoucherId.HasValue)
+                {
+                    await _voucherService.MarkVoucherAsUsed(request.AppliedVoucherId.Value);
+                }
 
                 return Mapper.Map<Model.Order>(order);
             }

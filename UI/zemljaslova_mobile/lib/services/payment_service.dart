@@ -48,6 +48,8 @@ class PaymentService {
     required ShippingAddress shippingAddress,
     required String paymentIntentId,
     required String paymentMethodId,
+    int? appliedVoucherId,
+    double? discountAmount,
   }) async {
     try {
       // Convert cart items to order items
@@ -78,6 +80,8 @@ class PaymentService {
         'memberId': memberId,
         'discountId': null,
         'amount': totalAmount,
+        'appliedVoucherId': appliedVoucherId,
+        'discountAmount': discountAmount,
         'paymentIntentId': paymentIntentId,
         'paymentStatus': 'pending',
         'paymentMethodId': paymentMethodId,

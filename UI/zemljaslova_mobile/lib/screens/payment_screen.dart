@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:provider/provider.dart';
 import '../models/shipping_address.dart';
+import '../models/voucher.dart';
+import '../models/payment_intent.dart';
 import '../services/payment_service.dart';
+import '../services/voucher_service.dart';
+import '../services/api_service.dart';
 import '../providers/cart_provider.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/zs_button.dart';
+import '../widgets/zs_input.dart';
 import '../widgets/top_branding.dart';
 import '../widgets/bottom_navigation.dart';
+import '../utils/snackbar_util.dart';
 
 class PaymentScreen extends StatefulWidget {
   final double totalAmount;
@@ -25,12 +31,26 @@ class PaymentScreen extends StatefulWidget {
 
 class _PaymentScreenState extends State<PaymentScreen> {
   final PaymentService _paymentService = PaymentService();
+  final VoucherService _voucherService = VoucherService(ApiService());
+  final TextEditingController _voucherCodeController = TextEditingController();
+  
   bool _isLoading = false;
+  bool _isValidatingVoucher = false;
   String? _errorMessage;
+  Voucher? _appliedVoucher;
+  double _discountAmount = 0.0;
+  double _finalAmount = 0.0;
 
   @override
   void initState() {
     super.initState();
+    _finalAmount = widget.totalAmount;
+  }
+
+  @override
+  void dispose() {
+    _voucherCodeController.dispose();
+    super.dispose();
   }
 
   @override
@@ -49,6 +69,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildPaymentSummary(),
+                        const SizedBox(height: 24),
+                        _buildVoucherSection(),
                         const SizedBox(height: 24),
                         _buildShippingInfo(),
                         const SizedBox(height: 32),
@@ -163,6 +185,50 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
               Text(
                 '${widget.totalAmount.toStringAsFixed(2)} BAM',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          if (_appliedVoucher != null) ...[
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Popust (${_appliedVoucher!.code}):',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.red.shade600,
+                  ),
+                ),
+                Text(
+                  '-${_discountAmount.toStringAsFixed(2)} BAM',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.red.shade600,
+                  ),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Za plaćanje:',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                '${_finalAmount.toStringAsFixed(2)} BAM',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -179,6 +245,90 @@ class _PaymentScreenState extends State<PaymentScreen> {
               color: Colors.grey.shade600,
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVoucherSection() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.local_offer, color: Colors.orange.shade600),
+              const SizedBox(width: 8),
+              const Text(
+                'Kod kupona',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (_appliedVoucher == null) ...[
+            ZSInput(
+              label: 'Unesite kod kupona',
+              controller: _voucherCodeController,
+              hintText: 'ABC123',
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ZSButton(
+                text: _isValidatingVoucher ? 'Provjera...' : 'Primijeni kupon',
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+                onPressed: _isValidatingVoucher ? null : _validateAndApplyVoucher,
+              ),
+            ),
+          ] else ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green.shade600, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Kupon ${_appliedVoucher!.code} primijenjen (-${_discountAmount.toStringAsFixed(2)} BAM)',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.green.shade700,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _removeVoucher,
+                    child: Text(
+                      'Ukloni',
+                      style: TextStyle(
+                        color: Colors.red.shade600,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -245,7 +395,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         SizedBox(
           width: double.infinity,
           child: ZSButton(
-            text: _isLoading ? 'Obrađujem plaćanje...' : 'Plati ${widget.totalAmount.toStringAsFixed(2)} BAM',
+            text: _isLoading ? 'Obrađujem plaćanje...' : 'Plati ${_finalAmount.toStringAsFixed(2)} BAM',
             backgroundColor: Colors.green,
             foregroundColor: Colors.white,
             onPressed: _isLoading ? null : _handlePayment,
@@ -279,6 +429,68 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  Future<void> _validateAndApplyVoucher() async {
+    final code = _voucherCodeController.text.trim();
+    
+    if (code.isEmpty) {
+      SnackBarUtil.showTopSnackBar(context, 'Molimo unesite kod kupona', isError: true);
+      return;
+    }
+
+    setState(() {
+      _isValidatingVoucher = true;
+    });
+
+    try {
+      final voucher = await _voucherService.getVoucherByCode(code);
+      
+      if (voucher == null) {
+        SnackBarUtil.showTopSnackBar(context, 'Kupon nije pronađen', isError: true);
+        return;
+      }
+
+      if (voucher.isUsed) {
+        SnackBarUtil.showTopSnackBar(context, 'Kupon je već iskorišten', isError: true);
+        return;
+      }
+
+      final now = DateTime.now();
+      if (voucher.expirationDate.isBefore(now)) {
+        SnackBarUtil.showTopSnackBar(context, 'Kupon je istekao', isError: true);
+        return;
+      }
+
+      // Calculate discount amount
+      final discountAmount = voucher.value > widget.totalAmount 
+          ? widget.totalAmount 
+          : voucher.value;
+
+      setState(() {
+        _appliedVoucher = voucher;
+        _discountAmount = discountAmount;
+        _finalAmount = widget.totalAmount - discountAmount;
+      });
+
+      SnackBarUtil.showTopSnackBar(context, 'Kupon je uspješno primijenjen!');
+    } catch (e) {
+      SnackBarUtil.showTopSnackBar(context, 'Greška pri validaciji kupona: $e', isError: true);
+    } finally {
+      setState(() {
+        _isValidatingVoucher = false;
+      });
+    }
+  }
+
+  void _removeVoucher() {
+    setState(() {
+      _appliedVoucher = null;
+      _discountAmount = 0.0;
+      _finalAmount = widget.totalAmount;
+      _voucherCodeController.clear();
+    });
+    SnackBarUtil.showTopSnackBar(context, 'Kupon je uklonjen');
+  }
+
   Future<void> _handlePayment() async {
     setState(() {
       _isLoading = true;
@@ -302,28 +514,45 @@ class _PaymentScreenState extends State<PaymentScreen> {
         throw Exception('Korpa je prazna');
       }
 
-      // Create payment intent
-      final paymentIntent = await _paymentService.createPaymentIntent(widget.totalAmount);
+      // Create payment intent      
+      PaymentIntentResponse? paymentIntent;
+      String? paymentIntentId;
+      String? clientSecret;
+      
+      if (_finalAmount <= 0) {
+        // If voucher covers entire amount, skip payment processing
+        paymentIntentId = 'voucher_covered_' + DateTime.now().millisecondsSinceEpoch.toString();
+        clientSecret = 'voucher_covered';
+      } else {
+        paymentIntent = await _paymentService.createPaymentIntent(_finalAmount);
+        paymentIntentId = paymentIntent.paymentIntentId;
+        clientSecret = paymentIntent.clientSecret;
 
-      // Configure payment sheet
-      await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: paymentIntent.clientSecret,
-          merchantDisplayName: 'Zemlja Slova',
-          style: ThemeMode.light,
-          appearance: PaymentSheetAppearance(
-            colors: PaymentSheetAppearanceColors(
-              primary: Colors.green,
+        // Configure payment sheet
+        await Stripe.instance.initPaymentSheet(
+          paymentSheetParameters: SetupPaymentSheetParameters(
+            paymentIntentClientSecret: paymentIntent.clientSecret,
+            merchantDisplayName: 'Zemlja Slova',
+            style: ThemeMode.light,
+            appearance: PaymentSheetAppearance(
+              colors: PaymentSheetAppearanceColors(
+                primary: Colors.green,
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Present payment sheet
-      await Stripe.instance.presentPaymentSheet();
+        // Present payment sheet
+        await Stripe.instance.presentPaymentSheet();
+      }
 
-      // Payment successful - get the payment intent details to retrieve payment method
-      await _processOrder(paymentIntent.paymentIntentId, paymentIntent.clientSecret);
+      // Process order
+      await _processOrder(paymentIntentId, clientSecret);
+
+      // Mark voucher as used if applied
+      if (_appliedVoucher != null) {
+        await _voucherService.markVoucherAsUsed(_appliedVoucher!.id);
+      }
 
       // Show success message and navigate back
       if (mounted) {
@@ -358,19 +587,27 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       // Get the payment intent to retrieve the payment method ID
       String? paymentMethodId;
-      try {
-        final paymentIntent = await Stripe.instance.retrievePaymentIntent(clientSecret);
-        paymentMethodId = paymentIntent.paymentMethodId;
-      } catch (e) {
-        // Fallback - use the payment intent ID itself
-        paymentMethodId = paymentIntentId;
+      if (clientSecret == 'voucher_covered') {
+        // No actual payment, use a placeholder
+        paymentMethodId = 'voucher_covered';
+      } else {
+        try {
+          final paymentIntent = await Stripe.instance.retrievePaymentIntent(clientSecret);
+          paymentMethodId = paymentIntent.paymentMethodId;
+        } catch (e) {
+          // Fallback - use the payment intent ID itself
+          paymentMethodId = paymentIntentId;
+        }
       }
 
+      print('Processing order with appliedVoucherId: ${_appliedVoucher?.id}, discountAmount: $_discountAmount');
       await _paymentService.processOrder(
         items: cartItems,
         shippingAddress: widget.shippingAddress,
         paymentIntentId: paymentIntentId,
         paymentMethodId: paymentMethodId ?? paymentIntentId,
+        appliedVoucherId: _appliedVoucher?.id,
+        discountAmount: _discountAmount,
       );
     } catch (e) {
       throw Exception('Greška pri obradi porudžbine: $e');

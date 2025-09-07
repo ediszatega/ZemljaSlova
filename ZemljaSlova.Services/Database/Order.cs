@@ -33,6 +33,14 @@ public partial class Order
 
     public string? ShippingEmail { get; set; }
 
+    public int? AppliedVoucherId { get; set; }
+
+    public decimal? DiscountAmount { get; set; }
+
+    public string? PaymentMethodId { get; set; }
+
+    public virtual Voucher? AppliedVoucher { get; set; }
+
     public virtual Discount? Discount { get; set; }
 
     public virtual Member Member { get; set; } = null!;

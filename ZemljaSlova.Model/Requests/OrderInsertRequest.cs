@@ -8,7 +8,6 @@ namespace ZemljaSlova.Model.Requests
     {
         public int MemberId { get; set; }
 
-        // TODO: handle discount
         public int? DiscountId { get; set; }
 
         // public string? DiscountCode { get; set; }
@@ -18,6 +17,10 @@ namespace ZemljaSlova.Model.Requests
         public decimal Amount { get; set; }
 
         public int? VoucherId { get; set; }
+
+        public int? AppliedVoucherId { get; set; }
+
+        public decimal? DiscountAmount { get; set; }
 
         public string? PaymentIntentId { get; set; }
 

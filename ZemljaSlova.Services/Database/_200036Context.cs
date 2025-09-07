@@ -259,7 +259,9 @@ public partial class _200036Context : DbContext
             entity.ToTable("Order");
 
             entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.DiscountAmount).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.PaymentIntentId).HasMaxLength(255);
+            entity.Property(e => e.PaymentMethodId).HasMaxLength(50);
             entity.Property(e => e.PaymentStatus).HasMaxLength(50);
             entity.Property(e => e.PurchasedAt).HasColumnType("datetime");
             entity.Property(e => e.ShippingAddress).HasMaxLength(255);
@@ -268,6 +270,10 @@ public partial class _200036Context : DbContext
             entity.Property(e => e.ShippingEmail).HasMaxLength(100);
             entity.Property(e => e.ShippingPhoneNumber).HasMaxLength(50);
             entity.Property(e => e.ShippingPostalCode).HasMaxLength(20);
+
+            entity.HasOne(d => d.AppliedVoucher).WithMany(p => p.OrderAppliedVouchers)
+                .HasForeignKey(d => d.AppliedVoucherId)
+                .HasConstraintName("FK_Order_Voucher1");
 
             entity.HasOne(d => d.Discount).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.DiscountId)
@@ -278,7 +284,7 @@ public partial class _200036Context : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Order_Member");
 
-            entity.HasOne(d => d.Voucher).WithMany(p => p.Orders)
+            entity.HasOne(d => d.Voucher).WithMany(p => p.OrderVouchers)
                 .HasForeignKey(d => d.VoucherId)
                 .HasConstraintName("FK_Order_Voucher");
         });
