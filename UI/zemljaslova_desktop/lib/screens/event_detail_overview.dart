@@ -5,7 +5,7 @@ import '../models/event.dart';
 import '../models/ticket_type.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
-import 'event_add.dart';
+import '../widgets/permission_guard.dart';
 import 'event_edit.dart';
 import 'ticket_inventory_screen.dart';
 
@@ -323,14 +323,16 @@ class _EventDetailOverviewState extends State<EventDetailOverview> {
                             
                             const SizedBox(height: 8),
                             
-                            ZSButton(
-                              text: 'Obriši događaj',
-                              backgroundColor: Colors.red.shade50,
-                              foregroundColor: Colors.red,
-                              borderColor: Colors.grey.shade300,
-                              width: 410,
-                              topPadding: 5,
-                              onPressed: () => _showDeleteDialog(event),
+                            CanDeleteEvents(
+                              child: ZSButton(
+                                text: 'Obriši događaj',
+                                backgroundColor: Colors.red.shade50,
+                                foregroundColor: Colors.red,
+                                borderColor: Colors.grey.shade300,
+                                width: 410,
+                                topPadding: 5,
+                                onPressed: () => _showDeleteDialog(event),
+                              ),
                             ),
                           ],
                         ),

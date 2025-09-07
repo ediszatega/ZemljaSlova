@@ -163,4 +163,24 @@ class CanDeleteEmployees extends StatelessWidget {
   }
 }
 
+class CanDeleteEvents extends StatelessWidget {
+  final Widget child;
+  final Widget? fallback;
+
+  const CanDeleteEvents({
+    Key? key,
+    required this.child,
+    this.fallback,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return PermissionGuard(
+      permissionCheck: () => Authorization.canDeleteEvents(),
+      child: child,
+      fallback: fallback,
+    );
+  }
+}
+
  

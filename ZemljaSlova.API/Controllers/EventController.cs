@@ -5,6 +5,7 @@ using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using ZemljaSlova.Model.Enums;
 
 namespace ZemljaSlova.API.Controllers
 {
@@ -80,6 +81,13 @@ namespace ZemljaSlova.API.Controllers
         public async Task<Model.Event> UpdateEventWithImage(int id)
         {
             return await _eventService.UpdateEventFromForm(id, Request.Form);
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = UserRoles.Admin)]
+        public override async Task<Model.Event> Delete(int id)
+        {
+            return await _eventService.Delete(id);
         }
     }
 

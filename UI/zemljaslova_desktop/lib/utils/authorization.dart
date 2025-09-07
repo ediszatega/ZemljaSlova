@@ -23,6 +23,7 @@ class Authorization {
   static bool canDeleteAuthors() => isAdmin;
   static bool canDeleteVouchers() => isAdmin;
   static bool canDeleteDiscounts() => isAdmin;
+  static bool canDeleteEvents() => isAdmin;
   static bool canManageEmployees() => isAdmin;
   static bool canViewAdminFeatures() => isAdmin;
   static bool canCreateAdminVouchers() => isAdmin;
