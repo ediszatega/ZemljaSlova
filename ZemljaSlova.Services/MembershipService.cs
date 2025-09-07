@@ -16,10 +16,12 @@ namespace ZemljaSlova.Services
     public class MembershipService : BaseCRUDService<Model.Membership, MembershipSearchObject, Database.Membership, MembershipInsertRequest, MembershipUpdateRequest>, IMembershipService
     {
         private readonly IRabbitMQProducer _rabbitMQProducer;
+        private readonly IBookClubPointsService _bookClubPointsService;
 
-        public MembershipService(_200036Context context, IMapper mapper, IRabbitMQProducer rabbitMQProducer) : base(context, mapper)
+        public MembershipService(_200036Context context, IMapper mapper, IRabbitMQProducer rabbitMQProducer, IBookClubPointsService bookClubPointsService) : base(context, mapper)
         {
             _rabbitMQProducer = rabbitMQProducer;
+            _bookClubPointsService = bookClubPointsService;
         }
 
         public override IQueryable<Database.Membership> AddFilter(MembershipSearchObject search, IQueryable<Database.Membership> query)
@@ -121,6 +123,71 @@ namespace ZemljaSlova.Services
             request.EndDate = default(DateTime);
 
             return Insert(request);
+        }
+
+        public async Task<Model.Membership> CreateMembershipByEmployeeAsync(MembershipInsertRequest request)
+        {
+            if (HasActiveMembership(request.MemberId))
+            {
+                throw new InvalidOperationException("Member already has an active membership. Cannot create a new membership while one is active.");
+            }
+
+            var startDate = request.StartDate == default(DateTime) ? DateTime.Now.Date : request.StartDate;
+            var endDate = request.EndDate == default(DateTime) ? startDate.AddDays(30) : request.EndDate;
+
+            var entity = new Database.Membership
+            {
+                MemberId = request.MemberId,
+                StartDate = startDate,
+                EndDate = endDate
+            };
+
+            BeforeInsert(request, entity);
+
+            Context.Add(entity);
+            await Context.SaveChangesAsync();
+
+            // Create transaction record for employee-created membership
+            await CreateMembershipTransactionAsync(entity);
+
+            AfterInsert(request, entity);
+
+            return Mapper.Map<Model.Membership>(entity);
+        }
+
+        private async Task CreateMembershipTransactionAsync(Database.Membership membership)
+        {
+            // Create an order to track the membership transaction
+            var order = new Database.Order
+            {
+                MemberId = membership.MemberId,
+                Amount = 15,
+                PurchasedAt = DateTime.Now,
+                PaymentStatus = "completed",
+                PaymentIntentId = $"employee_membership_{membership.Id}_{DateTime.Now:yyyyMMddHHmmss}"
+            };
+
+            Context.Orders.Add(order);
+            await Context.SaveChangesAsync();
+
+            // Create order item for the membership
+            var orderItem = new Database.OrderItem
+            {
+                OrderId = order.Id,
+                MembershipId = membership.Id,
+                Quantity = 1
+            };
+
+            Context.OrderItems.Add(orderItem);
+            await Context.SaveChangesAsync();
+
+            // Award book club points for membership
+            await _bookClubPointsService.AwardPointsAsync(
+                membership.MemberId,
+                Model.Enums.ActivityType.MembershipPayment,
+                50,
+                orderItemId: orderItem.Id
+            );
         }
 
         public Model.Membership GetActiveMembership(int memberId)

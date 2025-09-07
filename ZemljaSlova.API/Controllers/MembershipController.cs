@@ -44,11 +44,11 @@ namespace ZemljaSlova.API.Controllers
 
         [HttpPost("create_membership_by_admin")]
         //[Authorize(Roles = "Admin,Employee")]
-        public ActionResult<Model.Membership> CreateMembershipByAdmin([FromBody] MembershipInsertRequest request)
+        public async Task<ActionResult<Model.Membership>> CreateMembershipByAdmin([FromBody] MembershipInsertRequest request)
         {
             try
             {
-                var membership = _membershipService.Insert(request);
+                var membership = await _membershipService.CreateMembershipByEmployeeAsync(request);
                 return Ok(membership);
             }
             catch (ArgumentException ex)
