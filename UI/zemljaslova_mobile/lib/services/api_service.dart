@@ -285,8 +285,8 @@ class ApiService {
         Uri.parse('$baseUrl/User/refresh-token'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $currentToken',
         },
+        body: json.encode({'token': currentToken}),
       );
 
       if (response.statusCode == 200) {

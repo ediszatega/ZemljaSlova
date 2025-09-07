@@ -63,17 +63,17 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpPost("refresh-token")]
-        public ActionResult RefreshToken()
+        [AllowAnonymous]
+        public ActionResult RefreshToken([FromBody] RefreshTokenRequest request)
         {
             try
             {
-                var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-                if (string.IsNullOrEmpty(email))
+                if (string.IsNullOrEmpty(request?.Token))
                 {
-                    return BadRequest("Invalid token");
+                    return BadRequest("Token is required");
                 }
 
-                var newToken = _userService.RefreshToken(email);
+                var newToken = _userService.RefreshTokenFromToken(request.Token);
                 if (newToken != null)
                 {
                     return Ok(new { token = newToken });
@@ -101,7 +101,7 @@ namespace ZemljaSlova.API.Controllers
 
                 return File(user.Image, "image/jpeg");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, "Greška prilikom dobavljanja slike");
             }

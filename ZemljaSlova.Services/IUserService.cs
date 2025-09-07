@@ -19,5 +19,6 @@ namespace ZemljaSlova.Services
         public Task<bool> ChangePassword(ChangePasswordRequest request);
         public Task<bool> AdminChangePassword(AdminChangePasswordRequest request);
         public string? RefreshToken(string email);
+        public string? RefreshTokenFromToken(string token);
     }
 }

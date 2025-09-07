@@ -200,6 +200,35 @@ namespace ZemljaSlova.Services
 
             return null;
         }
+
+        public string? RefreshTokenFromToken(string token)
+        {
+            try
+            {
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var key = Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value ?? "");
+                
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = false,
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken validatedToken);
+
+                var jwtToken = (JwtSecurityToken)validatedToken;
+                var email = jwtToken.Claims.First(x => x.Type == ClaimTypes.Email).Value;
+
+                return RefreshToken(email);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Token refresh error: {ex.Message}");
+                return null;
+            }
+        }
         
 
     }
