@@ -75,11 +75,19 @@ class BookClubProvider with ChangeNotifier {
   }
 
   Future<void> refreshData(int memberId) async {
-    await Future.wait([
-      loadCurrentYearData(memberId),
-      loadCurrentYearTransactions(memberId),
-      loadMemberHistory(memberId),
-    ]);
+    // Prevent multiple simultaneous calls
+    if (_isLoading) {
+      return;
+    }
+    
+    try {
+      await Future.wait([
+        loadCurrentYearData(memberId),
+        loadMemberHistory(memberId),
+      ]);
+    } catch (e) {
+      rethrow;
+    }
   }
 
   void _setLoading(bool loading) {

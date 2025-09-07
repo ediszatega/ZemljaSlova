@@ -9,7 +9,8 @@ class BookClubService {
   
   Future<Map<String, dynamic>?> getCurrentYearPoints(int memberId) async {
     try {
-      return await _apiService.get('BookClubPoints/member/$memberId/current');
+      final result = await _apiService.get('BookClubPoints/member/$memberId/current');
+      return result;
     } catch (e) {
       throw Exception('Greška pri učitavanju podataka o Klubu čitalaca');
     }
@@ -33,7 +34,12 @@ class BookClubService {
 
   Future<List<UserBookClub>?> getMemberHistory(int memberId) async {
     try {
-      return await _apiService.get('BookClubPoints/member/$memberId/history');
+      final result = await _apiService.get('BookClubPoints/member/$memberId/history');
+      
+      if (result is List) {
+        return result.map((item) => UserBookClub.fromJson(item)).toList();
+      }
+      return null;
     } catch (e) {
       throw Exception('Greška pri učitavanju istorije');
     }

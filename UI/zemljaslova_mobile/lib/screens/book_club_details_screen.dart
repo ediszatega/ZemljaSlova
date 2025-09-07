@@ -22,7 +22,7 @@ class _BookClubDetailsScreenState extends State<BookClubDetailsScreen> {
     final bookClubProvider = context.read<BookClubProvider>();
     
     if (memberProvider.currentMember != null) {
-      bookClubProvider.refreshData(memberProvider.currentMember!.id);
+      Future.microtask(() => bookClubProvider.refreshData(memberProvider.currentMember!.id));
     }
   }
 
@@ -67,13 +67,16 @@ class _BookClubDetailsScreenState extends State<BookClubDetailsScreen> {
           }
 
           return RefreshIndicator(
-            onRefresh: () async => _loadData(),
+            onRefresh: () async {
+              _loadData();
+              await Future.delayed(const Duration(milliseconds: 100));
+            },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                                 children: [
+                  children: [
                    _buildHeader(),
                    const SizedBox(height: 24),
                    _buildPointsSystem(),
@@ -227,7 +230,7 @@ class _BookClubDetailsScreenState extends State<BookClubDetailsScreen> {
                 ),
               ],
             ),
-                         const SizedBox(height: 16),
+            const SizedBox(height: 16),
              Container(
                width: double.infinity,
                child: _buildStatCard(

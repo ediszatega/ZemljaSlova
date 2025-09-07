@@ -37,8 +37,6 @@ namespace ZemljaSlova.Model
 
         public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 
-        public virtual ICollection<UserBookClubTransaction> UserBookClubTransactions { get; set; } = new List<UserBookClubTransaction>();
-
         public int? PointsEarned { get; set; }
     }
 }
