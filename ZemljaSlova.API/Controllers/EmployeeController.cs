@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace ZemljaSlova.API.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class EmployeeController : BaseCRUDController<Model.Employee, EmployeeSearchObject, EmployeeInsertRequest, EmployeeUpdateRequest>
@@ -36,7 +36,6 @@ namespace ZemljaSlova.API.Controllers
 
         [HttpPost("CreateEmployee/with-image")]
         [Consumes("multipart/form-data")]
-        [AllowAnonymous]
         public async Task<Model.Employee> CreateEmployeeWithImage()
         {
             return await _employeeService.CreateEmployeeFromForm(Request.Form);

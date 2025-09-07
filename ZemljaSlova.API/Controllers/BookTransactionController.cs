@@ -3,10 +3,11 @@ using ZemljaSlova.Model;
 using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ZemljaSlova.API.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class BookTransactionController : BaseCRUDController<BookTransaction, BookTransactionSearchObject, BookTransactionInsertRequest, BookTransactionUpdateRequest>

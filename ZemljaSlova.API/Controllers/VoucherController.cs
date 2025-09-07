@@ -21,7 +21,7 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpPost("CreateMemberVoucher")]
-        //[Authorize(Roles = "Member")]
+        [Authorize(Roles = UserRoles.Member)]
         public virtual Model.Voucher CreateMemberVoucher(VoucherMemberInsertRequest request)
         {
             return _voucherService.InsertMemberVoucher(request);

@@ -5,6 +5,7 @@ using ZemljaSlova.Model.Enums;
 
 namespace ZemljaSlova.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class BookClubPointsController : ControllerBase
@@ -102,7 +103,6 @@ namespace ZemljaSlova.API.Controllers
                 var currentYear = DateTime.Now.Year;
                 var leaderboard = await _bookClubPointsService.GetLeaderboardAsync(currentYear, page, pageSize);
                 
-                // Anonymous object that we return directly
                 return Ok(leaderboard);
             }
             catch (Exception ex)

@@ -6,7 +6,7 @@ using ZemljaSlova.Services;
 
 namespace ZemljaSlova.API.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class BaseController<TModel, TSearch> : ControllerBase where TSearch : BaseSearchObject

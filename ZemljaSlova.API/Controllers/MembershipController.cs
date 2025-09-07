@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace ZemljaSlova.API.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class MembershipController : BaseCRUDController<Model.Membership, MembershipSearchObject, MembershipInsertRequest, MembershipUpdateRequest>
@@ -20,7 +20,7 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpPost("create_membership_by_member")]
-        //[Authorize(Roles = "Member")]
+        [Authorize(Roles = "Member")]
         public ActionResult<Model.Membership> CreateMembershipByMember([FromBody] MembershipInsertRequest request)
         {
             try
@@ -32,10 +32,6 @@ namespace ZemljaSlova.API.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            catch (InvalidOperationException ex)
-            {
-                return Conflict(ex.Message);
-            }
             catch (Exception ex)
             {
                 return StatusCode(500, "An error occurred while creating membership.");
@@ -43,7 +39,7 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpPost("create_membership_by_admin")]
-        //[Authorize(Roles = "Admin,Employee")]
+        [Authorize(Roles = "Admin,Employee")]
         public async Task<ActionResult<Model.Membership>> CreateMembershipByAdmin([FromBody] MembershipInsertRequest request)
         {
             try
@@ -54,10 +50,6 @@ namespace ZemljaSlova.API.Controllers
             catch (ArgumentException ex)
             {
                 return BadRequest(ex.Message);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return Conflict(ex.Message);
             }
             catch (Exception ex)
             {

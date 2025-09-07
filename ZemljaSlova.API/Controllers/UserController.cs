@@ -9,7 +9,7 @@ using ZemljaSlova.Model.Enums;
 
 namespace ZemljaSlova.API.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class UserController : BaseCRUDController<Model.User, UserSearchObject, UserInsertRequest, UserUpdateRequest>
@@ -22,14 +22,14 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpPost("employee_login")]
-        [AllowAnonymous]
+        [Authorize(Roles = UserRoles.Admin + "," + UserRoles.Employee)]
         public AuthResponse EmployeeLogin([FromBody] LoginRequest request)
         {
             return _userService.AuthenticateUser(request.Email, request.Password, "employee");
         }
 
 		[HttpPost("member_login")]
-		[AllowAnonymous]
+		[Authorize(Roles = UserRoles.Member)]
 		public AuthResponse MemberLogin([FromBody] LoginRequest request)
 		{
             return _userService.AuthenticateUser(request.Email, request.Password, "member");
@@ -63,7 +63,6 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpPost("refresh-token")]
-        [Authorize]
         public ActionResult RefreshToken()
         {
             try

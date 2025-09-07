@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace ZemljaSlova.API.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class BookReservationController : BaseCRUDController<Model.BookReservation, BookReservationSearchObject, BookReservationUpsertRequest, BookReservationUpsertRequest>
@@ -77,12 +77,6 @@ namespace ZemljaSlova.API.Controllers
         {
             var queue = await _reservationService.GetQueueForBookAsync(bookId);
             return Ok(queue);
-        }
-
-        [HttpGet("health")]
-        public ActionResult<string> Health()
-        {
-            return Ok("BookReservation service is running");
         }
     }
 }

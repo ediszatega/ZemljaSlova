@@ -9,6 +9,7 @@ using System.Security.Claims;
 
 namespace ZemljaSlova.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class MemberController : BaseCRUDController<Model.Member, MemberSearchObject, MemberInsertRequest, MemberUpdateRequest>
@@ -21,7 +22,6 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpPost("CreateMember")]
-        [AllowAnonymous]
         public async Task<Model.Member> CreateMember([FromBody] MemberInsertRequest request)
         {
             return await _memberService.CreateMember(request);
@@ -35,7 +35,6 @@ namespace ZemljaSlova.API.Controllers
 
         [HttpPost("CreateMember/with-image")]
         [Consumes("multipart/form-data")]
-        [AllowAnonymous]
         public async Task<Model.Member> CreateMemberWithImage()
         {
             return await _memberService.CreateMemberFromForm(Request.Form);
@@ -81,7 +80,6 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpGet("current")]
-        [Authorize]
         public ActionResult<Model.Member> GetCurrentMember()
         {
             try

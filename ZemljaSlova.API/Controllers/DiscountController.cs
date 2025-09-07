@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace ZemljaSlova.API.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class DiscountController : BaseCRUDController<Model.Discount, DiscountSearchObject, DiscountInsertRequest, DiscountUpdateRequest>
@@ -66,7 +66,6 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpGet("get_discount_usage/{id}")]
-        //[Authorize(Roles = "Admin,Employee")] // Only admin/employee should see usage statistics
         public async Task<ActionResult<int>> GetDiscountUsage(int id)
         {
             try
@@ -95,7 +94,6 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpPost("cleanup_expired_discounts")]
-        //[Authorize(Roles = "Admin,Employee")] // Only admin/employee should be able to trigger cleanup
         public async Task<ActionResult<string>> CleanupExpiredDiscounts()
         {
             try
@@ -110,7 +108,6 @@ namespace ZemljaSlova.API.Controllers
         }
 
         [HttpGet("get_expired_discounts")]
-        //[Authorize(Roles = "Admin,Employee")] // Only admin/employee should see expired discounts
         public async Task<ActionResult<List<Model.Discount>>> GetExpiredDiscounts()
         {
             try

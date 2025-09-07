@@ -26,7 +26,6 @@ namespace ZemljaSlova.API.Controllers
             {
                 var databaseRecommendations = await _recommendationService.GenerateRecommendationsAsync(memberId);
                 
-                // Convert database entities to model objects for API response
                 var modelRecommendations = databaseRecommendations.Select(dbRec => new Recommendation
                 {
                     Id = dbRec.Id,

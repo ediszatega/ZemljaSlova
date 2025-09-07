@@ -9,7 +9,7 @@ using ZemljaSlova.Model.Enums;
 
 namespace ZemljaSlova.API.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class EventController : BaseCRUDController<Model.Event, EventSearchObject, EventUpsertRequest, EventUpsertRequest>
@@ -70,7 +70,6 @@ namespace ZemljaSlova.API.Controllers
 
         [HttpPost("with-image")]
         [Consumes("multipart/form-data")]
-        [AllowAnonymous]
         public async Task<Model.Event> CreateEventWithImage()
         {
             return await _eventService.CreateEventFromForm(Request.Form);
