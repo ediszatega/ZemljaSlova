@@ -10,6 +10,7 @@ using Stripe;
 using Stripe.Checkout;
 using ZemljaSlova.Model;
 using ZemljaSlova.Model.Enums;
+using ZemljaSlova.Model.Messages;
 using ZemljaSlova.Model.Requests;
 using ZemljaSlova.Model.SearchObjects;
 using ZemljaSlova.Services.Database;
@@ -24,8 +25,9 @@ namespace ZemljaSlova.Services
         private readonly ITicketTypeService _ticketTypeService;
         private readonly IMembershipService _membershipService;
         private readonly IBookClubPointsService _bookClubPointsService;
+        private readonly IRabbitMQProducer _rabbitMQProducer;
 
-        public OrderService(_200036Context context, IMapper mapper, IConfiguration configuration, IVoucherService voucherService, IBookService bookService, ITicketTypeService ticketTypeService, IMembershipService membershipService, IBookClubPointsService bookClubPointsService) : base(context, mapper)
+        public OrderService(_200036Context context, IMapper mapper, IConfiguration configuration, IVoucherService voucherService, IBookService bookService, ITicketTypeService ticketTypeService, IMembershipService membershipService, IBookClubPointsService bookClubPointsService, IRabbitMQProducer rabbitMQProducer) : base(context, mapper)
         {
             _configuration = configuration;
             _voucherService = voucherService;
@@ -33,6 +35,7 @@ namespace ZemljaSlova.Services
             _ticketTypeService = ticketTypeService;
             _membershipService = membershipService;
             _bookClubPointsService = bookClubPointsService;
+            _rabbitMQProducer = rabbitMQProducer;
         }
 
         public async Task<PaymentIntentResponse> CreatePaymentIntentAsync(decimal amount, string currency = "bam")
@@ -117,6 +120,9 @@ namespace ZemljaSlova.Services
                             };
                             
                             var newVoucher = _voucherService.InsertMemberVoucher(voucherRequest);
+                            
+                            // Send voucher purchase confirmation email
+                            await SendVoucherPurchaseEmailAsync(order.MemberId, newVoucher);
                             
                             var orderItem = new Database.OrderItem
                             {
@@ -386,6 +392,107 @@ namespace ZemljaSlova.Services
             {
                 throw new Exception($"Failed to get order items: {ex.Message}");
             }
+        }
+
+        private async Task SendVoucherPurchaseEmailAsync(int memberId, Model.Voucher voucher)
+        {
+            try
+            {
+                var member = await Context.Members
+                    .Include(m => m.User)
+                    .FirstOrDefaultAsync(m => m.Id == memberId);
+
+                if (member?.User != null)
+                {
+                    var emailModel = new EmailModel
+                    {
+                        To = member.User.Email,
+                        Subject = "Potvrda o kupovini kupona - Zemlja Slova",
+                        Body = GenerateVoucherPurchaseEmailBody(member.User, voucher),
+                        From = "zemljaslova@gmail.com"
+                    };
+
+                    _rabbitMQProducer.SendMessage(emailModel);
+                }
+            }
+            catch (UserException ex)
+            {
+                throw new UserException("Greška pri slanju emaila za kupovinu kupona");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to send voucher purchase email: {ex.Message}");
+            }
+        }
+
+        private string GenerateVoucherPurchaseEmailBody(Database.User user, Model.Voucher voucher)
+        {
+            var purchaseDate = voucher.PurchasedAt?.ToString("dd.MM.yyyy HH:mm") ?? DateTime.Now.ToString("dd.MM.yyyy HH:mm");
+            var expirationDate = voucher.ExpirationDate.ToString("dd.MM.yyyy");
+
+            return $@"
+                <html>
+                <head>
+                    <meta charset='utf-8'>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                        .header {{ background-color: #2c3e50; color: white; padding: 20px; text-align: center; }}
+                        .content {{ padding: 20px; background-color: #f9f9f9; }}
+                        .voucher-code {{ background-color: #e74c3c; color: white; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin: 20px 0; border-radius: 8px; border: 3px solid #c0392b; letter-spacing: 2px; font-family: 'Courier New', monospace; }}
+                        .info-box {{ background-color: white; padding: 15px; margin: 10px 0; border-left: 4px solid #3498db; }}
+                        .footer {{ text-align: center; padding: 20px; color: #666; font-size: 12px; }}
+                    </style>
+                </head>
+                <body>
+                    <div class='container'>
+                        <div class='header'>
+                            <h1>Zemlja Slova</h1>
+                            <h2>Potvrda o kupovini kupona</h2>
+                        </div>
+                        
+                        <div class='content'>
+                            <p>Poštovani/a {user.FirstName} {user.LastName},</p>
+                            
+                            <p>Hvala vam što ste kupili kupon u našoj knjižari! Vaš kupon je uspješno kreiran i spreman za korištenje.</p>
+                            
+                            <h3 style='text-align: center; color: #2c3e50; margin: 20px 0 10px 0;'>Kod kupona:</h3>
+                            <div class='voucher-code'>
+                                {voucher.Code}
+                            </div>
+                            <p style='text-align: center; color: #666; font-style: italic; margin: 10px 0 20px 0;'>Kopirajte ovaj kod i koristite ga prilikom plaćanja</p>
+                            
+                            <div class='info-box'>
+                                <h3>Detalji kupona:</h3>
+                                <p><strong>Vrijednost:</strong> {voucher.Value:C}</p>
+                                <p><strong>Datum kupovine:</strong> {purchaseDate}</p>
+                                <p><strong>Datum isteka:</strong> {expirationDate}</p>
+                                <p><strong>Status:</strong> Aktivan</p>
+                            </div>
+                            
+                            <div class='info-box'>
+                                <h3>Kako koristiti kupon:</h3>
+                                <ul>
+                                    <li>Kod kupona možete koristiti prilikom online kupovine</li>
+                                    <li>Unesite kod u polje za kupon na stranici za plaćanje</li>
+                                    <li>Kupon se može koristiti do datuma isteka</li>
+                                    <li>Kupon se može koristiti samo jednom</li>
+                                </ul>
+                            </div>
+                            
+                            <p>Ako imate bilo kakva pitanja, slobodno nas kontaktirajte.</p>
+                            
+                            <p>Srdačan pozdrav,<br>
+                            Tim Zemlje Slova</p>
+                        </div>
+                        
+                        <div class='footer'>
+                            <p>Ova poruka je automatski generisana. Molimo ne odgovarajte na nju.</p>
+                            <p>Zemlja Slova - Vaša knjižara</p>
+                        </div>
+                    </div>
+                </body>
+                </html>";
         }
     }
 }
