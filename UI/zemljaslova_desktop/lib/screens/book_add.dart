@@ -11,11 +11,11 @@ import '../widgets/zs_input.dart';
 import '../widgets/zs_date_picker.dart';
 import '../widgets/image_picker_widget.dart';
 
-// TODO: add discount fields
 class BookAddScreen extends StatefulWidget {
   final BookPurpose? bookPurpose;
+  final Author? preSelectedAuthor;
   
-  const BookAddScreen({super.key, this.bookPurpose});
+  const BookAddScreen({super.key, this.bookPurpose, this.preSelectedAuthor});
 
   @override
   State<BookAddScreen> createState() => _BookAddScreenState();
@@ -50,6 +50,11 @@ class _BookAddScreenState extends State<BookAddScreen> {
     // Prefill bookPurpose
     if (widget.bookPurpose != null) {
       _bookPurposeController.text = widget.bookPurpose == BookPurpose.sell ? 'sell' : 'rent';
+    }
+    
+    // Pre-select author if provided
+    if (widget.preSelectedAuthor != null) {
+      _selectedAuthorIds.add(widget.preSelectedAuthor!.id);
     }
     
     // Load authors for dropdown after the build is complete

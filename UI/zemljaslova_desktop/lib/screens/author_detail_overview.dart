@@ -6,6 +6,7 @@ import '../providers/author_provider.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/permission_guard.dart';
 import 'author_edit.dart';
+import 'book_add.dart';
 
 class AuthorDetailOverview extends StatelessWidget {
   final Author author;
@@ -174,7 +175,13 @@ class AuthorDetailOverview extends StatelessWidget {
                         width: 410,
                         topPadding: 5,
                         onPressed: () {
-                          // TODO: Implement add book functionality
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => BookAddScreen(
+                                preSelectedAuthor: author,
+                              ),
+                            ),
+                          );
                         },
                       ),
                       

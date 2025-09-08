@@ -6,7 +6,6 @@ namespace ZemljaSlova.Model.Requests
 {
     public class OrderUpdateRequest
     {
-        // TODO: handle discount
         public int? DiscountId { get; set; }
 
         // public string? DiscountCode { get; set; }

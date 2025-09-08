@@ -654,7 +654,6 @@ class _BookRentalScreenState extends State<BookRentalScreen> {
   }
   
   Widget _buildRentalHistory() {
-    // TODO: Add return transactions
     // Filter transactions to show only rental activities
     final rentalTransactions = _transactions.where((transaction) => 
       transaction.activityTypeId == 4
