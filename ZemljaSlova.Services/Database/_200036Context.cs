@@ -343,6 +343,7 @@ public partial class _200036Context : DbContext
         {
             entity.ToTable("Ticket");
 
+            entity.Property(e => e.Code).HasMaxLength(50);
             entity.Property(e => e.PurchasedAt).HasColumnType("datetime");
 
             entity.HasOne(d => d.Member).WithMany(p => p.Tickets)

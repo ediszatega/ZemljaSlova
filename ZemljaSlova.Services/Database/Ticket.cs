@@ -17,6 +17,8 @@ public partial class Ticket
 
     public bool IsUsed { get; set; }
 
+    public string? Code { get; set; }
+
     public virtual Member Member { get; set; } = null!;
 
     public virtual OrderItem OrderItem { get; set; } = null!;

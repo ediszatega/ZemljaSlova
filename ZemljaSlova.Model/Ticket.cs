@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
@@ -18,6 +18,8 @@ namespace ZemljaSlova.Model
         public DateTime PurchasedAt { get; set; }
 
         public bool IsUsed { get; set; }
+
+        public string Code { get; set; } = string.Empty;
 
         public virtual Member Member { get; set; } = null!;
 

@@ -230,7 +230,8 @@ namespace ZemljaSlova.Services
                                 TicketTypeId = itemRequest.TicketTypeId.Value,
                                 OrderItemId = orderItem.Id,
                                 PurchasedAt = DateTime.Now,
-                                IsUsed = false
+                                IsUsed = false,
+                                Code = GenerateTicketCode()
                             };
                             
                             ticketsToCreate.Add(ticket);
@@ -241,6 +242,11 @@ namespace ZemljaSlova.Services
                         {
                             Context.Tickets.Add(ticket);
                         }
+                        
+                        await Context.SaveChangesAsync();
+                        
+                        // Send ticket purchase confirmation email
+                        await SendTicketPurchaseEmailAsync(order.MemberId, ticketsToCreate, itemRequest.TicketTypeId.Value);
                         
                         await _bookClubPointsService.AwardPointsAsync(
                             order.MemberId, 
@@ -477,6 +483,141 @@ namespace ZemljaSlova.Services
                                     <li>Unesite kod u polje za kupon na stranici za plaćanje</li>
                                     <li>Kupon se može koristiti do datuma isteka</li>
                                     <li>Kupon se može koristiti samo jednom</li>
+                                </ul>
+                            </div>
+                            
+                            <p>Ako imate bilo kakva pitanja, slobodno nas kontaktirajte.</p>
+                            
+                            <p>Srdačan pozdrav,<br>
+                            Tim Zemlje Slova</p>
+                        </div>
+                        
+                        <div class='footer'>
+                            <p>Ova poruka je automatski generisana. Molimo ne odgovarajte na nju.</p>
+                            <p>Zemlja Slova - Vaša knjižara</p>
+                        </div>
+                    </div>
+                </body>
+                </html>";
+        }
+
+        private string GenerateTicketCode()
+        {
+            var timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            var random = new Random();
+            var randomPart = random.Next(1000, 9999);
+            var code = $"TKT_{timestamp}_{randomPart}";
+            
+            // Ensure it's unique
+            while (Context.Tickets.Any(t => t.Code == code))
+            {
+                timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                randomPart = random.Next(1000, 9999);
+                code = $"TKT_{timestamp}_{randomPart}";
+            }
+            
+            return code;
+        }
+
+        private async Task SendTicketPurchaseEmailAsync(int memberId, List<Database.Ticket> tickets, int ticketTypeId)
+        {
+            try
+            {
+                var member = await Context.Members
+                    .Include(m => m.User)
+                    .FirstOrDefaultAsync(m => m.Id == memberId);
+
+                if (member?.User != null)
+                {
+                    // Get ticket type and event information
+                    var ticketType = await Context.TicketTypes
+                        .Include(tt => tt.Event)
+                        .FirstOrDefaultAsync(tt => tt.Id == ticketTypeId);
+
+                    if (ticketType != null)
+                    {
+                        var emailModel = new EmailModel
+                        {
+                            To = member.User.Email,
+                            Subject = "Potvrda o kupovini karata - Zemlja Slova",
+                            Body = GenerateTicketPurchaseEmailBody(member.User, tickets, ticketType),
+                            From = "zemljaslova@gmail.com"
+                        };
+
+                        _rabbitMQProducer.SendMessage(emailModel);
+                    }
+                }
+            }
+            catch (UserException ex)
+            {
+                throw new UserException("Greška pri slanju emaila za kupovinu karata");
+            }
+            catch (Exception ex)
+            {
+                // Log the error but don't fail the order
+                Console.WriteLine($"Failed to send ticket purchase email: {ex.Message}");
+            }
+        }
+
+        private string GenerateTicketPurchaseEmailBody(Database.User user, List<Database.Ticket> tickets, Database.TicketType ticketType)
+        {
+            var purchaseDate = tickets.First().PurchasedAt.ToString("dd.MM.yyyy HH:mm");
+            var eventName = ticketType.Event?.Title ?? "Nepoznat događaj";
+            var eventDate = ticketType.Event?.StartAt.ToString("dd.MM.yyyy HH:mm") ?? "Nepoznat datum";
+            var ticketTypeName = ticketType.Name;
+            var ticketPrice = ticketType.Price;
+
+            var ticketCodesHtml = string.Join("", tickets.Select(ticket => 
+                $@"<div class='ticket-code'>
+                    {ticket.Code}
+                </div>"));
+
+            return $@"
+                <html>
+                <head>
+                    <meta charset='utf-8'>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                        .header {{ background-color: #2c3e50; color: white; padding: 20px; text-align: center; }}
+                        .content {{ padding: 20px; background-color: #f9f9f9; }}
+                        .ticket-code {{ background-color: #27ae60; color: white; padding: 15px; text-align: center; font-size: 20px; font-weight: bold; margin: 10px 0; border-radius: 8px; border: 2px solid #229954; letter-spacing: 1px; font-family: 'Courier New', monospace; }}
+                        .info-box {{ background-color: white; padding: 15px; margin: 10px 0; border-left: 4px solid #3498db; }}
+                        .footer {{ text-align: center; padding: 20px; color: #666; font-size: 12px; }}
+                    </style>
+                </head>
+                <body>
+                    <div class='container'>
+                        <div class='header'>
+                            <h1>Zemlja Slova</h1>
+                            <h2>Potvrda o kupovini karata</h2>
+                        </div>
+                        
+                        <div class='content'>
+                            <p>Poštovani/a {user.FirstName} {user.LastName},</p>
+                            
+                            <p>Hvala vam što ste kupili karte za događaj u našoj knjižari! Vaše karte su uspješno kreirane i spremne za korištenje.</p>
+                            
+                            <div class='info-box'>
+                                <h3>Detalji događaja:</h3>
+                                <p><strong>Naziv:</strong> {eventName}</p>
+                                <p><strong>Datum i vrijeme:</strong> {eventDate}</p>
+                                <p><strong>Tip karte:</strong> {ticketTypeName}</p>
+                                <p><strong>Cijena po karti:</strong> {ticketPrice:C}</p>
+                                <p><strong>Broj karata:</strong> {tickets.Count}</p>
+                                <p><strong>Datum kupovine:</strong> {purchaseDate}</p>
+                            </div>
+                            
+                            <h3 style='text-align: center; color: #2c3e50; margin: 20px 0 10px 0;'>Kodovi vaših karata:</h3>
+                            {ticketCodesHtml}
+                            <p style='text-align: center; color: #666; font-style: italic; margin: 10px 0 20px 0;'>Kopirajte ove kodove i koristite ih prilikom ulaska na događaj</p>
+                            
+                            <div class='info-box'>
+                                <h3>Kako koristiti karte:</h3>
+                                <ul>
+                                    <li>Kodove karata možete koristiti prilikom ulaska na događaj</li>
+                                    <li>Svaka karta se može koristiti samo jednom</li>
+                                    <li>Karte vrijede samo za navedeni događaj</li>
                                 </ul>
                             </div>
                             

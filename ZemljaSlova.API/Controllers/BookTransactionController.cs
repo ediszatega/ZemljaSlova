@@ -113,7 +113,6 @@ namespace ZemljaSlova.API.Controllers
         }
     }
 
-    // TODO: Move to Models.Requests
     public class BookAddSellRequest
     {
         public int Quantity { get; set; }
