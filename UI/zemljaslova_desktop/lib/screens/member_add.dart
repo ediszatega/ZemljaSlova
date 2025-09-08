@@ -322,8 +322,9 @@ class _MemberAddScreenState extends State<MemberAddScreen> {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Korisnik uspješno dodan!'),
+              content: Text('Korisnik uspješno dodan! Inicjialno nije vidjljiv bez filtera za neaktiven korisnike.'),
               backgroundColor: Colors.green,
+              duration: Duration(seconds: 5),
             ),
           );
           

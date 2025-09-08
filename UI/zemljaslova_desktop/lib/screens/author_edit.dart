@@ -141,6 +141,7 @@ class _AuthorEditScreenState extends State<AuthorEditScreen> {
                             ZSDatePicker(
                               label: 'Datum rođenja',
                               controller: _dateOfBirthController,
+                              firstDate: DateTime(1500),
                             ),
                             
                             const SizedBox(height: 20),

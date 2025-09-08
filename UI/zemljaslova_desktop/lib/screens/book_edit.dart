@@ -231,6 +231,7 @@ class _BookEditScreenState extends State<BookEditScreen> {
                                   ZSDatePicker(
                                     label: 'Datum izdavanja',
                                     controller: _dateOfPublishController,
+                                    firstDate: DateTime(1500),
                                   ),
                                   
                                   const SizedBox(height: 20),

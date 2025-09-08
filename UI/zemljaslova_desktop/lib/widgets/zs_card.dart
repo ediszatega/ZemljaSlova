@@ -196,7 +196,7 @@ class ZSCard extends StatelessWidget {
     Widget imageWidget;
     if (book.coverImageUrl != null && book.coverImageUrl!.isNotEmpty) {
       imageWidget = Image.network(
-        book.coverImageUrl!,
+        '${book.coverImageUrl}?t=${DateTime.now().millisecondsSinceEpoch}',
         fit: BoxFit.cover,
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;

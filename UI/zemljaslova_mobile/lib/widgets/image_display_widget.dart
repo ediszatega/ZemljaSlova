@@ -128,8 +128,16 @@ class ImageDisplayWidget extends StatelessWidget {
           );
         }
       } else if (imageUrl!.startsWith('http')) {
+        // Add cache-busting parameter to force reload updated images
+        String finalUrl = imageUrl!;
+        if (!finalUrl.contains('?')) {
+          finalUrl += '?t=${DateTime.now().millisecondsSinceEpoch}';
+        } else {
+          finalUrl += '&t=${DateTime.now().millisecondsSinceEpoch}';
+        }
+        
         return CachedNetworkImage(
-          imageUrl: imageUrl!,
+          imageUrl: finalUrl,
           width: width,
           height: height,
           fit: fit,

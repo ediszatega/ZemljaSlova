@@ -115,7 +115,7 @@ class _EventDetailOverviewState extends State<EventDetailOverview> {
                                   child: Center(
                                     child: event.coverImageUrl != null
                                       ? Image.network(
-                                          event.coverImageUrl!,
+                                          '${event.coverImageUrl}?t=${DateTime.now().millisecondsSinceEpoch}',
                                           fit: BoxFit.cover,
                                         )
                                       : Image.asset(

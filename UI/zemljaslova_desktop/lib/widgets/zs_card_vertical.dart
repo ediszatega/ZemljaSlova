@@ -141,8 +141,16 @@ class ZSCardVertical extends StatelessWidget {
     // Create image widget from event's image
     Widget imageWidget;
     if (event.coverImageUrl != null) {
+      // Add cache-busting parameter to force reload updated images
+      String imageUrl = event.coverImageUrl;
+      if (!imageUrl.contains('?')) {
+        imageUrl += '?t=${DateTime.now().millisecondsSinceEpoch}';
+      } else {
+        imageUrl += '&t=${DateTime.now().millisecondsSinceEpoch}';
+      }
+      
       imageWidget = Image.network(
-        event.coverImageUrl,
+        imageUrl,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
           return _buildFallbackEventImage();
