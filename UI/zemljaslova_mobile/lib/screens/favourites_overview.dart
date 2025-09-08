@@ -243,6 +243,7 @@ class _FavouritesOverviewScreenState extends State<FavouritesOverviewScreen> {
             return ZSCard.fromBook(
               context,
               book,
+              isFavourite: true,
               onTap: () {
                 Navigator.push(
                   context,

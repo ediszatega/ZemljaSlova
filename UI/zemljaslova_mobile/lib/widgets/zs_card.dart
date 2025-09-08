@@ -14,6 +14,7 @@ class ZSCard extends StatelessWidget {
   final VoidCallback? onTap;
   final double imageHeightRatio;
   final double contentHeightRatio;
+  final bool isFavourite;
   
   const ZSCard({
     super.key,
@@ -25,6 +26,7 @@ class ZSCard extends StatelessWidget {
     this.onTap,
     this.imageHeightRatio = 0.70,
     this.contentHeightRatio = 0.30,
+    this.isFavourite = false,
   }) : assert(imageHeightRatio + contentHeightRatio == 1.0, 
          "imageHeightRatio + contentHeightRatio must equal 1.0");
 
@@ -36,7 +38,10 @@ class ZSCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(
+            color: isFavourite ? Colors.red.shade300 : Colors.grey.shade300,
+            width: isFavourite ? 2.0 : 1.0,
+          ),
         ),
         clipBehavior: Clip.antiAlias,
         child: LayoutBuilder(
@@ -62,6 +67,10 @@ class ZSCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade100,
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(8.0),
+                      bottomRight: Radius.circular(8.0),
+                    ),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -165,7 +174,7 @@ class ZSCard extends StatelessWidget {
   static Widget fromBook(
     BuildContext context, 
     dynamic book, 
-    {VoidCallback? onTap}
+    {VoidCallback? onTap, bool isFavourite = false}
   ) {
     // Create image widget from book's cover image
     Widget imageWidget = ImageDisplayWidget.book(
@@ -186,6 +195,7 @@ class ZSCard extends StatelessWidget {
       additionalText: additionalText,
       image: imageWidget,
       onTap: onTap,
+      isFavourite: isFavourite,
     );
   }
 

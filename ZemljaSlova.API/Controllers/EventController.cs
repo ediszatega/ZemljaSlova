@@ -91,7 +91,6 @@ namespace ZemljaSlova.API.Controllers
         }
     }
 
-    //TODO: move to Model.Requests
     public class PurchaseTicketsRequest
     {
         public int TicketTypeId { get; set; }

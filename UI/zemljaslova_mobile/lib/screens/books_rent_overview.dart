@@ -10,6 +10,7 @@ import '../widgets/paginated_data_widget.dart';
 import '../widgets/filter_dialog.dart';
 import '../utils/filter_configurations.dart';
 import '../providers/book_provider.dart';
+import '../providers/favourite_provider.dart';
 import 'book_detail_overview.dart';
 
 class BooksRentOverviewScreen extends StatefulWidget {
@@ -201,33 +202,38 @@ class _BooksRentOverviewScreenState extends State<BooksRentOverviewScreen> with 
           emptyStateIcon: Icons.book_outlined,
           emptyStateMessage: 'Nema dostupnih knjiga za iznajmljivanje',
           gridBuilder: (context, books) {
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                int crossAxisCount = 2;
-                
-                return GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 0.5,
-                  ),
-                  itemCount: books.length,
-                  itemBuilder: (context, index) {
-                    final book = books[index];
-                    return ZSCard.fromBook(
-                      context,
-                      book,
-                      onTap: () {
-                        Navigator.push(
+            return Consumer<FavouriteProvider>(
+              builder: (context, favouriteProvider, child) {
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    int crossAxisCount = 2;
+                    
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 0.5,
+                      ),
+                      itemCount: books.length,
+                      itemBuilder: (context, index) {
+                        final book = books[index];
+                        return ZSCard.fromBook(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => BookDetailOverviewScreen(
-                              book: book,
-                            ),
-                          ),
+                          book,
+                          isFavourite: favouriteProvider.isFavourite(book.id),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => BookDetailOverviewScreen(
+                                  book: book,
+                                ),
+                              ),
+                            );
+                          },
                         );
                       },
                     );
