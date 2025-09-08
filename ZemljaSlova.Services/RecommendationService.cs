@@ -29,9 +29,18 @@ namespace ZemljaSlova.Services
 
             _context.Recommendations.RemoveRange(existingRecommendations);
 
-            // Generate recommendations using both methods
-            List<Database.Recommendation> recommendations = await GenerateRecommendationsBasedOnSimilarityAsync(memberId);
-            recommendations.AddRange(await GenerateMatrixFactorizationRecommendationsAsync(memberId));
+            // Generate recommendations
+            var collaborativeRecommendations = await GenerateRecommendationsBasedOnSimilarityAsync(memberId);
+            var matrixFactorizationRecommendations = await GenerateMatrixFactorizationRecommendationsAsync(memberId);
+            var contentBasedRecommendations = await GenerateContentBasedRecommendationsAsync(memberId);
+
+            // Combine recommendations with weighted scoring
+            var combinedRecommendations = CombineRecommendationsWithWeights(
+                memberId,
+                collaborativeRecommendations,
+                matrixFactorizationRecommendations,
+                contentBasedRecommendations
+            );
 
             // Get member's already purchased books to exclude them
             var purchasedBooks = await GetMemberPurchasedBooksAsync(memberId);
@@ -39,7 +48,7 @@ namespace ZemljaSlova.Services
             var uniqueBookIds = new HashSet<int>();
 
             // Filter and save unique recommendations
-            foreach (var recommendation in recommendations)
+            foreach (var recommendation in combinedRecommendations)
             {
                 var bookExists = await _context.Books
                     .AnyAsync(book => book.Id == recommendation.BookId && 
@@ -127,14 +136,24 @@ namespace ZemljaSlova.Services
                 return 0.0;
 
             // Calculate cosine similarity
-            var intersection = targetPreferences.Intersect(memberPreferences).Count();
+            var bookIntersection = targetPreferences.Intersect(memberPreferences).Count();
             var magnitude1 = Math.Sqrt(targetPreferences.Count);
             var magnitude2 = Math.Sqrt(memberPreferences.Count);
 
-            if (magnitude1 == 0 || magnitude2 == 0)
-                return 0.0;
+            double bookSimilarity = 0.0;
+            if (magnitude1 > 0 && magnitude2 > 0)
+            {
+                bookSimilarity = bookIntersection / (magnitude1 * magnitude2);
+            }
 
-            return intersection / (magnitude1 * magnitude2);
+            // Calculate genre similarity
+            double genreSimilarity = await CalculateGenreSimilarityAsync(targetPreferences.ToList(), memberPreferences.ToList());
+
+            // Calculate author similarity
+            double authorSimilarity = await CalculateAuthorSimilarityAsync(targetPreferences.ToList(), memberPreferences.ToList());
+
+            // Combine similarities with weights
+            return (bookSimilarity * 0.6) + (genreSimilarity * 0.25) + (authorSimilarity * 0.15);
         }
 
         // Method 2: Matrix Factorization using SVD
@@ -297,6 +316,181 @@ namespace ZemljaSlova.Services
                 .Where(f => f.MemberId == memberId)
                 .Select(f => f.BookId)
                 .ToListAsync();
+        }
+
+        // Method 3: Content-based recommendations (genre and author preferences)
+        private async Task<List<Database.Recommendation>> GenerateContentBasedRecommendationsAsync(int memberId)
+        {
+            var recommendations = new List<Database.Recommendation>();
+
+            // Get member's book preferences
+            var purchasedBooks = await GetMemberPurchasedBooksAsync(memberId);
+            var favouriteBooks = await GetMemberFavouriteBooksAsync(memberId);
+            var memberBookPreferences = purchasedBooks.Union(favouriteBooks).ToList();
+
+            if (!memberBookPreferences.Any())
+                return recommendations;
+
+            // Get preferred genres and authors
+            var preferredGenres = await GetMemberPreferredGenresAsync(memberBookPreferences);
+            var preferredAuthors = await GetMemberPreferredAuthorsAsync(memberBookPreferences);
+
+            // Find books with similar genres and authors
+            var candidateBooks = await _context.Books
+                .Include(b => b.Authors)
+                .Where(b => b.BookPurpose == 1)
+                .ToListAsync();
+
+            foreach (var book in candidateBooks)
+            {
+                if (memberBookPreferences.Contains(book.Id))
+                    continue; // Skip already purchased/favourite books
+
+                double score = 0.0;
+
+                // Genre matching (weight: 0.6)
+                if (!string.IsNullOrEmpty(book.Genre) && preferredGenres.Contains(book.Genre))
+                {
+                    score += 0.6;
+                }
+
+                // Author matching (weight: 0.4)
+                var bookAuthorIds = book.Authors.Select(a => a.Id).ToList();
+                var authorOverlap = bookAuthorIds.Intersect(preferredAuthors).Count();
+                if (authorOverlap > 0)
+                {
+                    score += 0.4 * (authorOverlap / (double)Math.Max(bookAuthorIds.Count, 1));
+                }
+
+                // Only recommend books with some similarity
+                if (score > 0.3)
+                {
+                    recommendations.Add(new Database.Recommendation
+                    {
+                        MemberId = memberId,
+                        BookId = book.Id
+                    });
+                }
+            }
+
+            return recommendations.OrderByDescending(r => CalculateContentScore(r.BookId, preferredGenres, preferredAuthors))
+                                 .Take(15).ToList();
+        }
+
+        // Calculate genre similarity between two sets of books
+        private async Task<double> CalculateGenreSimilarityAsync(List<int> bookIds1, List<int> bookIds2)
+        {
+            var genres1 = await GetGenresForBooksAsync(bookIds1);
+            var genres2 = await GetGenresForBooksAsync(bookIds2);
+
+            if (!genres1.Any() || !genres2.Any())
+                return 0.0;
+
+            var intersection = genres1.Intersect(genres2).Count();
+            var union = genres1.Union(genres2).Count();
+
+            return union > 0 ? (double)intersection / union : 0.0;
+        }
+
+        // Calculate author similarity between two sets of books
+        private async Task<double> CalculateAuthorSimilarityAsync(List<int> bookIds1, List<int> bookIds2)
+        {
+            var authors1 = await GetAuthorsForBooksAsync(bookIds1);
+            var authors2 = await GetAuthorsForBooksAsync(bookIds2);
+
+            if (!authors1.Any() || !authors2.Any())
+                return 0.0;
+
+            var intersection = authors1.Intersect(authors2).Count();
+            var union = authors1.Union(authors2).Count();
+
+            return union > 0 ? (double)intersection / union : 0.0;
+        }
+
+        // Combine recommendations from different methods with weighted scoring
+        private List<Database.Recommendation> CombineRecommendationsWithWeights(
+            int memberId,
+            List<Database.Recommendation> collaborativeRecommendations,
+            List<Database.Recommendation> matrixFactorizationRecommendations,
+            List<Database.Recommendation> contentBasedRecommendations)
+        {
+            var bookScores = new Dictionary<int, double>();
+
+            // Weight collaborative filtering recommendations (40%)
+            foreach (var rec in collaborativeRecommendations)
+            {
+                if (!bookScores.ContainsKey(rec.BookId))
+                    bookScores[rec.BookId] = 0;
+                bookScores[rec.BookId] += 0.4;
+            }
+
+            // Weight matrix factorization recommendations (35%)
+            foreach (var rec in matrixFactorizationRecommendations)
+            {
+                if (!bookScores.ContainsKey(rec.BookId))
+                    bookScores[rec.BookId] = 0;
+                bookScores[rec.BookId] += 0.35;
+            }
+
+            // Weight content-based recommendations (25%)
+            foreach (var rec in contentBasedRecommendations)
+            {
+                if (!bookScores.ContainsKey(rec.BookId))
+                    bookScores[rec.BookId] = 0;
+                bookScores[rec.BookId] += 0.25;
+            }
+
+            // Return top recommendations sorted by combined score
+            return bookScores
+                .OrderByDescending(kvp => kvp.Value)
+                .Take(20)
+                .Select(kvp => new Database.Recommendation
+                {
+                    MemberId = memberId,
+                    BookId = kvp.Key
+                })
+                .ToList();
+        }
+
+        private async Task<List<string>> GetMemberPreferredGenresAsync(List<int> bookIds)
+        {
+            return await _context.Books
+                .Where(b => bookIds.Contains(b.Id) && !string.IsNullOrEmpty(b.Genre))
+                .Select(b => b.Genre!)
+                .Distinct()
+                .ToListAsync();
+        }
+
+        private async Task<List<int>> GetMemberPreferredAuthorsAsync(List<int> bookIds)
+        {
+            return await _context.Books
+                .Where(b => bookIds.Contains(b.Id))
+                .SelectMany(b => b.Authors.Select(a => a.Id))
+                .Distinct()
+                .ToListAsync();
+        }
+
+        private async Task<List<string>> GetGenresForBooksAsync(List<int> bookIds)
+        {
+            return await _context.Books
+                .Where(b => bookIds.Contains(b.Id) && !string.IsNullOrEmpty(b.Genre))
+                .Select(b => b.Genre!)
+                .Distinct()
+                .ToListAsync();
+        }
+
+        private async Task<List<int>> GetAuthorsForBooksAsync(List<int> bookIds)
+        {
+            return await _context.Books
+                .Where(b => bookIds.Contains(b.Id))
+                .SelectMany(b => b.Authors.Select(a => a.Id))
+                .Distinct()
+                .ToListAsync();
+        }
+
+        private double CalculateContentScore(int bookId, List<string> preferredGenres, List<int> preferredAuthors)
+        {
+            return 1.0;
         }
 
         public override IQueryable<Database.Recommendation> AddFilter(RecommendationSearchObject? search, IQueryable<Database.Recommendation> query)

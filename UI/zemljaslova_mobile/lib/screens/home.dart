@@ -36,13 +36,13 @@ class _HomeScreenState extends State<HomeScreen> {
           
           const SizedBox(height: 24),
 
+          _buildNavigationTabs(context),
+
           // Recommendations section (only for logged in users)
           if (Authorization.userId != null) ...[
-            _buildRecommendationsSection(context),
             const SizedBox(height: 24),
+            _buildRecommendationsSection(context),
           ],
-
-          _buildNavigationTabs(context),
         ],
       ),
     );

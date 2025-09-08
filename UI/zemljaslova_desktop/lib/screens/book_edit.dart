@@ -12,7 +12,6 @@ import '../widgets/zs_date_picker.dart';
 import '../widgets/image_picker_widget.dart';
 import '../utils/image_utils.dart';
 
-// TODO: add discount fields
 class BookEditScreen extends StatefulWidget {
   final Book book;
   
