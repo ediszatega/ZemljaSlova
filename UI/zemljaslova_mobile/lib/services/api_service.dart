@@ -5,7 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.1.11:5285';
+  static const String baseUrl = 'http://192.168.1.10:5285';
       
   String? authToken;
   final _storage = const FlutterSecureStorage();
@@ -263,7 +263,8 @@ class ApiService {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (response.body.isNotEmpty) {
         try {
-          return json.decode(response.body);
+          final decoded = json.decode(response.body);
+          return decoded;
         } catch (e) {
           throw Exception('Invalid JSON response from server');
         }

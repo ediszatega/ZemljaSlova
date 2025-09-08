@@ -8,6 +8,7 @@ import '../providers/membership_provider.dart';
 import '../utils/authorization.dart';
 import '../widgets/mobile_layout.dart';
 import '../widgets/zs_button.dart';
+import '../models/auth/login_response.dart';
 import 'register_screen.dart';
 import 'membership_purchase_screen.dart';
 
@@ -174,10 +175,10 @@ class _LoginScreenState extends State<LoginScreen> {
         // Handle login failure based on result code
         String errorMessage;
         switch (loginResponse.result) {
-          case 1:
+          case AuthResult.userNotFound:
             errorMessage = "Korisnik nije pronađen.";
             break;
-          case 2:
+          case AuthResult.invalidPassword:
             errorMessage = "Pogrešna lozinka.";
             break;
           default:
