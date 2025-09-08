@@ -256,12 +256,8 @@ class _BookEditScreenState extends State<BookEditScreen> {
                                   ZSInput(
                                     label: 'Namjena knjige*',
                                     controller: _bookPurposeController,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Unesite namjenu knjige';
-                                      }
-                                      return null;
-                                    },
+                                    enabled: false,
+                                    validator: null,
                                   ),
                                   
                                   const SizedBox(height: 20),
