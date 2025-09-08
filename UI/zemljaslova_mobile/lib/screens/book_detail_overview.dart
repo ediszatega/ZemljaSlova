@@ -204,14 +204,7 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
                 ),
                 const SizedBox(height: 8),
                 if (book.bookPurpose != BookPurpose.rent && book.price != null) 
-                  Text(
-                    '${book.price!.toStringAsFixed(2)} KM',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
+                  _buildPriceDisplay(book),
               ],
             ),
           ),
@@ -590,15 +583,74 @@ class _BookDetailOverviewScreenState extends State<BookDetailOverviewScreen> {
     final cartItem = CartItem(
       id: cartItemId,
       title: book.title,
-      price: book.price!,
+      price: book.effectivePrice!,
       quantity: 1,
       type: CartItemType.book,
+      discountId: book.discountId,
+      originalPrice: book.price,
     );
 
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     cartProvider.addItem(cartItem);
 
     SnackBarUtil.showTopSnackBar(context, 'Knjiga je dodana u korpu! Da biste završili kupovinu otvorite korpu.');
+  }
+
+  Widget _buildPriceDisplay(Book book) {
+    if (book.hasDiscount && book.discountedPrice != null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '${book.discountedPrice!.toStringAsFixed(2)} KM',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '-${book.discountPercentage!.toStringAsFixed(0)}%',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${book.price!.toStringAsFixed(2)} KM',
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+              decoration: TextDecoration.lineThrough,
+            ),
+          ),
+        ],
+      );
+    } else {
+      return Text(
+        '${book.price!.toStringAsFixed(2)} KM',
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
+        ),
+      );
+    }
   }
 }
 

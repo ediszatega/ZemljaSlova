@@ -1,5 +1,6 @@
 import '../models/book.dart';
 import '../models/author.dart';
+import '../models/discount.dart';
 import 'api_service.dart';
 
 class BookService {
@@ -148,6 +149,33 @@ class BookService {
       authorIds = authors.map((author) => author.id).toList();
     }
 
+    // Map discount information
+    int? discountId = bookData['discountId'];
+    double? discountedPrice = bookData['discountedPrice']?.toDouble();
+    Discount? discount;
+    
+    if (bookData['discount'] != null) {
+      final discountData = bookData['discount'];
+      discount = Discount(
+        id: discountData['id'] ?? 0,
+        discountPercentage: (discountData['discountPercentage'] ?? 0).toDouble(),
+        startDate: DateTime.parse(discountData['startDate']),
+        endDate: DateTime.parse(discountData['endDate']),
+        code: discountData['code'],
+        name: discountData['name'],
+        description: discountData['description'],
+        scope: discountData['scope'] != null 
+            ? DiscountScope.values.firstWhere(
+                (s) => s.index + 1 == discountData['scope'],
+                orElse: () => DiscountScope.book,
+              )
+            : DiscountScope.book,
+        usageCount: discountData['usageCount'] ?? 0,
+        maxUsage: discountData['maxUsage'],
+        isActive: discountData['isActive'] ?? false,
+      );
+    }
+
     return Book(
       id: bookData['id'] ?? 0,
       title: bookData['title'] ?? '',
@@ -169,6 +197,9 @@ class BookService {
       language: language,
       authorIds: authorIds,
       authors: authors.isNotEmpty ? authors : null,
+      discountId: discountId,
+      discountedPrice: discountedPrice,
+      discount: discount,
     );
   }
 } 

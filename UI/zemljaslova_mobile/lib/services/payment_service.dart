@@ -1,4 +1,3 @@
-import 'dart:convert';
 import '../models/payment_intent.dart';
 import '../models/shipping_address.dart';
 import '../models/cart_item.dart';
@@ -50,6 +49,8 @@ class PaymentService {
     required String paymentMethodId,
     int? appliedVoucherId,
     double? discountAmount,
+    String? discountCode,
+    double? orderDiscountAmount,
   }) async {
     try {
       // Convert cart items to order items
@@ -59,7 +60,7 @@ class PaymentService {
         'membershipId': item.type == CartItemType.membership ? _extractId(item.id) : null,
         'voucherId': item.type == CartItemType.voucher ? _extractId(item.id) : null,
         'quantity': item.quantity,
-        'discountId': null, // No discount for now
+        'discountId': item.discountId,
       }).toList();
 
       final totalAmount = items.fold<double>(
@@ -78,10 +79,12 @@ class PaymentService {
       // Create order request
       final orderRequest = {
         'memberId': memberId,
-        'discountId': null,
+        'discountId': null, // Item-level discounts
         'amount': totalAmount,
         'appliedVoucherId': appliedVoucherId,
         'discountAmount': discountAmount,
+        'discountCode': discountCode, // Order-level discount code
+        'orderDiscountAmount': orderDiscountAmount, // Order-level discount amount
         'paymentIntentId': paymentIntentId,
         'paymentStatus': 'pending',
         'paymentMethodId': paymentMethodId,

@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'author.dart';
+import 'discount.dart';
 
 part 'book.g.dart';
 
@@ -34,6 +35,11 @@ class Book {
   final String? language;  
   final List<int> authorIds;  
   final List<Author>? authors;
+  
+  // Discount related fields
+  final int? discountId;
+  final double? discountedPrice;
+  final Discount? discount;
 
   Book({
     required this.id,
@@ -56,6 +62,9 @@ class Book {
     this.language,
     this.authorIds = const [],
     this.authors,
+    this.discountId,
+    this.discountedPrice,
+    this.discount,
   });
 
   String get authorNames {
@@ -63,6 +72,24 @@ class Book {
       return authors!.map((a) => '${a.firstName} ${a.lastName}').join(', ');
     }
     return "Autor nepoznat";
+  }
+
+  /// Returns the effective price (discounted price if available, otherwise regular price)
+  double? get effectivePrice {
+    return discountedPrice ?? price;
+  }
+
+  /// Returns true if the book has an active discount
+  bool get hasDiscount {
+    return discountedPrice != null && discountedPrice! < (price ?? 0);
+  }
+
+  /// Returns the discount percentage if available
+  double? get discountPercentage {
+    if (discount != null && price != null && price! > 0) {
+      return discount!.discountPercentage;
+    }
+    return null;
   }
 
   factory Book.fromJson(Map<String, dynamic> json) => _$BookFromJson(json);

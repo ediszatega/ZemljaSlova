@@ -103,17 +103,7 @@ class ZSCard extends StatelessWidget {
                       
                       if (additionalText != null) ...[
                         const SizedBox(height: 2),
-                        Text(
-                          additionalText!,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        _buildAdditionalText(additionalText!),
                       ],
                       
                       // Status indicator (if provided)
@@ -186,7 +176,7 @@ class ZSCard extends StatelessWidget {
     
     String? additionalText;
     if (book.bookPurpose == BookPurpose.sell && book.price != null && book.price! > 0) {
-      additionalText = '${book.price.toStringAsFixed(2)} KM';
+      additionalText = _buildPriceText(book);
     }
     
     return ZSCard(
@@ -256,6 +246,64 @@ class ZSCard extends StatelessWidget {
       subtitle: employee.accessLevel,
       image: imageWidget,
       onTap: onTap,
+    );
+  }
+
+  static String _buildPriceText(dynamic book) {    
+    if (book.hasDiscount && book.discountedPrice != null) {
+      return '${book.discountedPrice!.toStringAsFixed(2)} KM (-${book.discountPercentage!.toStringAsFixed(0)}%)';
+    } else {
+      return '${book.effectivePrice!.toStringAsFixed(2)} KM';
+    }
+  }
+
+  Widget _buildAdditionalText(String text) {
+    // Check if the text contains a discount indicator (ex. "20.00 KM (-20%)")
+    if (text.contains('(-') && text.contains('%)')) {
+      final parts = text.split(' (-');
+      if (parts.length == 2) {
+        final pricePart = parts[0];
+        final discountPart = '(-${parts[1]}';
+        
+        return RichText(
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: pricePart,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              TextSpan(
+                text: ' $discountPart',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+    
+    // Default text styling for non-discount text
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+        color: Colors.black,
+      ),
+      textAlign: TextAlign.center,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 } 

@@ -33,12 +33,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
   final PaymentService _paymentService = PaymentService();
   final VoucherService _voucherService = VoucherService(ApiService());
   final TextEditingController _voucherCodeController = TextEditingController();
+  final TextEditingController _discountCodeController = TextEditingController();
   
   bool _isLoading = false;
   bool _isValidatingVoucher = false;
+  bool _isValidatingDiscountCode = false;
   String? _errorMessage;
   Voucher? _appliedVoucher;
+  String? _appliedDiscountCode;
   double _discountAmount = 0.0;
+  double _orderDiscountAmount = 0.0;
   double _finalAmount = 0.0;
 
   @override
@@ -50,6 +54,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   void dispose() {
     _voucherCodeController.dispose();
+    _discountCodeController.dispose();
     super.dispose();
   }
 
@@ -67,15 +72,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         _buildPaymentSummary(),
+                        const SizedBox(height: 24),
+                        _buildDiscountCodeSection(),
                         const SizedBox(height: 24),
                         _buildVoucherSection(),
                         const SizedBox(height: 24),
                         _buildShippingInfo(),
                         const SizedBox(height: 32),
                         _buildPaymentButton(),
-                        const SizedBox(height: 24), // Extra padding for bottom navigation
+                        const SizedBox(height: 24),
                       ],
                     ),
                   ),
@@ -192,6 +200,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ],
           ),
+          if (_appliedDiscountCode != null) ...[
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Popust ($_appliedDiscountCode):',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.orange.shade600,
+                  ),
+                ),
+                Text(
+                  '-${_orderDiscountAmount.toStringAsFixed(2)} BAM',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.orange.shade600,
+                  ),
+                ),
+              ],
+            ),
+          ],
           if (_appliedVoucher != null) ...[
             const SizedBox(height: 8),
             Row(
@@ -250,6 +282,101 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  Widget _buildDiscountCodeSection() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.local_offer,
+                color: Colors.orange.shade600,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Kod za popust',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          
+          if (_appliedDiscountCode != null) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.check_circle,
+                    color: Colors.green.shade600,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Kod "$_appliedDiscountCode" je primijenjen!',
+                      style: TextStyle(
+                        color: Colors.green.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _removeDiscountCode,
+                    child: const Text(
+                      'Ukloni',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            ZSInput(
+              controller: _discountCodeController,
+              label: 'Unesite kod za popust',
+              hintText: 'POPUST20',
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: _isValidatingDiscountCode
+                  ? ZSButton(
+                      text: 'Provjera...',
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                      onPressed: null,
+                    )
+                  : ZSButton(
+                      text: 'Primijeni kod za popust',
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                      onPressed: _validateDiscountCode,
+                    ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildVoucherSection() {
     return Container(
       width: double.infinity,
@@ -267,7 +394,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               Icon(Icons.local_offer, color: Colors.orange.shade600),
               const SizedBox(width: 8),
               const Text(
-                'Kod kupona',
+                'Kod vaučera',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -279,7 +406,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           const SizedBox(height: 12),
           if (_appliedVoucher == null) ...[
             ZSInput(
-              label: 'Unesite kod kupona',
+              label: 'Unesite kod vaučera',
               controller: _voucherCodeController,
               hintText: 'ABC123',
             ),
@@ -287,7 +414,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             SizedBox(
               width: double.infinity,
               child: ZSButton(
-                text: _isValidatingVoucher ? 'Provjera...' : 'Primijeni kupon',
+                text: _isValidatingVoucher ? 'Provjera...' : 'Primijeni vaučer',
                 backgroundColor: Colors.orange,
                 foregroundColor: Colors.white,
                 onPressed: _isValidatingVoucher ? null : _validateAndApplyVoucher,
@@ -491,6 +618,69 @@ class _PaymentScreenState extends State<PaymentScreen> {
     SnackBarUtil.showTopSnackBar(context, 'Kupon je uklonjen');
   }
 
+  Future<void> _validateDiscountCode() async {
+    final code = _discountCodeController.text.trim();
+    if (code.isEmpty) {
+      SnackBarUtil.showTopSnackBar(context, 'Unesite kod za popust', isError: true);
+      return;
+    }
+
+    setState(() {
+      _isValidatingDiscountCode = true;
+    });
+
+    try {
+      // Call the discount validation API
+      final apiService = ApiService();
+      final response = await apiService.post('Discount/validate_discount_code/$code', {});
+      
+      if (response == true) {
+        // Get discount details
+        final discountResponse = await apiService.get('Discount/get_discount_by_code/$code');
+        
+        // Calculate order discount amount
+        final cartProvider = Provider.of<CartProvider>(context, listen: false);
+        final cartItems = cartProvider.items;
+        
+        // Calculate total before discount
+        final orderTotal = cartItems.fold<double>(
+          0.0, 
+          (sum, item) => sum + (item.price * item.quantity)
+        );
+        
+        // Calculate discount amount (percentage of order total)
+        final discountPercentage = discountResponse['discountPercentage']?.toDouble() ?? 0.0;
+        final discountAmount = orderTotal * (discountPercentage / 100);
+        
+        setState(() {
+          _appliedDiscountCode = code;
+          _orderDiscountAmount = discountAmount;
+          _finalAmount = widget.totalAmount - _discountAmount - _orderDiscountAmount;
+        });
+
+        SnackBarUtil.showTopSnackBar(context, 'Kod za popust je uspješno primijenjen!');
+      } else {
+        SnackBarUtil.showTopSnackBar(context, 'Kod za popust nije valjan ili je istekao', isError: true);
+      }
+    } catch (e) {
+      SnackBarUtil.showTopSnackBar(context, 'Greška pri validaciji koda za popust: $e', isError: true);
+    } finally {
+      setState(() {
+        _isValidatingDiscountCode = false;
+      });
+    }
+  }
+
+  void _removeDiscountCode() {
+    setState(() {
+      _appliedDiscountCode = null;
+      _orderDiscountAmount = 0.0;
+      _finalAmount = widget.totalAmount - _discountAmount;
+      _discountCodeController.clear();
+    });
+    SnackBarUtil.showTopSnackBar(context, 'Kod za popust je uklonjen');
+  }
+
   Future<void> _handlePayment() async {
     setState(() {
       _isLoading = true;
@@ -600,7 +790,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         }
       }
 
-      print('Processing order with appliedVoucherId: ${_appliedVoucher?.id}, discountAmount: $_discountAmount');
+      print('Processing order with appliedVoucherId: ${_appliedVoucher?.id}, discountAmount: $_discountAmount, discountCode: $_appliedDiscountCode, orderDiscountAmount: $_orderDiscountAmount');
       await _paymentService.processOrder(
         items: cartItems,
         shippingAddress: widget.shippingAddress,
@@ -608,6 +798,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
         paymentMethodId: paymentMethodId ?? paymentIntentId,
         appliedVoucherId: _appliedVoucher?.id,
         discountAmount: _discountAmount,
+        discountCode: _appliedDiscountCode,
+        orderDiscountAmount: _orderDiscountAmount,
       );
     } catch (e) {
       throw Exception('Greška pri obradi porudžbine: $e');

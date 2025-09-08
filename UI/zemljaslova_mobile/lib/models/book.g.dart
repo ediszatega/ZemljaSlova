@@ -34,6 +34,12 @@ Book _$BookFromJson(Map<String, dynamic> json) => Book(
       (json['authors'] as List<dynamic>?)
           ?.map((e) => Author.fromJson(e as Map<String, dynamic>))
           .toList(),
+  discountId: (json['discountId'] as num?)?.toInt(),
+  discountedPrice: (json['discountedPrice'] as num?)?.toDouble(),
+  discount:
+      json['discount'] == null
+          ? null
+          : Discount.fromJson(json['discount'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$BookToJson(Book instance) => <String, dynamic>{
@@ -57,6 +63,9 @@ Map<String, dynamic> _$BookToJson(Book instance) => <String, dynamic>{
   'language': instance.language,
   'authorIds': instance.authorIds,
   'authors': instance.authors,
+  'discountId': instance.discountId,
+  'discountedPrice': instance.discountedPrice,
+  'discount': instance.discount,
 };
 
 const _$BookPurposeEnumMap = {BookPurpose.sell: 1, BookPurpose.rent: 2};

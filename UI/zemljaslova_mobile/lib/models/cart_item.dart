@@ -4,6 +4,8 @@ class CartItem {
   final double price;
   final int quantity;
   final CartItemType type;
+  final int? discountId;
+  final double? originalPrice;
 
   CartItem({
     required this.id,
@@ -11,6 +13,8 @@ class CartItem {
     required this.price,
     required this.quantity,
     required this.type,
+    this.discountId,
+    this.originalPrice,
   });
 
   CartItem copyWith({
@@ -19,6 +23,8 @@ class CartItem {
     double? price,
     int? quantity,
     CartItemType? type,
+    int? discountId,
+    double? originalPrice,
   }) {
     return CartItem(
       id: id ?? this.id,
@@ -26,6 +32,8 @@ class CartItem {
       price: price ?? this.price,
       quantity: quantity ?? this.quantity,
       type: type ?? this.type,
+      discountId: discountId ?? this.discountId,
+      originalPrice: originalPrice ?? this.originalPrice,
     );
   }
 
