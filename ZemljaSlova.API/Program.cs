@@ -92,8 +92,13 @@ if (app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<_200036Context>();
-    var sql = File.ReadAllText("script.sql");
-    context.Database.ExecuteSqlRaw(sql);
+    
+    var sqlPath = Path.Combine(AppContext.BaseDirectory, "script.sql");
+    if (File.Exists(sqlPath))
+    {
+        var sql = File.ReadAllText(sqlPath);
+        context.Database.ExecuteSqlRaw(sql);
+    }
 }
 
 app.UseHttpsRedirection();
