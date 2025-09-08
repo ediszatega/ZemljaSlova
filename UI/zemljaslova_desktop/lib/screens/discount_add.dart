@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/discount_provider.dart';
 import '../providers/book_provider.dart';
+import '../models/book.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/zs_button.dart';
 import '../widgets/zs_input.dart';
@@ -345,7 +346,9 @@ class _DiscountAddScreenState extends State<DiscountAddScreen> {
             else
               Consumer<BookProvider>(
                 builder: (context, bookProvider, child) {
-                  final selectedBooks = bookProvider.books.where((book) => selectedBookIds.contains(book.id)).toList();
+                  final selectedBooks = bookProvider.books.where((book) => 
+                    selectedBookIds.contains(book.id) && book.bookPurpose == BookPurpose.sell
+                  ).toList();
                   
                   if (selectedBooks.isNotEmpty) {
                     return Container(
@@ -425,7 +428,8 @@ class _DiscountAddScreenState extends State<DiscountAddScreen> {
                     final matchesSearch = bookSearchQuery.isEmpty || 
                         book.title.toLowerCase().contains(bookSearchQuery);
                     final notSelected = !selectedBookIds.contains(book.id);
-                    return matchesSearch && notSelected;
+                    final isForSale = book.bookPurpose == BookPurpose.sell;
+                    return matchesSearch && notSelected && isForSale;
                   }).toList();
                   
                   if (books.isEmpty) {

@@ -48,7 +48,9 @@ class MemberService {
       }
       
       final queryString = queryParams.join('&');
-      final response = await _apiService.get('Member?$queryString');
+      final fullUrl = 'Member?$queryString';
+            
+      final response = await _apiService.get(fullUrl);
       
       if (response != null) {
         final membersList = response['resultList'] as List;

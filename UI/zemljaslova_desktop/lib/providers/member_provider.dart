@@ -111,6 +111,27 @@ class MemberProvider with ChangeNotifier implements PaginatedDataProvider<Member
       notifyListeners();
     }
   }
+
+  Future<List<Member>> fetchAllMembers({bool isUserIncluded = true}) async {
+    try {
+      final allMembersFilters = MemberFilters(showInactiveMembers: true).toQueryParams();
+      
+      final result = await _memberService.fetchMembers(
+        isUserIncluded: isUserIncluded,
+        page: 0,
+        pageSize: 10000,
+        sortBy: 'firstName',
+        sortOrder: 'asc',
+        filters: allMembersFilters,
+      );
+      
+      final members = result['members'] as List<Member>;
+      
+      return members;
+    } catch (e) {
+      throw Exception('Failed to fetch all members: $e');
+    }
+  }
   
   @override
   Future<void> loadMore({bool isUserIncluded = true}) async {

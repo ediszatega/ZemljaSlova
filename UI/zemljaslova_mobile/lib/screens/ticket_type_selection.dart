@@ -453,7 +453,7 @@ class _TicketTypeSelectionScreenState extends State<TicketTypeSelectionScreen> {
     final availableQty = currentQty != null ? currentQty - inCartQty : null;
     
     if (availableQty != null && availableQty > 0) {
-      _quantity = availableQty < 10 ? availableQty : 10;
+      _quantity = 1;
     } else {
       _quantity = 1;
     }

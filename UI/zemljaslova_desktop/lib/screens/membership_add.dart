@@ -27,6 +27,8 @@ class _MembershipAddScreenState extends State<MembershipAddScreen> {
   Member? _selectedMember;
   bool _checkingActiveMembership = false;
   bool _hasActiveMembership = false;
+  List<Member> _allMembers = [];
+  bool _loadingAllMembers = false;
 
   @override
   void initState() {
@@ -38,16 +40,46 @@ class _MembershipAddScreenState extends State<MembershipAddScreen> {
       _checkActiveMembership();
     }
     
-    // Fetch members when screen loads (only if no member is preselected)
+    // Fetch all members
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.preselectedMember == null) {
-        Provider.of<MemberProvider>(context, listen: false).fetchMembers(refresh: true);
+        _fetchAllMembers();
       }
     });
   }
 
+  Future<void> _fetchAllMembers() async {
+    setState(() {
+      _loadingAllMembers = true;
+    });
+
+    try {
+      final memberProvider = Provider.of<MemberProvider>(context, listen: false);
+      
+      final allMembers = await memberProvider.fetchAllMembers(isUserIncluded: true);
+      
+      setState(() {
+        _allMembers = allMembers;
+        _loadingAllMembers = false;
+      });
+    } catch (e) {      
+      setState(() {
+        _loadingAllMembers = false;
+      });
+      
+      // Show error message if needed
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Greška pri učitavanju članova: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   Future<void> _checkActiveMembership() async {
-    if (_selectedMember == null) return;
+    final selectedMember = _selectedMember;
+    if (selectedMember == null) return;
     
     setState(() {
       _checkingActiveMembership = true;
@@ -55,7 +87,7 @@ class _MembershipAddScreenState extends State<MembershipAddScreen> {
     
     try {
       final membershipProvider = Provider.of<MembershipProvider>(context, listen: false);
-      final activeMembership = await membershipProvider.getActiveMembership(_selectedMember!.id);
+      final activeMembership = await membershipProvider.getActiveMembership(selectedMember.id);
       
       setState(() {
         _hasActiveMembership = activeMembership != null;
@@ -125,100 +157,106 @@ class _MembershipAddScreenState extends State<MembershipAddScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Member selection dropdown
-                            Consumer<MemberProvider>(
-                              builder: (context, memberProvider, child) {
-                                // If member is preselected, show read-only field
-                                if (widget.preselectedMember != null) {
-                                  return Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Član',
-                                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Container(
-                                        width: 600,
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(color: Colors.grey.shade300),
-                                          borderRadius: BorderRadius.circular(4),
-                                          color: Colors.grey.shade50,
-                                        ),
-                                        child: Text(
-                                          '${widget.preselectedMember!.firstName} ${widget.preselectedMember!.lastName}',
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ),
-                                      if (_checkingActiveMembership)
-                                        const Padding(
-                                          padding: EdgeInsets.only(top: 8.0),
-                                          child: Row(
-                                            children: [
-                                              SizedBox(
-                                                width: 16,
-                                                height: 16,
-                                                child: CircularProgressIndicator(strokeWidth: 2),
-                                              ),
-                                              SizedBox(width: 8),
-                                              Text('Provjeravam postojeće članarine...'),
-                                            ],
-                                          ),
-                                        ),
-                                      if (!_checkingActiveMembership && _hasActiveMembership)
-                                        Container(
-                                          margin: const EdgeInsets.only(top: 8.0),
-                                          padding: const EdgeInsets.all(12),
-                                          width: 600,
-                                          decoration: BoxDecoration(
-                                            color: Colors.orange.shade50,
-                                            border: Border.all(color: Colors.orange.shade300),
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Icon(Icons.warning, color: Colors.orange.shade600, size: 20),
-                                              const SizedBox(width: 8),
-                                              Expanded(
-                                                child: Text(
-                                                  'Ovaj član već ima aktivnu članarinu. Nije moguće dodati novu članarinu.',
-                                                  style: TextStyle(
-                                                    color: Colors.orange.shade800,
-                                                    fontSize: 13,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                    ],
-                                  );
-                                }
-
-                                // Original dropdown for member selection
-                                if (memberProvider.isLoading) {
-                                  return const CircularProgressIndicator();
-                                }
-
-                                final members = memberProvider.members;
-                                final memberOptions = members.map((member) => 
-                                    DropdownMenuItem(
-                                      value: member,
-                                      child: Text('${member.firstName} ${member.lastName}'),
-                                    )
-                                ).toList();
-
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Odaberite člana',
-                                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                            // If member is preselected, show read-only field
+                            if (widget.preselectedMember != null) 
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Član',
+                                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Container(
+                                    width: 600,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey.shade300),
+                                      borderRadius: BorderRadius.circular(4),
+                                      color: Colors.grey.shade50,
                                     ),
-                                    const SizedBox(height: 4),
+                                    child: Text(
+                                      '${widget.preselectedMember!.firstName} ${widget.preselectedMember!.lastName}',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                  if (_checkingActiveMembership)
+                                    const Padding(
+                                      padding: EdgeInsets.only(top: 8.0),
+                                      child: Row(
+                                        children: [
+                                          SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text('Provjeravam postojeće članarine...'),
+                                        ],
+                                      ),
+                                    ),
+                                  if (!_checkingActiveMembership && _hasActiveMembership)
+                                    Container(
+                                      margin: const EdgeInsets.only(top: 8.0),
+                                      padding: const EdgeInsets.all(12),
+                                      width: 600,
+                                      decoration: BoxDecoration(
+                                        color: Colors.orange.shade50,
+                                        border: Border.all(color: Colors.orange.shade300),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.warning, color: Colors.orange.shade600, size: 20),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              'Ovaj član već ima aktivnu članarinu. Nije moguće dodati novu članarinu.',
+                                              style: TextStyle(
+                                                color: Colors.orange.shade800,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                              )
+                            else
+                              // Dropdown for member selection (shows all members)
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Odaberite člana',
+                                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  if (_loadingAllMembers)
+                                    Container(
+                                      width: 600,
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: Colors.grey.shade300),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: const Row(
+                                        children: [
+                                          SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text('Učitavam članove...'),
+                                        ],
+                                      ),
+                                    )
+                                  else
                                     Container(
                                       width: 600,
                                       decoration: BoxDecoration(
@@ -227,11 +265,20 @@ class _MembershipAddScreenState extends State<MembershipAddScreen> {
                                       ),
                                       child: DropdownButtonFormField<Member>(
                                         value: _selectedMember,
-                                        items: memberOptions,
+                                        items: () {
+                                          final items = _allMembers.map((member) => 
+                                              DropdownMenuItem(
+                                                value: member,
+                                                child: Text('${member.firstName} ${member.lastName}'),
+                                              )
+                                          ).toList();
+                                          return items;
+                                        }(),
                                         onChanged: (member) {
                                           setState(() {
                                             _selectedMember = member;
                                           });
+                                          _checkActiveMembership();
                                         },
                                         validator: (value) {
                                           if (value == null) {
@@ -239,17 +286,16 @@ class _MembershipAddScreenState extends State<MembershipAddScreen> {
                                           }
                                           return null;
                                         },
-                                        decoration: InputDecoration(
+                                        decoration: const InputDecoration(
                                           border: InputBorder.none,
-                                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                         ),
                                         hint: const Text('Odaberite člana...'),
+                                        isExpanded: true,
                                       ),
                                     ),
-                                  ],
-                                );
-                              },
-                            ),
+                                ],
+                              ),
                             
                             const SizedBox(height: 24),
                             
@@ -263,10 +309,8 @@ class _MembershipAddScreenState extends State<MembershipAddScreen> {
                                 setState(() {
                                   _selectedStartDate = date;
                                   // Auto-set end date to 30 days after start date
-                                  if (date != null) {
-                                    _selectedEndDate = date.add(const Duration(days: 30));
-                                    _endDateController.text = _formatDate(_selectedEndDate!);
-                                  }
+                                  _selectedEndDate = date.add(const Duration(days: 30));
+                                  _endDateController.text = _formatDate(_selectedEndDate!);
                                 });
                               },
                               validator: (value) {
