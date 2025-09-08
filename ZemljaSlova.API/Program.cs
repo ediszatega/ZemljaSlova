@@ -89,6 +89,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<_200036Context>();
+    var sql = File.ReadAllText("script.sql");
+    context.Database.ExecuteSqlRaw(sql);
+}
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

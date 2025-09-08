@@ -5,7 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.1.11:5285';
+  static const String baseUrl = 'http://10.0.2.2:5285';
       
   String? authToken;
   final _storage = const FlutterSecureStorage();
