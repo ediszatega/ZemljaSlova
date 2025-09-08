@@ -92,7 +92,7 @@ class _VoucherPurchaseScreenState extends State<VoucherPurchaseScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer',
+          'Kupovinom poklon bona dobivate kod koji je moguće iskoristiti prilikom plaćanja kako biste ostvarili popust na vašu kupovinu. Moguće je odabrati predefinisane vrijednosti ili odabrati vrijednost po želji. Nakon kupovine vaučera dobit ćete email sa kodom koji možete iskoristiti prilikom plaćanja.',
           style: TextStyle(
             fontSize: 14,
             color: Colors.grey.shade700,
@@ -117,7 +117,7 @@ class _VoucherPurchaseScreenState extends State<VoucherPurchaseScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer',
+          'Benefiti kupovine poklon bona ogledaju se u tome što, pored popusta koji se ostvaruje, jeste i skupljanje bodova za Klub čitalaca, a kupovina jednog vaučera nosi 20 bodova.',
           style: TextStyle(
             fontSize: 14,
             color: Colors.grey.shade700,
