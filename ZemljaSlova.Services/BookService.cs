@@ -343,7 +343,7 @@ namespace ZemljaSlova.Services
                 throw new UserException("Nije moguće izbrisati knjigu koja ima ranije transakcije.");
             }
 
-            // Remove book-author relationships and favourites
+            // Remove book-author relationships, favourites, and recommendations
             var bookAuthors = Context.BookAuthors
                 .Where(ba => ba.BookId == entity.Id)
                 .ToList();
@@ -360,6 +360,15 @@ namespace ZemljaSlova.Services
             if (favourites.Any())
             {
                 Context.Favourites.RemoveRange(favourites);
+            }
+
+            var recommendations = Context.Recommendations
+                .Where(r => r.BookId == entity.Id)
+                .ToList();
+                
+            if (recommendations.Any())
+            {
+                Context.Recommendations.RemoveRange(recommendations);
             }
         }
 

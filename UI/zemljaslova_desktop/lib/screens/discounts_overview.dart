@@ -972,10 +972,14 @@ class _DiscountsOverviewState extends State<DiscountsOverview> {
                     ),
                   );
                 } else {
+                  final discountProvider = Provider.of<DiscountProvider>(context, listen: false);
+                  String errorMessage = discountProvider.error ?? 'Greška pri brisanju popusta';
+                  
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Greška pri brisanju popusta'),
+                    SnackBar(
+                      content: Text(errorMessage),
                       backgroundColor: Colors.red,
+                      duration: const Duration(seconds: 6),
                     ),
                   );
                 }

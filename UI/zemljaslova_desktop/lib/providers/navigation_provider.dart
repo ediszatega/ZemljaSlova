@@ -16,7 +16,7 @@ enum NavigationItem {
 }
 
 class NavigationProvider with ChangeNotifier {
-  NavigationItem _currentItem = NavigationItem.members;
+  NavigationItem _currentItem = NavigationItem.profile;
 
   NavigationItem get currentItem => _currentItem;
 

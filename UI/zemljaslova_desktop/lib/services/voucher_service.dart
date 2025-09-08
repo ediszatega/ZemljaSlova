@@ -135,7 +135,7 @@ class VoucherService {
   Future<bool> deleteVoucher(int id) async {
     try {
       final response = await _apiService.delete('Voucher/$id');
-      return response;
+      return response != null;
     } catch (e) {
       throw Exception('Greška prilikom brisanja vouchera.');
     }

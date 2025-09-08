@@ -165,9 +165,9 @@ class DiscountService {
   Future<bool> deleteDiscount(int id) async {
     try {
       final response = await _apiService.delete('Discount/$id');
-      return response;
+      return response != null;
     } catch (e) {
-      return false;
+      throw Exception(e.toString());
     }
   }
 
