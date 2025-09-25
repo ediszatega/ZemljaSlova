@@ -58,7 +58,7 @@ services:
       - SMTP_USERNAME=zemljaslova@gmail.com
       - SMTP_PASSWORD=vimi rwyf uoqq mjvt
     ports:
-      - "7296:7296"
+      - "7139:7139"
     networks:
       - zemljaslova-network
     depends_on:
