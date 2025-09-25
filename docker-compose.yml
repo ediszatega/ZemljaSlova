@@ -1,4 +1,26 @@
 services:
+  zemljaslova-sql:
+    image: mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+    container_name: zemljaslova-sql
+    restart: unless-stopped
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong!Passw0rd
+      - MSSQL_PID=Developer
+    ports:
+      - "1401:1433"
+    expose:
+      - 1433
+    volumes:
+      - sql_data:/var/opt/mssql
+    networks:
+      - zemljaslova-network
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "YourStrong!Passw0rd" -Q "SELECT 1" || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: zemljaslova-rabbitmq
@@ -17,6 +39,33 @@ services:
       interval: 30s
       timeout: 30s
       retries: 3
+
+  zemljaslova-api:
+    build:
+      context: .
+      dockerfile: ./ZemljaSlova.API/Dockerfile
+    container_name: zemljaslova-api
+    restart: unless-stopped
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=zemljaslova-sql,1433;Database=ZemljaSlova;User=SA;Password=YourStrong!Passw0rd;ConnectRetryCount=0;TrustServerCertificate=True
+      - ASPNETCORE_ENVIRONMENT=Development
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+      - SMTP_SERVER=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USERNAME=zemljaslova@gmail.com
+      - SMTP_PASSWORD=vimi rwyf uoqq mjvt
+    ports:
+      - "7296:7296"
+    networks:
+      - zemljaslova-network
+    depends_on:
+      zemljaslova-sql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
   zemljaslova-subscriber:
     build:
@@ -41,6 +90,7 @@ services:
 
 volumes:
   rabbitmq_data:
+  sql_data:
 
 networks:
   zemljaslova-network:

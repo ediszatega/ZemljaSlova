@@ -4,8 +4,7 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER $APP_UID
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
+EXPOSE 7296
 
 
 # This stage is used to build the service project
@@ -13,6 +12,8 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["ZemljaSlova.API/ZemljaSlova.API.csproj", "ZemljaSlova.API/"]
+COPY ["ZemljaSlova.Services/ZemljaSlova.Services.csproj", "ZemljaSlova.Services/"]
+COPY ["ZemljaSlova.Model/ZemljaSlova.Model.csproj", "ZemljaSlova.Model/"]
 RUN dotnet restore "./ZemljaSlova.API/ZemljaSlova.API.csproj"
 COPY . .
 WORKDIR "/src/ZemljaSlova.API"
