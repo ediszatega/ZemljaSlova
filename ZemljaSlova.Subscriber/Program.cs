@@ -7,8 +7,8 @@ Console.WriteLine("_Starting ZemljaSlova Subscriber Service");
 Console.WriteLine("_Waiting for RabbitMQ to be ready");
 
 // Wait for RabbitMQ to be ready with retry logic
-IConnection connection = null;
-IModel channel = null;
+IConnection? connection = null;
+IModel? channel = null;
 int maxRetries = 5;
 int retryDelayMs = 2000;
 
@@ -76,18 +76,26 @@ consumer.Received += (sender, args) =>
     EmailService emailService = new EmailService();
     emailService.SendEmail(message);
 
-    channel.BasicAck(args.DeliveryTag, false);
+    channel?.BasicAck(args.DeliveryTag, false);
 };
 
 channel.BasicConsume(queueName, false, consumer);
 
-Console.WriteLine("_Waiting for email messages. Press Q to quit");
+Console.WriteLine("Waiting for email messages.");
 
-while (true)
+using var cts = new CancellationTokenSource();
+Console.CancelKeyPress += (_, e) => {
+    e.Cancel = true;
+    cts.Cancel();
+};
+
+try
 {
-    var key = Console.ReadKey(true);
-    if (key.Key == ConsoleKey.Q)
-        break;
+    await Task.Delay(Timeout.Infinite, cts.Token);
+}
+catch (OperationCanceledException)
+{
+    Console.WriteLine("Shutdown signal received");
 }
 
 Console.WriteLine("_Shutting down subscriber service");
