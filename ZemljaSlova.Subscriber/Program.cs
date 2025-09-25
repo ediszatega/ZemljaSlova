@@ -7,40 +7,14 @@ Console.WriteLine("_Starting ZemljaSlova Subscriber Service");
 Console.WriteLine("_Waiting for RabbitMQ to be ready");
 
 // Wait for RabbitMQ to be ready with retry logic
-IConnection connection = new ConnectionFactory().CreateConnection();
-IModel channel = connection.CreateModel();
+IConnection connection = null;
+IModel channel = null;
 int maxRetries = 5;
 int retryDelayMs = 2000;
 
 string exchangeName = "EmailExchange";
 string routingKey = "email_queue";
 string queueName = "EmailQueue";
-
-// Try to start RabbitMQ if it's not running
-Console.WriteLine("_Attempting to start RabbitMQ if not running");
-try
-{
-    var startInfo = new System.Diagnostics.ProcessStartInfo
-    {
-        FileName = "docker-compose",
-        Arguments = "up rabbitmq -d",
-        UseShellExecute = false,
-        RedirectStandardOutput = true,
-        RedirectStandardError = true,
-        CreateNoWindow = true
-    };
-    
-    using var process = System.Diagnostics.Process.Start(startInfo);
-    if (process != null)
-    {
-        process.WaitForExit(10000);
-        Console.WriteLine("_RabbitMQ startup command completed");
-    }
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"_Could not start RabbitMQ automatically: {ex.Message}");
-}
 
 // Wait for RabbitMQ to initialize
 Console.WriteLine("_Waiting for RabbitMQ to initialize");
@@ -61,7 +35,7 @@ for (int attempt = 1; attempt <= maxRetries; attempt++)
         };
         factory.ClientProvidedName = "ZemljaSlova Consumer";
 
-        connection = new ConnectionFactory().CreateConnection();
+        connection = factory.CreateConnection();
         channel = connection.CreateModel();
 
         channel.ExchangeDeclare(exchangeName, ExchangeType.Direct);

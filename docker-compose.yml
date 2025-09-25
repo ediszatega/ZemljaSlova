@@ -12,6 +12,11 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - zemljaslova-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
 
   zemljaslova-subscriber:
     build:
@@ -28,7 +33,8 @@ services:
       - SMTP_USERNAME=zemljaslova@gmail.com
       - SMTP_PASSWORD=vimi rwyf uoqq mjvt
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     networks:
       - zemljaslova-network
     restart: unless-stopped
