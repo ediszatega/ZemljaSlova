@@ -1,6 +1,6 @@
 services:
   zemljaslova-sql:
-    image: mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+    image: mcr.microsoft.com/mssql/server:2019-latest
     container_name: zemljaslova-sql
     restart: unless-stopped
     environment:
@@ -16,7 +16,7 @@ services:
     networks:
       - zemljaslova-network
     healthcheck:
-      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "YourStrong!Passw0rd" -Q "SELECT 1" || exit 1
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P "YourStrong!Passw0rd" -C -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '200036') CREATE DATABASE [200036]; SELECT 1" || exit 1
       interval: 30s
       timeout: 10s
       retries: 5
@@ -47,7 +47,7 @@ services:
     container_name: zemljaslova-api
     restart: unless-stopped
     environment:
-      - ConnectionStrings__DefaultConnection=Server=zemljaslova-sql,1433;Database=ZemljaSlova;User=SA;Password=YourStrong!Passw0rd;ConnectRetryCount=0;TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Server=zemljaslova-sql,1433;Database=200036;User=SA;Password=YourStrong!Passw0rd;ConnectRetryCount=0;TrustServerCertificate=True
       - ASPNETCORE_ENVIRONMENT=Development
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
