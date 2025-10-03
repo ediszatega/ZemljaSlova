@@ -1,4 +1,4 @@
-@ZemljaSlova.API_HostAddress = http://localhost:5285
+@ZemljaSlova.API_HostAddress = http://localhost:7139
 
 GET {{ZemljaSlova.API_HostAddress}}/weatherforecast/
 Accept: application/json

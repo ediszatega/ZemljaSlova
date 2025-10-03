@@ -7,6 +7,8 @@ services:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=YourStrong!Passw0rd
       - MSSQL_PID=Developer
+      - MSSQL_AGENT_ENABLED=true
+    user: root
     ports:
       - "1401:1433"
     expose:
@@ -15,6 +17,10 @@ services:
       - sql_data:/var/opt/mssql
     networks:
       - zemljaslova-network
+    command: >
+      bash -c "
+      chown -R mssql:0 /var/opt/mssql &&
+      /opt/mssql/bin/sqlservr"
     healthcheck:
       test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P "YourStrong!Passw0rd" -C -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '200036') CREATE DATABASE [200036]; SELECT 1" || exit 1
       interval: 30s
